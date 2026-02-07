@@ -7,11 +7,12 @@ export enum ProductStatus {
 export interface Product {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   price: number;
   images: string[];
   status: ProductStatus;
-  createdAt: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ToastMessage {

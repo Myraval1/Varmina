@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Product, ToastMessage } from '../types';
-import { productService } from '../services/productService';
+import { supabaseProductService } from '../services/supabaseProductService';
+import { authService } from '../services/authService';
+import { User } from '@supabase/supabase-js';
 
 interface StoreContextType {
   products: Product[];
@@ -14,7 +16,8 @@ interface StoreContextType {
   addToast: (type: ToastMessage['type'], message: string) => void;
   removeToast: (id: string) => void;
   isAuthenticated: boolean;
-  login: (u: string, p: string) => Promise<void>;
+  user: User | null;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -27,6 +30,45 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [darkMode, setDarkMode] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  // Check authentication status on mount
+  useEffect(() => {
+    const isAdminEmail = (email?: string) => !!email?.endsWith('@varmina.com');
+
+    const checkAuth = async () => {
+      const currentUser = await authService.getCurrentUser();
+      setUser(currentUser);
+      setIsAuthenticated(!!currentUser && isAdminEmail(currentUser.email));
+    };
+
+    checkAuth();
+
+    // Listen to auth state changes
+    const { data: { subscription } } = authService.onAuthStateChange(async (event, session) => {
+      const currentUser = session?.user || null;
+      const isAuthorized = !!currentUser && isAdminEmail(currentUser.email);
+
+      setUser(currentUser);
+      setIsAuthenticated(isAuthorized);
+
+      if (event === 'SIGNED_IN') {
+        if (isAuthorized) {
+          addToast('success', 'Bienvenido, Admin');
+        } else {
+          addToast('error', 'Acceso denegado: Solo administradores autorizados');
+          await authService.signOut();
+        }
+        await refreshProducts();
+      } else if (event === 'SIGNED_OUT') {
+        addToast('info', 'Sesión cerrada');
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
 
   // Initial Load
   useEffect(() => {
@@ -45,9 +87,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const refreshProducts = async () => {
     setLoading(true);
     try {
-      const data = await productService.getAll();
+      const data = await supabaseProductService.getAll();
       setProducts(data);
     } catch (error) {
+      console.error('Error loading products:', error);
       addToast('error', 'Error al cargar los productos');
     } finally {
       setLoading(false);
@@ -67,20 +110,17 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
-  const login = async (u: string, p: string) => {
-    return new Promise<void>(resolve => {
-        // Mock API delay
-        setTimeout(() => {
-            setIsAuthenticated(true);
-            addToast('success', 'Bienvenido, Admin');
-            resolve();
-        }, 1000);
-    });
+  const login = async (email: string, password: string) => {
+    const { error } = await authService.signIn(email, password);
+
+    if (error) {
+      addToast('error', error.message || 'Error al iniciar sesión');
+      throw error;
+    }
   };
 
-  const logout = () => {
-      setIsAuthenticated(false);
-      addToast('info', 'Sesión cerrada');
+  const logout = async () => {
+    await authService.signOut();
   };
 
   return (
@@ -96,6 +136,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       addToast,
       removeToast,
       isAuthenticated,
+      user,
       login,
       logout
     }}>

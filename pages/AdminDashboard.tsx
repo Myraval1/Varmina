@@ -2,14 +2,14 @@ import React, { useState, useRef } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Product, ProductStatus } from '../types';
 import { Button, Input, StatusBadge, Modal } from '../components/UI';
-import { productService } from '../services/productService';
+import { supabaseProductService } from '../services/supabaseProductService';
 import { Plus, Edit2, Trash2, Upload, X, Save, AlertCircle, Package } from 'lucide-react';
 
 // --- PRODUCT FORM ---
-const ProductForm = ({ initialData, onSave, onCancel }: { 
-  initialData?: Product, 
-  onSave: () => void, 
-  onCancel: () => void 
+const ProductForm = ({ initialData, onSave, onCancel }: {
+  initialData?: Product,
+  onSave: () => void,
+  onCancel: () => void
 }) => {
   const { addToast } = useStore();
   const [formData, setFormData] = useState<Partial<Product>>(initialData || {
@@ -20,6 +20,7 @@ const ProductForm = ({ initialData, onSave, onCancel }: {
     images: []
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
@@ -38,53 +39,91 @@ const ProductForm = ({ initialData, onSave, onCancel }: {
     setIsSubmitting(true);
     try {
       if (initialData) {
-        await productService.update(initialData.id, formData);
+        await supabaseProductService.update(initialData.id, {
+          name: formData.name,
+          description: formData.description,
+          price: formData.price,
+          images: formData.images,
+          status: formData.status,
+        });
         addToast('success', 'Producto actualizado con éxito');
       } else {
-        await productService.create(formData as Omit<Product, 'id' | 'createdAt'>);
+        await supabaseProductService.create({
+          name: formData.name!,
+          description: formData.description,
+          price: formData.price!,
+          images: formData.images,
+          status: formData.status,
+        });
         addToast('success', 'Producto creado con éxito');
       }
       onSave();
     } catch (error) {
+      console.error('Error saving product:', error);
       addToast('error', 'Error al guardar el producto');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Mock Image Upload
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Real Image Upload to Supabase Storage
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      // Create fake URLs for local preview
-      const newImages = Array.from(e.target.files).map((file: File) => URL.createObjectURL(file));
-      setFormData(prev => ({ ...prev, images: [...(prev.images || []), ...newImages] }));
+      setIsUploading(true);
+      try {
+        const uploadPromises = Array.from(e.target.files).map((file: File) =>
+          supabaseProductService.uploadImage(file)
+        );
+
+        const uploadedUrls = await Promise.all(uploadPromises);
+        setFormData(prev => ({ ...prev, images: [...(prev.images || []), ...uploadedUrls] }));
+        addToast('success', `${uploadedUrls.length} imagen(es) subida(s)`);
+      } catch (error) {
+        console.error('Error uploading images:', error);
+        addToast('error', 'Error al subir imágenes');
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
+  const handleRemoveImage = async (imageUrl: string, index: number) => {
+    try {
+      // Only delete from storage if it's a Supabase URL (not a blob URL)
+      if (imageUrl.includes('supabase')) {
+        await supabaseProductService.deleteImage(imageUrl);
+      }
+      setFormData({ ...formData, images: formData.images?.filter((_, i) => i !== index) });
+    } catch (error) {
+      console.error('Error removing image:', error);
+      addToast('error', 'Error al eliminar imagen');
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-6">
-        <Input 
-          label="Nombre del Producto" 
-          value={formData.name} 
-          onChange={e => setFormData({...formData, name: e.target.value})}
+        <Input
+          label="Nombre del Producto"
+          value={formData.name}
+          onChange={e => setFormData({ ...formData, name: e.target.value })}
           error={errors.name}
         />
-        <Input 
-          label="Precio (CLP)" 
+        <Input
+          label="Precio (CLP)"
           type="number"
-          value={formData.price} 
-          onChange={e => setFormData({...formData, price: Number(e.target.value)})}
+          value={formData.price}
+          onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
           error={errors.price}
         />
       </div>
 
       <div>
         <label className="block text-xs font-serif uppercase tracking-wider text-stone-500 mb-1">Descripción</label>
-        <textarea 
+        <textarea
           className="w-full bg-transparent border border-stone-300 p-3 text-stone-900 focus:border-gold-400 focus:outline-none min-h-[100px] dark:border-stone-700 dark:text-stone-100"
           value={formData.description}
-          onChange={e => setFormData({...formData, description: e.target.value})}
+          onChange={e => setFormData({ ...formData, description: e.target.value })}
         />
       </div>
 
@@ -93,11 +132,11 @@ const ProductForm = ({ initialData, onSave, onCancel }: {
         <div className="flex gap-4">
           {Object.values(ProductStatus).map(s => (
             <label key={s} className="flex items-center gap-2 cursor-pointer">
-              <input 
-                type="radio" 
-                name="status" 
+              <input
+                type="radio"
+                name="status"
                 checked={formData.status === s}
-                onChange={() => setFormData({...formData, status: s})}
+                onChange={() => setFormData({ ...formData, status: s })}
                 className="accent-gold-500"
               />
               <span className="text-sm">{s}</span>
@@ -112,9 +151,9 @@ const ProductForm = ({ initialData, onSave, onCancel }: {
           {formData.images?.map((img, idx) => (
             <div key={idx} className="relative aspect-square group">
               <img src={img} className="w-full h-full object-cover rounded border border-stone-200" alt="upload" />
-              <button 
+              <button
                 type="button"
-                onClick={() => setFormData({...formData, images: formData.images?.filter((_, i) => i !== idx)})}
+                onClick={() => handleRemoveImage(img, idx)}
                 className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <X className="w-3 h-3" />
@@ -149,7 +188,7 @@ export const AdminDashboard = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await productService.delete(id);
+      await supabaseProductService.delete(id);
       addToast('success', 'Producto eliminado');
       refreshProducts();
       setDeleteConfirm(null);
@@ -207,13 +246,13 @@ export const AdminDashboard = () => {
                 </td>
                 <td className="p-4 text-right">
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
+                    <button
                       onClick={() => setEditingProduct(product)}
                       className="p-2 text-stone-400 hover:text-gold-500 hover:bg-stone-100 rounded-full dark:hover:bg-stone-600"
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => setDeleteConfirm(product.id)}
                       className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-full dark:hover:bg-red-900/30"
                     >
@@ -227,36 +266,36 @@ export const AdminDashboard = () => {
         </table>
         {products.length === 0 && (
           <div className="p-12 text-center text-stone-400">
-             <Package className="w-12 h-12 mx-auto mb-4 opacity-20" />
-             <p>No hay productos en el inventario.</p>
+            <Package className="w-12 h-12 mx-auto mb-4 opacity-20" />
+            <p>No hay productos en el inventario.</p>
           </div>
         )}
       </div>
 
       {/* Edit/Create Modal */}
-      <Modal 
-        isOpen={isCreating || !!editingProduct} 
+      <Modal
+        isOpen={isCreating || !!editingProduct}
         onClose={() => { setIsCreating(false); setEditingProduct(null); }}
         title={isCreating ? "Agregar Nueva Pieza" : "Editar Pieza"}
       >
-        <ProductForm 
-          initialData={editingProduct || undefined} 
-          onSave={handleSave} 
-          onCancel={() => { setIsCreating(false); setEditingProduct(null); }} 
+        <ProductForm
+          initialData={editingProduct || undefined}
+          onSave={handleSave}
+          onCancel={() => { setIsCreating(false); setEditingProduct(null); }}
         />
       </Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title="Confirmar Eliminación">
         <div className="text-center py-4">
-            <div className="w-12 h-12 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-6 h-6" />
-            </div>
-            <p className="text-stone-600 mb-6">¿Estás seguro de que deseas eliminar este artículo? Esta acción no se puede deshacer.</p>
-            <div className="flex justify-center gap-3">
-                <Button variant="ghost" onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
-                <Button variant="danger" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>Eliminar</Button>
-            </div>
+          <div className="w-12 h-12 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <p className="text-stone-600 mb-6">¿Estás seguro de que deseas eliminar este artículo? Esta acción no se puede deshacer.</p>
+          <div className="flex justify-center gap-3">
+            <Button variant="ghost" onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
+            <Button variant="danger" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>Eliminar</Button>
+          </div>
         </div>
       </Modal>
 
