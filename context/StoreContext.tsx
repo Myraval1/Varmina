@@ -94,68 +94,65 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     isInitializingRef.current = true;
 
     const initialize = async () => {
-      console.log('⚡ STARTING STORE INITIALIZATION');
+      console.log('⚡ [Auth] Start store initialization');
       setLoading(true);
 
       try {
-        // 1. Get session immediately without strict timeout
         const session = await authService.getCurrentSession();
         const currentUser = session?.user || null;
+        console.log('⚡ [Auth] Found user:', currentUser?.email || 'none');
         setUser(currentUser);
 
-        // 2. Start fetching settings and products in background
-        // These are not awaited here to speed up time-to-interactivity for admin
+        // Start fetching settings and products in background
         refreshSettings().catch(e => console.error('BG Settings Fail:', e));
         refreshProducts(true, true).catch(e => console.error('BG Products Fail:', e));
 
-        // 3. Critical: Verify admin status if we have a user
         if (currentUser) {
+          console.log('⚡ [Auth] Checking admin status for:', currentUser.email);
           try {
-            // Use 15s timeout for the critical initial check
             const isAuthorized = await withTimeout(authService.isAdmin(currentUser.id), 15000, false);
+            console.log('⚡ [Auth] Admin result:', isAuthorized);
             setIsAuthenticated(isAuthorized);
           } catch (e) {
-            console.error('Initial Admin Check Failed:', e);
+            console.error('⚡ [Auth] Admin Check Failed:', e);
             setIsAuthenticated(false);
           }
         } else {
           setIsAuthenticated(false);
         }
       } catch (err) {
-        console.error('Initialization Error:', err);
+        console.error('⚡ [Auth] Initialization Error:', err);
       } finally {
         setLoading(false);
-        console.log('🏁 INITIALIZATION FINISHED');
+        console.log('🏁 [Auth] Initialization finished');
       }
     };
 
     initialize();
 
     const { data: { subscription } } = authService.onAuthStateChange(async (event, session) => {
-      console.log('🔐 Auth State Changed:', event);
+      console.log('🔐 [Auth] State changed event:', event);
       const currentUser = session?.user || null;
+      console.log('🔐 [Auth] User in event:', currentUser?.email || 'none');
+
       setUser(currentUser);
 
       if (currentUser) {
-        // Only run the authorization check if we don't already know they are authenticated
-        // or if it's a SIGNED_IN event (which could be a new login)
         if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          console.log('🔐 [Auth] Verifying authorization for event:', event);
           const isAuthorized = await withTimeout(
             authService.isAdmin(currentUser.id).catch(err => {
-              console.error('isAdmin check failed in event listener:', err);
+              console.error('🔐 [Auth] isAdmin check error:', err);
               return false;
             }),
             15000,
             false
           );
 
+          console.log('🔐 [Auth] Result for user:', currentUser.email, 'isAdmin:', isAuthorized);
           setIsAuthenticated(isAuthorized);
 
-          // We removed the automatic signOut here. If the user is SIGNED_IN but not an admin,
-          // the ProtectedRoute will already block them and show the login page.
-          // Automatic signOut can be too aggressive and trigger race conditions on refresh.
           if (event === 'SIGNED_IN' && !isAuthorized) {
-            console.warn('User signed in but not authorized as admin.');
             addToast('error', 'No tienes permisos de administrador.');
           }
         }
@@ -178,23 +175,39 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const toggleDarkMode = useCallback(() => setDarkMode(prev => !prev), []);
 
   const login = async (email: string, password: string) => {
+    console.log('Attempting login for:', email);
     const { user: authUser, error } = await authService.signIn(email, password);
+
     if (error) {
+      console.error('Login error:', error.message);
       addToast('error', error.message);
       throw error;
     }
 
     if (authUser) {
-      // Explicit verify to ensure UI waits for this
-      const isAuthorized = await withTimeout(authService.isAdmin(authUser.id), 10000, false);
-      if (isAuthorized) {
-        setUser(authUser);
-        setIsAuthenticated(true);
-        addToast('success', 'Bienvenido');
-      } else {
-        await authService.signOut();
-        addToast('error', 'Acceso denegado: No tienes permisos de administrador.');
-        throw new Error('Not authorized');
+      console.log('Login successful, verifying admin status for:', authUser.id);
+
+      try {
+        // High timeout for login verification
+        const isAuthorized = await withTimeout(authService.isAdmin(authUser.id), 12000, false);
+
+        if (isAuthorized) {
+          console.log('Admin authorization successful');
+          setUser(authUser);
+          setIsAuthenticated(true);
+          addToast('success', 'Acceso concedido. Bienvenido.');
+        } else {
+          console.warn('User logged in but is NOT an admin in profiles table');
+          // Important: We don't sign out automatically here to allow the user to see the error
+          // and because they ARE technically logged into Supabase.
+          // The UI will keep them on the login page via ProtectedRoute.
+          addToast('error', 'Su cuenta no tiene permisos de administrador.');
+          throw new Error('Not authorized as admin');
+        }
+      } catch (checkErr) {
+        console.error('Admin check failed during login:', checkErr);
+        addToast('error', 'Error verificando permisos. Por favor intente de nuevo.');
+        throw checkErr;
       }
     }
   };
