@@ -66,7 +66,11 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
       if (event === 'SIGNED_IN') {
         if (isAuthorized) {
-          addToast('success', 'Bienvenido, Admin');
+          const hasBeenWelcomed = sessionStorage.getItem('admin_welcomed');
+          if (!hasBeenWelcomed) {
+            addToast('success', 'Bienvenido, Admin');
+            sessionStorage.setItem('admin_welcomed', 'true');
+          }
         } else {
           addToast('error', 'Acceso denegado: Solo administradores autorizados');
           await authService.signOut();
@@ -135,6 +139,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const logout = async () => {
+    sessionStorage.removeItem('admin_welcomed');
     await authService.signOut();
   };
 
