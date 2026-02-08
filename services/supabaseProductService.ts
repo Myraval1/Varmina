@@ -7,6 +7,10 @@ export interface CreateProductInput {
     price: number;
     images?: string[];
     status?: ProductStatus;
+    category?: string | null;
+    collection?: string | null;
+    badge?: string | null;
+    variants?: any[];
 }
 
 export interface UpdateProductInput {
@@ -15,9 +19,18 @@ export interface UpdateProductInput {
     price?: number;
     images?: string[];
     status?: ProductStatus;
+    category?: string | null;
+    collection?: string | null;
+    badge?: string | null;
+    variants?: any[];
 }
 
 export const supabaseProductService = {
+    // Increment interest analytics
+    incrementWhatsappClicks: async (id: string): Promise<void> => {
+        const { error } = await (supabase as any).rpc('increment_whatsapp_clicks', { product_id: id });
+        if (error) console.error('Error incrementing clicks:', error);
+    },
     // Get all products
     getAll: async (): Promise<Product[]> => {
         const { data, error } = await supabase
@@ -58,14 +71,18 @@ export const supabaseProductService = {
         if (typeof input.price !== 'number' || input.price < 0) throw new Error('El precio debe ser un número positivo');
 
         const sanitizedData = {
-            name: input.name.trim().slice(0, 100), // Limit name length
+            name: input.name.trim().slice(0, 100),
             description: input.description?.trim().slice(0, 2000) || null,
             price: Math.max(0, input.price),
             images: input.images || [],
             status: input.status || ProductStatus.IN_STOCK,
+            category: input.category || null,
+            collection: input.collection || null,
+            badge: input.badge || null,
+            variants: input.variants || [],
         };
 
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
             .from('products')
             .insert(sanitizedData)
             .select()
@@ -90,8 +107,12 @@ export const supabaseProductService = {
         if (updates.price !== undefined) sanitizedUpdates.price = Math.max(0, updates.price);
         if (updates.images) sanitizedUpdates.images = updates.images;
         if (updates.status) sanitizedUpdates.status = updates.status;
+        if (updates.category !== undefined) sanitizedUpdates.category = updates.category;
+        if (updates.collection !== undefined) sanitizedUpdates.collection = updates.collection;
+        if (updates.badge !== undefined) sanitizedUpdates.badge = updates.badge;
+        if (updates.variants !== undefined) sanitizedUpdates.variants = updates.variants;
 
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
             .from('products')
             .update(sanitizedUpdates)
             .eq('id', id)
@@ -118,6 +139,26 @@ export const supabaseProductService = {
         if (error) {
             console.error('Error deleting product:', error);
             throw new Error('Error al eliminar el producto.');
+        }
+    },
+
+    // Bulk Delete
+    deleteBulk: async (ids: string[]): Promise<void> => {
+        if (!ids.length) return;
+        const { error } = await supabase.from('products').delete().in('id', ids);
+        if (error) {
+            console.error('Error in bulk delete:', error);
+            throw new Error('Error al eliminar productos en lote.');
+        }
+    },
+
+    // Bulk Update Status
+    updateStatusBulk: async (ids: string[], status: ProductStatus): Promise<void> => {
+        if (!ids.length) return;
+        const { error } = await (supabase.from('products') as any).update({ status }).in('id', ids);
+        if (error) {
+            console.error('Error in bulk status update:', error);
+            throw new Error('Error al actualizar productos en lote.');
         }
     },
 

@@ -36,17 +36,18 @@ npm install
 
 ### 2. Environment Setup
 
-The `.env.local` file is already configured with your Supabase credentials:
+Create a `.env.local` file in the root directory:
 
 ```env
-VITE_SUPABASE_URL=https://kcqgowdeihvzkbbsyhji.supabase.co
-VITE_SUPABASE_ANON_KEY=your_anon_key
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ### 3. Database Setup
 
-The database schema has already been created with:
+The database schema needs to be created with:
 - `products` table with RLS policies
+- `profiles` table for role-based access
 - `product-images` storage bucket
 - Proper indexes and triggers
 
@@ -89,8 +90,8 @@ vercel
 1. Push your code to GitHub
 2. Import project in Vercel dashboard
 3. Add environment variables:
-   - `VITE_SUPABASE_URL`: `https://kcqgowdeihvzkbbsyhji.supabase.co`
-   - `VITE_SUPABASE_ANON_KEY`: Your Supabase anon key
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
 4. Deploy!
 
 ## Project Structure

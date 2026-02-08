@@ -40,9 +40,11 @@ export const Layout: React.FC<{
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 md:gap-2">
-                    <button onClick={toggleCurrency} className="p-2 md:p-3 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full text-stone-600 dark:text-stone-400 transition-colors" title="Cambiar Moneda">
-                        <span className="font-serif font-bold text-xs">{currency}</span>
-                    </button>
+                    {view === 'public' && (
+                        <button onClick={toggleCurrency} className="p-2 md:p-3 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full text-stone-600 dark:text-stone-400 transition-colors" title="Cambiar Moneda">
+                            <span className="font-serif font-bold text-xs">{currency}</span>
+                        </button>
+                    )}
                     <button onClick={toggleDarkMode} className="p-2 md:p-3 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full text-stone-600 dark:text-stone-400 transition-colors" title="Cambiar Tema">
                         {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                     </button>

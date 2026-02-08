@@ -15,16 +15,23 @@ export const PublicCatalog = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [minPrice, setMinPrice] = useState(0);
-    const [maxPrice, setMaxPrice] = useState(50000000);
+    const [maxPrice, setMaxPrice] = useState(300000);
     const [statusFilter, setStatusFilter] = useState<ProductStatus | 'All'>('All');
+    const [categoryFilter, setCategoryFilter] = useState<string>('All');
+    const [collectionFilter, setCollectionFilter] = useState<string>('All');
     const [sort, setSort] = useState<SortOption>('newest');
+
+    const categories = useMemo(() => ['All', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))], [products]);
+    const collections = useMemo(() => ['All', ...Array.from(new Set(products.map(p => p.collection).filter(Boolean)))], [products]);
 
     const filteredProducts = useMemo(() => {
         let result = products.filter(p => {
             const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
-            const matchesPrice = p.price >= minPrice && p.price <= maxPrice;
+            const matchesPrice = p.price >= minPrice && (maxPrice === 300000 ? true : p.price <= maxPrice);
             const matchesStatus = statusFilter === 'All' || p.status === statusFilter;
-            return matchesSearch && matchesPrice && matchesStatus;
+            const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
+            const matchesCollection = collectionFilter === 'All' || p.collection === collectionFilter;
+            return matchesSearch && matchesPrice && matchesStatus && matchesCategory && matchesCollection;
         });
 
         return result.sort((a, b) => {
@@ -134,16 +141,38 @@ export const PublicCatalog = () => {
                             </div>
 
                             <div>
+                                <h4 className="font-serif text-xs mb-3 text-stone-900 dark:text-white uppercase tracking-wider">Categoría</h4>
+                                <select
+                                    value={categoryFilter}
+                                    onChange={(e) => setCategoryFilter(e.target.value)}
+                                    className="w-full bg-transparent border border-stone-200 dark:border-stone-800 p-3 text-[10px] uppercase tracking-widest outline-none focus:border-gold-500"
+                                >
+                                    {categories.map(c => <option key={c} value={c || ''}>{c}</option>)}
+                                </select>
+                            </div>
+
+                            <div>
+                                <h4 className="font-serif text-xs mb-3 text-stone-900 dark:text-white uppercase tracking-wider">Colección</h4>
+                                <select
+                                    value={collectionFilter}
+                                    onChange={(e) => setCollectionFilter(e.target.value)}
+                                    className="w-full bg-transparent border border-stone-200 dark:border-stone-800 p-3 text-[10px] uppercase tracking-widest outline-none focus:border-gold-500"
+                                >
+                                    {collections.map(c => <option key={c} value={c || ''}>{c}</option>)}
+                                </select>
+                            </div>
+
+                            <div>
                                 <h4 className="font-serif text-xs mb-3 text-stone-900 dark:text-white uppercase tracking-wider">Presupuesto</h4>
                                 <div className="space-y-4">
                                     <input
-                                        type="range" min="0" max="50000000" step="500000"
+                                        type="range" min="0" max="300000" step="10000"
                                         value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))}
                                         className="w-full accent-gold-500 h-2 bg-stone-200 dark:bg-stone-800 rounded-lg appearance-none cursor-pointer"
                                     />
                                     <div className="flex justify-between text-[10px] text-stone-500 font-mono">
                                         <span>$0</span>
-                                        <span className="text-gold-600 font-bold">{maxPrice >= 50000000 ? 'Sin Límite' : `$${maxPrice.toLocaleString('es-CL')}`}</span>
+                                        <span className="text-gold-600 font-bold">{maxPrice >= 300000 ? 'Sin Límite' : `$${maxPrice.toLocaleString('es-CL')}`}</span>
                                     </div>
                                 </div>
                             </div>
@@ -174,7 +203,7 @@ export const PublicCatalog = () => {
                             </div>
                         </div>
                         <div className="mt-6 pt-4 border-t border-stone-100 dark:border-stone-800 flex justify-between items-center">
-                            <button onClick={() => { setSearch(''); setStatusFilter('All'); setMinPrice(0); setMaxPrice(50000000); }} className="text-[9px] uppercase tracking-[0.2em] text-stone-400 hover:text-stone-900">Limpiar Todo</button>
+                            <button onClick={() => { setSearch(''); setStatusFilter('All'); setMinPrice(0); setMaxPrice(300000); setCategoryFilter('All'); setCollectionFilter('All'); }} className="text-[9px] uppercase tracking-[0.2em] text-stone-400 hover:text-stone-900">Limpiar Todo</button>
                             <button onClick={() => setShowFilters(false)} className="text-[9px] uppercase tracking-[0.2em] font-bold text-gold-600 border border-gold-600 px-4 py-1.5 rounded-full">
                                 Aplicar
                             </button>
@@ -191,7 +220,7 @@ export const PublicCatalog = () => {
                 <div className="flex flex-col items-center justify-center py-20 text-stone-400">
                     <Search className="w-10 h-10 mb-4 opacity-10" />
                     <p className="font-serif text-lg">Sin resultados para esta búsqueda</p>
-                    <button onClick={() => { setSearch(''); setStatusFilter('All'); setMinPrice(0); setMaxPrice(50000000); }} className="mt-4 text-[10px] uppercase tracking-widest font-bold underline">Mostrar todos</button>
+                    <button onClick={() => { setSearch(''); setStatusFilter('All'); setMinPrice(0); setMaxPrice(300000); setCategoryFilter('All'); setCollectionFilter('All'); }} className="mt-4 text-[10px] uppercase tracking-widest font-bold underline">Mostrar todos</button>
                 </div>
             ) : (
                 <div className={layout === 'grid' ? 'grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8' : 'flex flex-col gap-2 md:gap-4'}>

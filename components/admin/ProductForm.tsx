@@ -18,7 +18,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
         description: '',
         price: 0,
         status: ProductStatus.IN_STOCK,
-        images: []
+        images: [],
+        category: '',
+        collection: '',
+        badge: '',
+        variants: []
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -27,10 +31,26 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
     const validate = () => {
         const newErrors: Record<string, string> = {};
         if (!formData.name) newErrors.name = "El nombre es obligatorio";
-        if (!formData.price || formData.price <= 0) newErrors.price = "Se requiere un precio válido";
+        if (formData.price === undefined || formData.price < 0) newErrors.price = "Se requiere un precio válido";
         if ((formData.images?.length || 0) === 0) newErrors.images = "Se requiere al menos una imagen";
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
+    };
+
+    const addVariant = () => {
+        const newVariant = { id: crypto.randomUUID(), name: '', price: formData.price || 0 };
+        setFormData(prev => ({ ...prev, variants: [...(prev.variants || []), newVariant] }));
+    };
+
+    const updateVariant = (id: string, field: string, value: any) => {
+        setFormData(prev => ({
+            ...prev,
+            variants: prev.variants?.map(v => v.id === id ? { ...v, [field]: value } : v)
+        }));
+    };
+
+    const removeVariant = (id: string) => {
+        setFormData(prev => ({ ...prev, variants: prev.variants?.filter(v => v.id !== id) }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -39,23 +59,23 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
 
         setIsSubmitting(true);
         try {
+            const dataToSave = {
+                name: formData.name!,
+                description: formData.description,
+                price: formData.price!,
+                images: formData.images,
+                status: formData.status,
+                category: formData.category,
+                collection: formData.collection,
+                badge: formData.badge,
+                variants: formData.variants,
+            };
+
             if (initialData) {
-                await supabaseProductService.update(initialData.id, {
-                    name: formData.name,
-                    description: formData.description,
-                    price: formData.price,
-                    images: formData.images,
-                    status: formData.status,
-                });
+                await supabaseProductService.update(initialData.id, dataToSave);
                 addToast('success', 'Producto actualizado con éxito');
             } else {
-                await supabaseProductService.create({
-                    name: formData.name!,
-                    description: formData.description,
-                    price: formData.price!,
-                    images: formData.images,
-                    status: formData.status,
-                });
+                await supabaseProductService.create(dataToSave);
                 addToast('success', 'Producto creado con éxito');
             }
             onSave();
@@ -100,7 +120,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8 max-h-[70vh] overflow-y-auto px-1 hide-scrollbar">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <Input
                     label="Nombre del Producto"
@@ -110,7 +130,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                     error={errors.name}
                 />
                 <Input
-                    label="Precio (CLP)"
+                    label="Precio Base"
                     type="number"
                     placeholder="0"
                     value={formData.price}
@@ -119,17 +139,76 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                 />
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Input
+                    label="Categoría"
+                    placeholder="Anillos, Aros..."
+                    value={formData.category || ''}
+                    onChange={e => setFormData({ ...formData, category: e.target.value })}
+                />
+                <Input
+                    label="Colección"
+                    placeholder="Invierno 2024..."
+                    value={formData.collection || ''}
+                    onChange={e => setFormData({ ...formData, collection: e.target.value })}
+                />
+                <Input
+                    label="Etiqueta Especial"
+                    placeholder="Más Vendido, Único..."
+                    value={formData.badge || ''}
+                    onChange={e => setFormData({ ...formData, badge: e.target.value })}
+                />
+            </div>
+
             <div className="space-y-2">
                 <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.15em] text-stone-400 mb-2">Descripción</label>
                 <textarea
-                    className="w-full bg-transparent border border-stone-200 p-4 text-stone-900 font-sans text-sm focus:border-gold-400 focus:outline-none min-h-[120px] dark:border-stone-700 dark:text-stone-100 transition-colors resize-none leading-relaxed"
+                    className="w-full bg-transparent border border-stone-200 p-4 text-stone-900 font-sans text-sm focus:border-gold-400 focus:outline-none min-h-[100px] dark:border-stone-700 dark:text-stone-100 transition-colors resize-none leading-relaxed"
                     placeholder="Escribe la historia o detalles técnicos de la pieza..."
-                    value={formData.description}
+                    value={formData.description || ''}
                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                 />
             </div>
 
-            <div className="space-y-4">
+            {/* VARIANTS SECTION */}
+            <div className="space-y-4 pt-4 border-t border-stone-100 dark:border-stone-800">
+                <div className="flex justify-between items-center">
+                    <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.15em] text-stone-400">Variantes (Metal/Piedra)</label>
+                    <button type="button" onClick={addVariant} className="text-[10px] font-bold text-gold-600 uppercase tracking-widest hover:text-gold-700">+ Añadir Variante</button>
+                </div>
+
+                <div className="space-y-3">
+                    {formData.variants?.map((v) => (
+                        <div key={v.id} className="flex gap-4 items-end animate-in fade-in slide-in-from-left-2 duration-300">
+                            <div className="flex-1">
+                                <input
+                                    placeholder="Nombre variante (Ej: Oro Rosa)"
+                                    className="w-full bg-stone-50 dark:bg-stone-900 border-none p-3 text-xs focus:ring-1 focus:ring-gold-500 outline-none"
+                                    value={v.name}
+                                    onChange={e => updateVariant(v.id, 'name', e.target.value)}
+                                />
+                            </div>
+                            <div className="w-32">
+                                <input
+                                    type="number"
+                                    placeholder="Precio"
+                                    className="w-full bg-stone-50 dark:bg-stone-900 border-none p-3 text-xs focus:ring-1 focus:ring-gold-500 outline-none"
+                                    value={v.price}
+                                    onChange={e => updateVariant(v.id, 'price', Number(e.target.value))}
+                                />
+                            </div>
+                            <button type="button" onClick={() => removeVariant(v.id)} className="p-3 text-red-400 hover:text-red-600">
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ))}
+                    {formData.variants?.length === 0 && (
+                        <p className="text-[10px] italic text-stone-400">No hay variantes definidas. Se usará el precio base.</p>
+                    )}
+                </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-stone-100 dark:border-stone-800">
                 <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.15em] text-stone-400">Estado</label>
                 <div className="flex flex-wrap gap-6">
                     {[
@@ -156,7 +235,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                 </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 pt-4 border-t border-stone-100 dark:border-stone-800">
                 <label className="block text-[10px] font-sans font-bold uppercase tracking-[0.15em] text-stone-400">Imágenes</label>
                 <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {formData.images?.map((img, idx) => (
@@ -174,9 +253,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                         </div>
                     ))}
                     <label className={`
-            border-2 border-dashed border-stone-200 rounded-sm flex flex-col items-center justify-center aspect-square cursor-pointer transition-all hover:border-gold-400 hover:bg-stone-50 group
-            ${isUploading ? 'opacity-50 cursor-wait' : ''}
-          `}>
+                        border-2 border-dashed border-stone-200 rounded-sm flex flex-col items-center justify-center aspect-square cursor-pointer transition-all hover:border-gold-400 hover:bg-stone-50 group
+                        ${isUploading ? 'opacity-50 cursor-wait' : ''}
+                    `}>
                         <div className="flex flex-col items-center gap-2 group-hover:translate-y-[-2px] transition-transform">
                             <Upload className="w-6 h-6 text-stone-300 group-hover:text-gold-500" />
                             <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400 group-hover:text-gold-600">
@@ -189,7 +268,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                 {errors.images && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{errors.images}</p>}
             </div>
 
-            <div className="flex justify-end gap-4 pt-8 border-t border-stone-100">
+            <div className="flex justify-end gap-4 pt-8 border-t border-stone-100 dark:border-stone-800">
                 <Button type="button" variant="ghost" onClick={onCancel}>
                     Cancelar
                 </Button>

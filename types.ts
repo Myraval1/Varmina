@@ -4,6 +4,12 @@ export enum ProductStatus {
   SOLD_OUT = 'Agotado',
 }
 
+export interface ProductVariant {
+  id: string;
+  name: string; // e.g., "Oro 18k", "Plata 950"
+  price: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -11,6 +17,11 @@ export interface Product {
   price: number;
   images: string[];
   status: ProductStatus;
+  category: string | null;
+  collection: string | null;
+  badge: string | null;
+  variants: ProductVariant[];
+  whatsapp_clicks: number;
   created_at: string;
   updated_at: string;
 }

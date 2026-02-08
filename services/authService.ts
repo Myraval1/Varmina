@@ -8,9 +8,21 @@ export interface AuthService {
     getCurrentUser: () => Promise<User | null>;
     getCurrentSession: () => Promise<Session | null>;
     onAuthStateChange: (callback: (event: string, session: Session | null) => void) => { data: { subscription: any } };
+    isAdmin: (userId: string) => Promise<boolean>;
 }
 
 export const authService: AuthService = {
+    // Check if user is admin
+    isAdmin: async (userId: string) => {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', userId)
+            .single() as any;
+
+        if (error || !data) return false;
+        return data.role === 'admin';
+    },
     // Sign in with email and password
     signIn: async (email: string, password: string) => {
         const { data, error } = await supabase.auth.signInWithPassword({

@@ -45,8 +45,8 @@ git push -u origin main
 
 5. Add Environment Variables:
    ```
-   VITE_SUPABASE_URL=https://kcqgowdeihvzkbbsyhji.supabase.co
-   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjcWdvd2RlaWh2emtiYnN5aGppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0OTY3MzgsImV4cCI6MjA4NjA3MjczOH0.joYc7gHTk2rfpYKLW9vs_5ds5TZ-3hxHNEX9RBEB3yA
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
 6. Click "Deploy"
@@ -73,7 +73,7 @@ vercel
 
 # Add environment variables
 vercel env add VITE_SUPABASE_URL
-# Paste: https://kcqgowdeihvzkbbsyhji.supabase.co
+# Paste: your_supabase_project_url
 
 vercel env add VITE_SUPABASE_ANON_KEY
 # Paste your anon key
@@ -87,18 +87,18 @@ vercel --prod
 After deployment, create an admin user in Supabase:
 
 1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
-2. Select your project: **V1 ctlg**
+2. Select your project
 3. Navigate to **Authentication** > **Users**
 4. Click **"Add user"** > **"Create new user"**
 5. Enter:
-   - **Email**: admin@varmina.com (or your preferred email)
+   - **Email**: your_email@example.com
    - **Password**: Create a strong password
    - **Auto Confirm User**: Yes
 6. Click **"Create user"**
 
 ### 4. Test Your Deployment
 
-1. Visit your Vercel URL (e.g., `https://varmina-joyas.vercel.app`)
+1. Visit your Vercel URL (e.g., `https://your-app.vercel.app`)
 2. Check the public catalog loads
 3. Navigate to `/admin`
 4. Login with your admin credentials
@@ -111,6 +111,7 @@ After deployment, create an admin user in Supabase:
 3. Add your custom domain
 4. Follow DNS configuration instructions
 5. Wait for SSL certificate provisioning
+6. Done! 🎉
 
 ## Post-Deployment
 

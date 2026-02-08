@@ -11,7 +11,7 @@ interface StoreContextType {
   toggleCurrency: () => void;
   darkMode: boolean;
   toggleDarkMode: () => void;
-  refreshProducts: () => Promise<void>;
+  refreshProducts: (force?: boolean) => Promise<void>;
   toasts: ToastMessage[];
   addToast: (type: ToastMessage['type'], message: string) => void;
   removeToast: (id: string) => void;
@@ -34,19 +34,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Consolidated Initialization
   useEffect(() => {
-    const isAdminEmail = (email?: string) => email === 'varminamail@gmail.com';
-
     const initialize = async () => {
       setLoading(true);
       try {
-        // Run both in parallel to reduce load time
         const [currentUser] = await Promise.all([
           authService.getCurrentUser(),
           refreshProducts()
         ]);
 
         setUser(currentUser);
-        setIsAuthenticated(!!currentUser && isAdminEmail(currentUser.email));
+        if (currentUser) {
+          const isAuthorized = await authService.isAdmin(currentUser.id);
+          setIsAuthenticated(isAuthorized);
+        } else {
+          setIsAuthenticated(false);
+        }
       } catch (error) {
         console.error('Initialization error:', error);
       } finally {
@@ -59,27 +61,21 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Listen to auth state changes
     const { data: { subscription } } = authService.onAuthStateChange(async (event, session) => {
       const currentUser = session?.user || null;
-      const isAuthorized = !!currentUser && isAdminEmail(currentUser.email);
-
       setUser(currentUser);
-      setIsAuthenticated(isAuthorized);
 
-      if (event === 'SIGNED_IN') {
-        if (isAuthorized) {
-          const hasBeenWelcomed = sessionStorage.getItem('admin_welcomed');
-          if (!hasBeenWelcomed) {
-            addToast('success', 'Bienvenido, Admin');
-            sessionStorage.setItem('admin_welcomed', 'true');
-          }
-        } else {
+      if (currentUser) {
+        const isAuthorized = await authService.isAdmin(currentUser.id);
+        setIsAuthenticated(isAuthorized);
+
+        if (event === 'SIGNED_IN' && !isAuthorized) {
           addToast('error', 'Acceso denegado: Solo administradores autorizados');
           await authService.signOut();
         }
-        // No need to set loading here if we are already logged in via login function, 
-        // but if it's a fresh session detection, we might want to refresh.
-        // To be safe, let's only refresh if we aren't already loading.
-      } else if (event === 'SIGNED_OUT') {
-        addToast('info', 'Sesión cerrada');
+      } else {
+        setIsAuthenticated(false);
+        if (event === 'SIGNED_OUT') {
+          addToast('info', 'Sesión cerrada');
+        }
       }
     });
 
@@ -97,10 +93,14 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, [darkMode]);
 
-  const refreshProducts = async () => {
+  const [lastRefresh, setLastRefresh] = useState(0);
+
+  const refreshProducts = async (force = false) => {
+    const now = Date.now();
+    if (!force && now - lastRefresh < 5000) return; // Cache for 5 seconds
+
     if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
       setLoading(false);
-      addToast('error', 'Error de configuración: Faltan variables de entorno.');
       return;
     }
 
@@ -108,9 +108,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     try {
       const data = await supabaseProductService.getAll();
       setProducts(data);
+      setLastRefresh(now);
     } catch (error) {
       console.error('Error loading products:', error);
-      addToast('error', 'Error al cargar los productos');
     } finally {
       setLoading(false);
     }
@@ -139,7 +139,6 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const logout = async () => {
-    sessionStorage.removeItem('admin_welcomed');
     await authService.signOut();
   };
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Product, ProductStatus } from '../types';
 import { Button, StatusBadge } from './UI';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { supabaseProductService } from '../services/supabaseProductService';
 
 const formatPrice = (price: number, currency: 'CLP' | 'USD') => {
     if (currency === 'CLP') {
@@ -34,8 +35,18 @@ export const ProductCard: React.FC<{
                     alt={product.name}
                     className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-700 ease-in-out group-hover:opacity-100 group-hover:scale-105"
                 />
+
+                {/* Custom Badge */}
+                {product.badge && (
+                    <div className="absolute top-4 left-4 z-10">
+                        <span className="bg-stone-900/80 backdrop-blur-sm text-white text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-full shadow-lg">
+                            {product.badge}
+                        </span>
+                    </div>
+                )}
+
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hidden md:flex">
-                    <span className="bg-white text-stone-900 px-6 py-2 uppercase text-xs tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                    <span className="bg-white text-stone-900 px-6 py-2 uppercase text-xs tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-500 shadow-xl font-bold">
                         Ver Detalles
                     </span>
                 </div>
@@ -50,6 +61,9 @@ export const ProductCard: React.FC<{
                         {formatPrice(displayPrice, currency)}
                     </span>
                 </div>
+                {product.collection && (
+                    <p className="text-[8px] md:text-[10px] uppercase tracking-widest text-gold-600 font-bold">{product.collection}</p>
+                )}
                 <p className={`text-stone-500 dark:text-stone-400 ${layout === 'list' ? 'line-clamp-3 my-2 md:my-4 text-xs md:text-sm leading-relaxed' : 'text-[10px] md:text-xs line-clamp-1'}`}>
                     {product.description}
                 </p>
@@ -66,13 +80,27 @@ export const ProductDetail: React.FC<{
     currency: 'CLP' | 'USD';
     onClose: () => void;
 }> = ({ product, currency, onClose }) => {
-    const displayPrice = currency === 'CLP' ? product.price : Math.round(product.price / 950);
     const [activeImg, setActiveImg] = useState(0);
+    const [selectedVariant, setSelectedVariant] = useState<any>(null);
+
+    const basePrice = currency === 'CLP' ? product.price : Math.round(product.price / 950);
+    const currentPrice = selectedVariant
+        ? (currency === 'CLP' ? selectedVariant.price : Math.round(selectedVariant.price / 950))
+        : basePrice;
+
+    const handleWhatsApp = async () => {
+        // Track interest
+        await supabaseProductService.incrementWhatsappClicks(product.id);
+
+        const message = `Hola Varmina, me gustaría consultar por la pieza: "${product.name}"${selectedVariant ? ` (${selectedVariant.name})` : ''}. ID: ${product.id.slice(0, 8)}`;
+        const encoded = encodeURIComponent(message);
+        window.open(`https://wa.me/56927435294?text=${encoded}`, '_blank');
+    };
 
     return (
-        <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-12">
             <div className="md:w-1/2 space-y-4">
-                <div className="aspect-square bg-stone-100 overflow-hidden relative rounded-sm">
+                <div className="aspect-[4/5] bg-stone-100 overflow-hidden relative rounded-sm shadow-inner">
                     <img
                         src={product.images[activeImg]}
                         className="w-full h-full object-cover animate-in fade-in duration-500"
@@ -82,25 +110,25 @@ export const ProductDetail: React.FC<{
                         <>
                             <button
                                 onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? product.images.length - 1 : prev - 1); }}
-                                className="absolute left-2 top-1/2 -translate-y-1/2 p-3 bg-white/90 shadow-sm text-stone-900 rounded-full"
+                                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 backdrop-blur shadow-xl text-stone-900 rounded-full hover:bg-gold-500 hover:text-white transition-all"
                             >
                                 <ChevronLeft className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === product.images.length - 1 ? 0 : prev + 1); }}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-white/90 shadow-sm text-stone-900 rounded-full"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 backdrop-blur shadow-xl text-stone-900 rounded-full hover:bg-gold-500 hover:text-white transition-all"
                             >
                                 <ChevronRight className="w-5 h-5" />
                             </button>
                         </>
                     )}
                 </div>
-                <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
+                <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar">
                     {product.images.map((img, idx) => (
                         <button
                             key={idx}
                             onClick={() => setActiveImg(idx)}
-                            className={`w-16 h-16 md:w-20 md:h-20 flex-shrink-0 border-2 transition-all ${activeImg === idx ? 'border-gold-400 opacity-100' : 'border-transparent opacity-60'}`}
+                            className={`w-20 h-24 flex-shrink-0 border-2 transition-all rounded-sm overflow-hidden ${activeImg === idx ? 'border-gold-500 opacity-100 scale-105 shadow-md' : 'border-transparent opacity-60'}`}
                         >
                             <img src={img} className="w-full h-full object-cover" alt="thumbnail" />
                         </button>
@@ -108,31 +136,58 @@ export const ProductDetail: React.FC<{
                 </div>
             </div>
 
-            <div className="md:w-1/2 flex flex-col justify-center">
-                <h2 className="font-serif text-2xl md:text-3xl text-stone-900 dark:text-white mb-2">{product.name}</h2>
-                <div className="text-xl md:text-2xl font-light text-gold-600 mb-4 md:mb-6">
-                    {formatPrice(displayPrice, currency)}
+            <div className="md:w-1/2 flex flex-col justify-start py-4">
+                {product.collection && (
+                    <span className="text-[10px] font-bold text-gold-600 uppercase tracking-[0.3em] mb-4">{product.collection}</span>
+                )}
+                <h2 className="font-serif text-3xl md:text-5xl text-stone-900 dark:text-white mb-4 leading-tight">{product.name}</h2>
+                <div className="text-2xl md:text-3xl font-light text-stone-800 dark:text-gold-200 mb-6 md:mb-10">
+                    {formatPrice(currentPrice, currency)}
                 </div>
 
-                <div className="prose prose-stone dark:prose-invert mb-6 md:mb-8 text-sm leading-relaxed text-stone-600 dark:text-stone-300">
+                <div className="prose prose-stone dark:prose-invert mb-8 md:mb-12 text-sm md:text-base leading-relaxed text-stone-600 dark:text-stone-300">
                     {product.description}
                 </div>
 
-                <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <span className="text-[10px] md:text-xs font-bold uppercase tracking-wide text-stone-400">Estado:</span>
+                {/* Variants Selection */}
+                {product.variants && product.variants.length > 0 && (
+                    <div className="mb-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                        <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-4">Seleccionar Opción</label>
+                        <div className="flex flex-wrap gap-3">
+                            <button
+                                onClick={() => setSelectedVariant(null)}
+                                className={`px-5 py-2.5 text-xs font-bold uppercase tracking-widest border transition-all rounded-full ${!selectedVariant ? 'bg-stone-900 text-white border-stone-900 shadow-lg' : 'bg-transparent border-stone-200 text-stone-500 hover:border-gold-500'}`}
+                            >
+                                Estándar
+                            </button>
+                            {product.variants.map((v) => (
+                                <button
+                                    key={v.id}
+                                    onClick={() => setSelectedVariant(v)}
+                                    className={`px-5 py-2.5 text-xs font-bold uppercase tracking-widest border transition-all rounded-full ${selectedVariant?.id === v.id ? 'bg-stone-900 text-white border-stone-900 shadow-lg' : 'bg-transparent border-stone-200 text-stone-500 hover:border-gold-500'}`}
+                                >
+                                    {v.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                <div className="space-y-6 md:mt-auto border-t border-stone-100 dark:border-stone-800 pt-8">
+                    <div className="flex items-center gap-6">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Entrega:</span>
                         <StatusBadge status={product.status} />
                     </div>
 
-                    <div className="pt-6 md:pt-8 border-t border-stone-100 dark:border-stone-800">
-                        <Button
-                            className="w-full py-4 text-base md:text-lg"
-                            disabled={product.status === ProductStatus.SOLD_OUT}
-                        >
-                            {product.status === ProductStatus.IN_STOCK ? 'Consultar' :
-                                product.status === ProductStatus.MADE_TO_ORDER ? 'Solicitar Encargo' : 'Agotado'}
-                        </Button>
-                    </div>
+                    <Button
+                        className="w-full py-5 text-lg font-bold uppercase tracking-[0.2em]"
+                        disabled={product.status === ProductStatus.SOLD_OUT}
+                        onClick={handleWhatsApp}
+                    >
+                        {product.status === ProductStatus.IN_STOCK ? 'Consultar WhatsApp' :
+                            product.status === ProductStatus.MADE_TO_ORDER ? 'Solicitar Encargo' : 'Agotado'}
+                    </Button>
+                    <p className="text-center text-[9px] text-stone-400 uppercase tracking-widest">Atención personalizada inmediata</p>
                 </div>
             </div>
         </div>
