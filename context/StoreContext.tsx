@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { Product, ToastMessage } from '../types';
 import { supabaseProductService } from '../services/supabaseProductService';
 import { authService } from '../services/authService';
@@ -28,6 +28,23 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
+/**
+ * Valid TSX Generic Helper to avoid parsing as JSX
+ */
+async function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timeoutId: any;
+  const timeoutPromise = new Promise<T>((resolve) => {
+    timeoutId = setTimeout(() => resolve(fallback), ms);
+  });
+
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    return result;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,107 +57,120 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [activeAdminTab, setActiveAdminTab] = useState<'inventory' | 'brand'>('inventory');
   const [lastRefresh, setLastRefresh] = useState(0);
 
-  const addToast = (type: ToastMessage['type'], message: string) => {
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  const addToast = useCallback((type: ToastMessage['type'], message: string) => {
     const id = Math.random().toString(36).substr(2, 9);
     setToasts(prev => [...prev, { id, type, message }]);
-    setTimeout(() => removeToast(id), 3000);
-  };
+    setTimeout(() => removeToast(id), 4000);
+  }, [removeToast]);
 
-  const removeToast = (id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  };
+  const refreshSettings = useCallback(async () => {
+    try {
+      console.log('Store: Fetching settings...');
+      const data = await withTimeout(settingsService.getSettings(), 5000, null);
+      if (data) setSettings(data);
+      console.log('Store: Settings loaded');
+    } catch (error) {
+      console.error('Store: Settings Refresh Error:', error);
+    }
+  }, []);
 
-  const refreshProducts = async (force = false, silent = false) => {
+  const refreshProducts = useCallback(async (force = false, silent = false) => {
     const now = Date.now();
 
-    // SIMPLE CACHE: Don't fetch if fetched in last 2 seconds unless forced
-    if (!force && now - lastRefresh < 2000) return;
-
-    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      setLoading(false);
+    if (!force && now - lastRefresh < 3000) {
+      if (!silent) setLoading(false);
       return;
     }
 
     if (!silent) setLoading(true);
 
     try {
-      const data = await supabaseProductService.getAll();
+      console.log('Store: Fetching products...');
+      const data = await withTimeout(supabaseProductService.getAll(), 5000, []);
       setProducts(data);
       setLastRefresh(now);
+      console.log(`Store: ${data.length} products loaded`);
     } catch (error) {
-      console.error('Error loading products:', error);
-      addToast('error', 'Error al conectar con la base de datos');
+      console.error('Store: Product Refresh Error:', error);
+      if (!silent) addToast('error', 'Error al sincronizar inventario');
     } finally {
-      // Safety net: always ensure loading is false
       setLoading(false);
     }
-  };
+  }, [lastRefresh, addToast]);
 
-  const refreshSettings = async () => {
-    try {
-      const data = await settingsService.getSettings();
-      setSettings(data);
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    }
-  };
-
-  // Consolidated Initialization
   useEffect(() => {
-    const initialize = async () => {
-      console.log('App: Initializing...');
-      setLoading(true);
-      try {
-        // Fetch user first to set auth state
-        const currentUser = await authService.getCurrentUser().catch(() => null);
-        setUser(currentUser);
+    let isMounted = true;
 
-        if (currentUser) {
-          const isAuthorized = await authService.isAdmin(currentUser.id).catch(() => false);
-          setIsAuthenticated(isAuthorized);
-        } else {
-          setIsAuthenticated(false);
+    const initialize = async () => {
+      console.log('--- VARMINA CORE INITIALIZATION START ---');
+      setLoading(true);
+
+      try {
+        console.log('1. Checking Auth...');
+        const session = await withTimeout(authService.getCurrentSession(), 4000, null);
+        const currentUser = session?.user || null;
+
+        if (isMounted) {
+          setUser(currentUser);
+          console.log('User status:', currentUser ? 'Logged In' : 'Guest');
         }
 
-        // Fetch remaining data
-        await Promise.all([
-          refreshSettings().catch(() => null),
-          refreshProducts(true, true).catch(() => null)
-        ]);
+        console.log('2. Fetching Data...');
+        const promises: Promise<any>[] = [
+          refreshSettings(),
+          refreshProducts(true, true)
+        ];
+
+        if (currentUser && isMounted) {
+          promises.push(
+            withTimeout(authService.isAdmin(currentUser.id), 3000, false)
+              .then(res => { if (isMounted) setIsAuthenticated(res); })
+          );
+        }
+
+        await Promise.all(promises);
+
       } catch (error) {
-        console.error('App: Initialization failed', error);
+        console.error('Varmina: Initialization failed partially', error);
       } finally {
-        console.log('App: Initialization finished');
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+          console.log('--- VARMINA CORE INITIALIZATION END ---');
+        }
       }
     };
 
     initialize();
 
-    // Listen to auth state changes
     const { data: { subscription } } = authService.onAuthStateChange(async (event, session) => {
+      if (!isMounted) return;
+
       const currentUser = session?.user || null;
       setUser(currentUser);
 
       if (currentUser) {
-        const isAuthorized = await authService.isAdmin(currentUser.id).catch(() => false);
-        setIsAuthenticated(isAuthorized);
+        const isAuthorized = await withTimeout(authService.isAdmin(currentUser.id), 3000, false);
+        if (isMounted) setIsAuthenticated(isAuthorized);
 
         if (event === 'SIGNED_IN' && !isAuthorized) {
-          addToast('error', 'Acceso denegado: Solo administradores autorizados');
+          addToast('error', 'Acceso denegado: Se requiere administrador');
           await authService.signOut();
         }
       } else {
-        setIsAuthenticated(false);
+        if (isMounted) setIsAuthenticated(false);
       }
     });
 
     return () => {
+      isMounted = false;
       subscription?.unsubscribe();
     };
-  }, []);
+  }, [refreshProducts, refreshSettings, addToast]);
 
-  // Dark Mode Side Effect
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -149,8 +179,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, [darkMode]);
 
-  const toggleCurrency = () => setCurrency(prev => prev === 'CLP' ? 'USD' : 'CLP');
-  const toggleDarkMode = () => setDarkMode(prev => !prev);
+  const toggleCurrency = useCallback(() => {
+    setCurrency(prev => prev === 'CLP' ? 'USD' : 'CLP');
+  }, []);
+
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode(prev => !prev);
+  }, []);
 
   const login = async (email: string, password: string) => {
     const { error } = await authService.signIn(email, password);
@@ -192,6 +227,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
 export const useStore = () => {
   const context = useContext(StoreContext);
-  if (!context) throw new Error('useStore must be used within StoreProvider');
+  if (!context) {
+    throw new Error('useStore must be used within StoreProvider');
+  }
   return context;
 };
