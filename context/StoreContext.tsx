@@ -38,21 +38,77 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [user, setUser] = useState<User | null>(null);
   const [settings, setSettings] = useState<BrandSettings | null>(null);
   const [activeAdminTab, setActiveAdminTab] = useState<'inventory' | 'brand'>('inventory');
+  const [lastRefresh, setLastRefresh] = useState(0);
+
+  const addToast = (type: ToastMessage['type'], message: string) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts(prev => [...prev, { id, type, message }]);
+    setTimeout(() => removeToast(id), 3000);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
+  const refreshProducts = async (force = false, silent = false) => {
+    const now = Date.now();
+
+    // Check cache
+    if (!force && now - lastRefresh < 5000) {
+      console.log('Skipping product refresh, using cache');
+      if (!silent) setLoading(false);
+      return;
+    }
+
+    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      console.error('Missing Supabase credentials');
+      setLoading(false);
+      return;
+    }
+
+    if (!silent) setLoading(true);
+
+    try {
+      console.log('Fetching products from Supabase...');
+      const data = await supabaseProductService.getAll();
+      setProducts(data);
+      setLastRefresh(now);
+      console.log(`Successfully loaded ${data.length} products`);
+    } catch (error) {
+      console.error('Error loading products:', error);
+      addToast('error', 'Error al conectar con la base de datos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshSettings = async () => {
+    try {
+      console.log('Fetching settings...');
+      const data = await settingsService.getSettings();
+      setSettings(data);
+      console.log('Settings loaded');
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
 
   // Consolidated Initialization
   useEffect(() => {
     const initialize = async () => {
+      console.log('Initializing application...');
       setLoading(true);
       try {
+        // Run fetches in parallel for speed
         const [currentUser] = await Promise.all([
-          authService.getCurrentUser(),
-          refreshProducts(),
-          refreshSettings()
+          authService.getCurrentUser().catch(e => { console.error('Auth error:', e); return null; }),
+          refreshSettings().catch(e => { console.error('Settings error:', e); return null; }),
+          refreshProducts(true, true).catch(e => { console.error('Products error:', e); return null; })
         ]);
 
         setUser(currentUser);
         if (currentUser) {
-          const isAuthorized = await authService.isAdmin(currentUser.id);
+          const isAuthorized = await authService.isAdmin(currentUser.id).catch(() => false);
           setIsAuthenticated(isAuthorized);
         } else {
           setIsAuthenticated(false);
@@ -60,6 +116,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       } catch (error) {
         console.error('Initialization error:', error);
       } finally {
+        console.log('Initialization complete');
         setLoading(false);
       }
     };
@@ -101,50 +158,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, [darkMode]);
 
-  const [lastRefresh, setLastRefresh] = useState(0);
-
-  const refreshProducts = async (force = false, silent = false) => {
-    const now = Date.now();
-    if (!force && now - lastRefresh < 5000) return; // Cache for 5 seconds
-
-    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-      setLoading(false);
-      return;
-    }
-
-    if (!silent) setLoading(true);
-    try {
-      const data = await supabaseProductService.getAll();
-      setProducts(data);
-      setLastRefresh(now);
-    } catch (error) {
-      console.error('Error loading products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const refreshSettings = async () => {
-    try {
-      const data = await settingsService.getSettings();
-      setSettings(data);
-    } catch (error) {
-      console.error('Error loading settings:', error);
-    }
-  };
-
   const toggleCurrency = () => setCurrency(prev => prev === 'CLP' ? 'USD' : 'CLP');
   const toggleDarkMode = () => setDarkMode(prev => !prev);
-
-  const addToast = (type: ToastMessage['type'], message: string) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    setToasts(prev => [...prev, { id, type, message }]);
-    setTimeout(() => removeToast(id), 3000);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  };
 
   const login = async (email: string, password: string) => {
     const { error } = await authService.signIn(email, password);
