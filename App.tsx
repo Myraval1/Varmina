@@ -66,11 +66,6 @@ const Layout: React.FC<{
                       </button>
                     </li>
                     <li>
-                      <button className="w-full flex items-center gap-3 px-4 py-2 text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-800/50 rounded text-sm font-medium transition-colors">
-                        <ShoppingBag className="w-4 h-4" /> Pedidos
-                      </button>
-                    </li>
-                    <li>
                       <button
                         onClick={() => navigate('/')}
                         className="w-full flex items-center gap-3 px-4 py-2 text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-800/50 rounded text-sm font-medium transition-colors"
