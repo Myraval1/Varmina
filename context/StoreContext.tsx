@@ -42,18 +42,34 @@ async function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Pro
 }
 
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Get cached admin status for optimistic UI
+  const getCachedAuth = () => {
+    try {
+      return localStorage.getItem('varmina_is_admin') === 'true';
+    } catch {
+      return false;
+    }
+  };
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState<'CLP' | 'USD'>('CLP');
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      return localStorage.getItem('varmina_dark_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(getCachedAuth);
   const [user, setUser] = useState<User | null>(null);
   const [settings, setSettings] = useState<BrandSettings | null>(null);
   const [activeAdminTab, setActiveAdminTab] = useState<'inventory' | 'analytics' | 'settings'>('inventory');
 
   const lastRefreshRef = useRef(0);
   const isInitializingRef = useRef(false);
+  const authCheckedRef = useRef(false);
 
   const removeToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(t => t.id !== id));
@@ -88,83 +104,76 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, [addToast]);
 
+  // Helper to verify and cache admin status
+  const verifyAdmin = useCallback(async (userId: string) => {
+    try {
+      const isAuthorized = await withTimeout(authService.isAdmin(userId), 10000, false);
+      setIsAuthenticated(isAuthorized);
+      localStorage.setItem('varmina_is_admin', isAuthorized ? 'true' : 'false');
+      return isAuthorized;
+    } catch (e) {
+      console.error('Verify Admin Fail:', e);
+      return false;
+    }
+  }, []);
+
   // SINGLE INITIALIZATION EFFECT
   useEffect(() => {
     if (isInitializingRef.current) return;
     isInitializingRef.current = true;
 
     const initialize = async () => {
-      console.log('⚡ [Auth] Start store initialization');
-      setLoading(true);
+      console.log('⚡ [Auth] Fast Initialization Started');
 
       try {
-        const session = await authService.getCurrentSession();
+        // 1. Get session and start data fetches in parallel
+        const [session] = await Promise.all([
+          authService.getCurrentSession(),
+          refreshSettings().catch(e => console.error('BG Settings:', e)),
+          refreshProducts(true, true).catch(e => console.error('BG Products:', e))
+        ]);
+
         const currentUser = session?.user || null;
-        console.log('⚡ [Auth] Found user:', currentUser?.email || 'none');
         setUser(currentUser);
 
-        // Start fetching settings and products in background
-        refreshSettings().catch(e => console.error('BG Settings Fail:', e));
-        refreshProducts(true, true).catch(e => console.error('BG Products Fail:', e));
-
         if (currentUser) {
-          console.log('⚡ [Auth] Checking admin status for:', currentUser.email);
-          try {
-            const isAuthorized = await withTimeout(authService.isAdmin(currentUser.id), 15000, false);
-            console.log('⚡ [Auth] Admin result:', isAuthorized);
-            setIsAuthenticated(isAuthorized);
-          } catch (e) {
-            console.error('⚡ [Auth] Admin Check Failed:', e);
-            setIsAuthenticated(false);
-          }
+          // If we have a user, verify them in the background (Optimistic UI handles the rest)
+          await verifyAdmin(currentUser.id);
         } else {
           setIsAuthenticated(false);
+          localStorage.setItem('varmina_is_admin', 'false');
         }
       } catch (err) {
-        console.error('⚡ [Auth] Initialization Error:', err);
+        console.error('⚡ [Auth] Init Error:', err);
       } finally {
         setLoading(false);
-        console.log('🏁 [Auth] Initialization finished');
+        console.log('🏁 [Auth] Fast Initialization Finished');
       }
     };
 
     initialize();
 
     const { data: { subscription } } = authService.onAuthStateChange(async (event, session) => {
-      console.log('🔐 [Auth] State changed event:', event);
       const currentUser = session?.user || null;
-      console.log('🔐 [Auth] User in event:', currentUser?.email || 'none');
-
       setUser(currentUser);
 
       if (currentUser) {
         if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-          console.log('🔐 [Auth] Verifying authorization for event:', event);
-          const isAuthorized = await withTimeout(
-            authService.isAdmin(currentUser.id).catch(err => {
-              console.error('🔐 [Auth] isAdmin check error:', err);
-              return false;
-            }),
-            15000,
-            false
-          );
-
-          console.log('🔐 [Auth] Result for user:', currentUser.email, 'isAdmin:', isAuthorized);
-          setIsAuthenticated(isAuthorized);
-
+          const isAuthorized = await verifyAdmin(currentUser.id);
           if (event === 'SIGNED_IN' && !isAuthorized) {
             addToast('error', 'No tienes permisos de administrador.');
           }
         }
       } else {
         setIsAuthenticated(false);
+        localStorage.setItem('varmina_is_admin', 'false');
       }
     });
 
     return () => {
       subscription?.unsubscribe();
     };
-  }, [refreshSettings, refreshProducts, addToast]); // Added dependencies safely
+  }, [refreshSettings, refreshProducts, addToast, verifyAdmin]);
 
   useEffect(() => {
     if (darkMode) document.documentElement.classList.add('dark');
@@ -172,7 +181,13 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [darkMode]);
 
   const toggleCurrency = useCallback(() => setCurrency(prev => prev === 'CLP' ? 'USD' : 'CLP'), []);
-  const toggleDarkMode = useCallback(() => setDarkMode(prev => !prev), []);
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode(prev => {
+      const newVal = !prev;
+      localStorage.setItem('varmina_dark_mode', String(newVal));
+      return newVal;
+    });
+  }, []);
 
   const login = async (email: string, password: string) => {
     console.log('Attempting login for:', email);
@@ -186,28 +201,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     if (authUser) {
       console.log('Login successful, verifying admin status for:', authUser.id);
+      const isAuthorized = await verifyAdmin(authUser.id);
 
-      try {
-        // High timeout for login verification
-        const isAuthorized = await withTimeout(authService.isAdmin(authUser.id), 12000, false);
-
-        if (isAuthorized) {
-          console.log('Admin authorization successful');
-          setUser(authUser);
-          setIsAuthenticated(true);
-          addToast('success', 'Acceso concedido. Bienvenido.');
-        } else {
-          console.warn('User logged in but is NOT an admin in profiles table');
-          // Important: We don't sign out automatically here to allow the user to see the error
-          // and because they ARE technically logged into Supabase.
-          // The UI will keep them on the login page via ProtectedRoute.
-          addToast('error', 'Su cuenta no tiene permisos de administrador.');
-          throw new Error('Not authorized as admin');
-        }
-      } catch (checkErr) {
-        console.error('Admin check failed during login:', checkErr);
-        addToast('error', 'Error verificando permisos. Por favor intente de nuevo.');
-        throw checkErr;
+      if (isAuthorized) {
+        setUser(authUser);
+        setIsAuthenticated(true);
+        addToast('success', 'Acceso concedido. Bienvenido.');
+      } else {
+        addToast('error', 'Su cuenta no tiene permisos de administrador.');
+        throw new Error('Not authorized as admin');
       }
     }
   };
