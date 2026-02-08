@@ -98,24 +98,29 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setLoading(true);
 
       try {
-        // 1. Force a clean fetch of everything once
-        const session = await withTimeout(authService.getCurrentSession(), 4000, null);
+        // 1. Get session immediately without strict timeout
+        const session = await authService.getCurrentSession();
         const currentUser = session?.user || null;
         setUser(currentUser);
 
-        const promises: Promise<any>[] = [
-          refreshSettings(),
-          refreshProducts(true, true)
-        ];
+        // 2. Start fetching settings and products in background
+        // These are not awaited here to speed up time-to-interactivity for admin
+        refreshSettings().catch(e => console.error('BG Settings Fail:', e));
+        refreshProducts(true, true).catch(e => console.error('BG Products Fail:', e));
 
+        // 3. Critical: Verify admin status if we have a user
         if (currentUser) {
-          promises.push(
-            withTimeout(authService.isAdmin(currentUser.id), 3000, false)
-              .then(res => setIsAuthenticated(res))
-          );
+          try {
+            // Use 15s timeout for the critical initial check
+            const isAuthorized = await withTimeout(authService.isAdmin(currentUser.id), 15000, false);
+            setIsAuthenticated(isAuthorized);
+          } catch (e) {
+            console.error('Initial Admin Check Failed:', e);
+            setIsAuthenticated(false);
+          }
+        } else {
+          setIsAuthenticated(false);
         }
-
-        await Promise.all(promises);
       } catch (err) {
         console.error('Initialization Error:', err);
       } finally {
@@ -132,21 +137,27 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       setUser(currentUser);
 
       if (currentUser) {
-        const isAuthorized = await withTimeout(
-          authService.isAdmin(currentUser.id).catch(err => {
-            console.error('isAdmin check failed:', err);
-            return false;
-          }),
-          10000,
-          false
-        );
+        // Only run the authorization check if we don't already know they are authenticated
+        // or if it's a SIGNED_IN event (which could be a new login)
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          const isAuthorized = await withTimeout(
+            authService.isAdmin(currentUser.id).catch(err => {
+              console.error('isAdmin check failed in event listener:', err);
+              return false;
+            }),
+            15000,
+            false
+          );
 
-        setIsAuthenticated(isAuthorized);
+          setIsAuthenticated(isAuthorized);
 
-        if (event === 'SIGNED_IN' && !isAuthorized) {
-          console.warn('Login successful but not authorized as admin. Signing out.');
-          addToast('error', 'Acceso denegado: No tienes permisos de administrador.');
-          await authService.signOut();
+          // We removed the automatic signOut here. If the user is SIGNED_IN but not an admin,
+          // the ProtectedRoute will already block them and show the login page.
+          // Automatic signOut can be too aggressive and trigger race conditions on refresh.
+          if (event === 'SIGNED_IN' && !isAuthorized) {
+            console.warn('User signed in but not authorized as admin.');
+            addToast('error', 'No tienes permisos de administrador.');
+          }
         }
       } else {
         setIsAuthenticated(false);
@@ -156,7 +167,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return () => {
       subscription?.unsubscribe();
     };
-  }, []); // EMPTY DEPENDENCIES - Runs only once
+  }, [refreshSettings, refreshProducts, addToast]); // Added dependencies safely
 
   useEffect(() => {
     if (darkMode) document.documentElement.classList.add('dark');
