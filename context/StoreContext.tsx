@@ -85,6 +85,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [darkMode]);
 
   const refreshProducts = async () => {
+    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      setLoading(false);
+      addToast('error', 'Error de configuración: Faltan variables de entorno.');
+      return;
+    }
+
     setLoading(true);
     try {
       const data = await supabaseProductService.getAll();
