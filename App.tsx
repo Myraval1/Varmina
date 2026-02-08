@@ -1,27 +1,33 @@
 import React from 'react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { PublicCatalog } from './pages/PublicCatalog';
 import { AdminDashboard } from './pages/AdminDashboard';
-import { Layout, ProtectedRoute } from './components/Layout';
+import { PublicLayout } from './components/PublicLayout';
+import { AdminLayout } from './components/AdminLayout';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 const App = () => {
-  const location = useLocation();
-  const isViewAdmin = location.pathname.startsWith('/admin');
-  const view = isViewAdmin ? 'admin' : 'public';
-
   return (
-    <Layout view={view}>
-      <Routes>
-        <Route path="/" element={<PublicCatalog />} />
-        <Route path="/admin" element={
-          <ProtectedRoute>
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={
+        <PublicLayout>
+          <PublicCatalog />
+        </PublicLayout>
+      } />
+
+      {/* Admin Routes */}
+      <Route path="/admin" element={
+        <ProtectedRoute>
+          <AdminLayout>
             <AdminDashboard />
-          </ProtectedRoute>
-        } />
-        {/* Redirect any unknown routes to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Layout>
+          </AdminLayout>
+        </ProtectedRoute>
+      } />
+
+      {/* Redirect any unknown routes to home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 
