@@ -191,9 +191,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   };
 
-  const logout = async () => {
-    await authService.signOut();
-  };
+  const logout = useCallback(async () => {
+    try {
+      await authService.signOut();
+      setUser(null);
+      setIsAuthenticated(false);
+      addToast('success', 'Sesión cerrada correctamente');
+    } catch (err) {
+      console.error('Logout error:', err);
+      // Even if signOut fails, let's clear local state
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  }, [addToast]);
 
   return (
     <StoreContext.Provider value={{

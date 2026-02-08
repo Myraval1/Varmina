@@ -18,6 +18,15 @@ export const Layout: React.FC<{
     } = useStore();
     const navigate = useNavigate();
 
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/');
+        } catch (err) {
+            console.error('Logout failed:', err);
+            navigate('/'); // Force redirection anyway
+        }
+    };
     return (
         <div className={`min-h-screen flex flex-col transition-colors duration-500 ${darkMode ? 'dark bg-stone-950' : 'bg-stone-50'}`}>
 
@@ -108,7 +117,7 @@ export const Layout: React.FC<{
                                 </div>
                                 <div className="p-8 border-t border-stone-50 dark:border-stone-800">
                                     <button
-                                        onClick={logout}
+                                        onClick={handleLogout}
                                         className="w-full flex items-center gap-4 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-sm text-[11px] font-bold uppercase tracking-[0.15em] transition-all"
                                     >
                                         <LogOut className="w-4 h-4" />
@@ -154,7 +163,7 @@ export const Layout: React.FC<{
                                     </li>
                                     <li>
                                         <button
-                                            onClick={logout}
+                                            onClick={handleLogout}
                                             className="flex flex-col items-center gap-1 p-2 text-red-500/70"
                                         >
                                             <LogOut className="w-5 h-5" />
