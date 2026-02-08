@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { settingsService, BrandSettings } from '../../services/settingsService';
 import { useStore } from '../../context/StoreContext';
 import { Button, Input, LoadingScreen } from '../UI';
-import { Globe, MessageCircle, Share2, Image as ImageIcon, Layout, BarChart3, Save, Bell, AlertTriangle, Mail, Activity } from 'lucide-react';
+import { Globe, MessageCircle, Share2, Layout, Save, Bell, AlertTriangle, Activity } from 'lucide-react';
 
-export const BrandManagement: React.FC = () => {
-    const { addToast, products } = useStore();
+// --- SETTINGS VIEW COMPONENT ---
+export const SettingsView: React.FC = () => {
+    const { addToast } = useStore();
     const [settings, setSettings] = useState<BrandSettings | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -40,39 +41,10 @@ export const BrandManagement: React.FC = () => {
 
     if (isLoading) return <div className="py-20 flex justify-center"><LoadingScreen /></div>;
 
-    const topProducts = [...products]
-        .sort((a, b) => (b.whatsapp_clicks || 0) - (a.whatsapp_clicks || 0))
-        .slice(0, 5);
-
     return (
         <div className="max-w-3xl mx-auto animate-in fade-in duration-500 pt-8">
+            <h2 className="text-2xl font-serif text-stone-900 dark:text-white mb-8 border-b border-stone-100 dark:border-stone-800 pb-4 uppercase tracking-widest">Configuración General</h2>
             <form onSubmit={handleSave} className="space-y-12 pb-24">
-
-                {/* 1. ANALYTICS PREVIEW */}
-                <section className="bg-stone-50 dark:bg-stone-900/30 border border-stone-100 dark:border-stone-800 p-8 rounded-sm">
-                    <div className="flex items-center gap-3 mb-8">
-                        <BarChart3 className="w-5 h-5 text-gold-600" />
-                        <h2 className="text-xs font-bold uppercase tracking-widest text-stone-900 dark:text-gold-100">Rendimiento de Interés</h2>
-                    </div>
-                    <div className="space-y-4">
-                        {topProducts.map((p, idx) => (
-                            <div key={p.id} className="flex items-center justify-between group">
-                                <div className="flex items-center gap-4">
-                                    <span className="text-[10px] font-mono text-stone-300">0{idx + 1}</span>
-                                    <img src={p.images[0]} className="w-8 h-10 object-cover grayscale group-hover:grayscale-0 transition-all border border-stone-100 dark:border-stone-800" />
-                                    <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-tight text-stone-700 dark:text-stone-300">{p.name}</p>
-                                        <p className="text-[9px] text-stone-400 uppercase tracking-widest">{p.category}</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-sm font-serif text-gold-600 font-bold">{p.whatsapp_clicks || 0}</p>
-                                    <p className="text-[8px] text-stone-400 uppercase tracking-tighter">Clicks</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
 
                 {/* 2. NOTIFICACIONES Y ESTADO (NEW) */}
                 <section className="space-y-8 bg-white dark:bg-stone-900/10 p-8 border border-stone-100 dark:border-stone-900 rounded-sm">

@@ -3,9 +3,10 @@ import { useStore } from '../context/StoreContext';
 import { Product, ProductStatus } from '../types';
 import { Button, Modal } from '../components/UI';
 import { supabaseProductService } from '../services/supabaseProductService';
-import { Plus, Edit2, Trash2, AlertCircle, Package, Copy, Check, X as CloseIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, AlertCircle, Package, Copy, Check, X as CloseIcon, BarChart3 } from 'lucide-react';
 import { ProductForm } from '../components/admin/ProductForm';
-import { BrandManagement } from '../components/admin/BrandManagement';
+import { AnalyticsDashboard } from '../components/admin/AnalyticsDashboard';
+import { SettingsView } from '../components/admin/SettingsView';
 
 // --- MAIN ADMIN COMPONENT ---
 export const AdminDashboard = () => {
@@ -23,7 +24,6 @@ export const AdminDashboard = () => {
     inStock: products.filter(p => p.status === ProductStatus.IN_STOCK).length,
     madeToOrder: products.filter(p => p.status === ProductStatus.MADE_TO_ORDER).length,
     soldOut: products.filter(p => p.status === ProductStatus.SOLD_OUT).length,
-    totalClicks: products.reduce((acc, p) => acc + (p.whatsapp_clicks || 0), 0)
   };
 
   const toggleSelect = (id: string) => {
@@ -96,11 +96,15 @@ export const AdminDashboard = () => {
     }
   };
 
-  return (
-    <div className="bg-transparent overflow-hidden h-full">
-      <main className="h-full overflow-y-auto pt-16 pb-24 px-8 md:px-16 scrollbar-thin">
-
-        {activeAdminTab === 'inventory' ? (
+  const renderContent = () => {
+    switch (activeAdminTab) {
+      case 'analytics':
+        return <AnalyticsDashboard />;
+      case 'settings':
+        return <SettingsView />;
+      case 'inventory':
+      default:
+        return (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 max-w-7xl mx-auto">
             {/* Stats Overview */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
@@ -108,9 +112,10 @@ export const AdminDashboard = () => {
                 <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Total Piezas</p>
                 <p className="text-3xl font-serif text-stone-900 dark:text-gold-200">{stats.total}</p>
               </div>
+              {/* Removed total Interest Card from here */}
               <div className="bg-white dark:bg-stone-900 p-6 rounded-sm border border-stone-100 dark:border-stone-800 shadow-sm">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Interés Total</p>
-                <p className="text-3xl font-serif text-gold-600">{stats.totalClicks} <span className="text-xs font-sans uppercase">Clicks</span></p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Agotado</p>
+                <p className="text-3xl font-serif text-stone-500">{stats.soldOut}</p>
               </div>
               <div className="bg-white dark:bg-stone-900 p-6 rounded-sm border border-stone-100 dark:border-stone-800 shadow-sm">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">En Stock</p>
@@ -270,9 +275,16 @@ export const AdminDashboard = () => {
               )}
             </div>
           </div>
-        ) : (
-          <BrandManagement />
-        )}
+        );
+    }
+  };
+
+  return (
+    <div className="bg-transparent overflow-hidden h-full">
+      <main className="h-full overflow-y-auto pt-16 pb-24 px-8 md:px-16 scrollbar-thin">
+
+        {renderContent()}
+
       </main>
 
       {/* Shared Modals */}

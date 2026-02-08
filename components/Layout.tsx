@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import { APP_NAME } from '../constants';
-import { LayoutGrid, Sun, Moon, Store, LogOut, Award } from 'lucide-react';
+import { LayoutGrid, Sun, Moon, Store, LogOut, Award, BarChart3 } from 'lucide-react';
 import { ToastContainer, LoadingScreen } from './UI';
 import { LoginPage } from '../pages/LoginPage';
 
@@ -77,11 +77,20 @@ export const Layout: React.FC<{
                                             </li>
                                             <li>
                                                 <button
-                                                    onClick={() => setActiveAdminTab('brand')}
-                                                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-sm text-[11px] font-bold uppercase tracking-[0.15em] transition-all ${activeAdminTab === 'brand' ? 'bg-[#1A1A1A] text-white shadow-lg' : 'text-stone-400 hover:text-stone-900 dark:hover:text-white'}`}
+                                                    onClick={() => setActiveAdminTab('analytics')}
+                                                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-sm text-[11px] font-bold uppercase tracking-[0.15em] transition-all ${activeAdminTab === 'analytics' ? 'bg-[#1A1A1A] text-white shadow-lg' : 'text-stone-400 hover:text-stone-900 dark:hover:text-white'}`}
                                                 >
-                                                    <Award className={`w-4 h-4 ${activeAdminTab === 'brand' ? 'text-gold-400' : ''}`} />
-                                                    <span>Gestión de Marca</span>
+                                                    <BarChart3 className={`w-4 h-4 ${activeAdminTab === 'analytics' ? 'text-gold-400' : ''}`} />
+                                                    <span>Analítica</span>
+                                                </button>
+                                            </li>
+                                            <li>
+                                                <button
+                                                    onClick={() => setActiveAdminTab('settings')}
+                                                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-sm text-[11px] font-bold uppercase tracking-[0.15em] transition-all ${activeAdminTab === 'settings' ? 'bg-[#1A1A1A] text-white shadow-lg' : 'text-stone-400 hover:text-stone-900 dark:hover:text-white'}`}
+                                                >
+                                                    <Award className={`w-4 h-4 ${activeAdminTab === 'settings' ? 'text-gold-400' : ''}`} />
+                                                    <span>Configuración</span>
                                                 </button>
                                             </li>
                                             <li className="pt-4 mt-4 border-t border-stone-100 dark:border-stone-900">
