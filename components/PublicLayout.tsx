@@ -49,12 +49,6 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children
                     <button onClick={toggleDarkMode} className="p-2 md:p-3 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full text-stone-600 dark:text-stone-400 transition-colors" title="Cambiar Tema">
                         {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                     </button>
-                    <button
-                        onClick={() => navigate('/admin')}
-                        className="ml-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-stone-400 hover:text-stone-900 dark:hover:text-gold-400 border border-transparent hover:border-stone-200 dark:hover:border-stone-800 rounded-sm transition-all"
-                    >
-                        Admin
-                    </button>
                 </div>
             </header>
 
@@ -88,6 +82,14 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children
                             Santiago, Chile
                         </p>
                     </div>
+
+                    {/* Hidden Admin Access */}
+                    <button
+                        onClick={() => navigate('/admin')}
+                        className="absolute bottom-4 right-4 opacity-[0.02] hover:opacity-100 transition-opacity text-[8px] uppercase tracking-tighter"
+                    >
+                        .
+                    </button>
                 </div>
             </footer>
 
