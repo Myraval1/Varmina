@@ -385,7 +385,6 @@ export const AdminDashboard = () => {
         isOpen={isCreating || !!editingProduct}
         onClose={() => { setIsCreating(false); setEditingProduct(null); }}
         size="xl"
-        title={isCreating ? "Agregar Pieza" : "Editar Pieza"}
       >
         <ProductForm
           initialData={editingProduct || undefined}

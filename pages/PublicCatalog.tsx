@@ -66,26 +66,44 @@ export const PublicCatalog = () => {
     return (
         <div className="w-full min-h-screen bg-white dark:bg-stone-950">
 
-            {/* HERO SECTION (From Admin Settings) */}
-            {settings?.hero_image_url && (
-                <div className="relative w-full h-[350px] md:h-[500px] overflow-hidden">
+            {/* HERO SECTION - Premium Dynamic Storefront */}
+            {settings?.hero_image_url ? (
+                <div className="relative w-full h-[60vh] md:h-[80vh] min-h-[400px] overflow-hidden group">
                     <img
                         src={settings.hero_image_url}
-                        alt="Hero"
-                        className="w-full h-full object-cover animate-in fade-in duration-1000"
+                        alt={settings.hero_title || "Varmina Collection"}
+                        className="w-full h-full object-cover transition-transform duration-[20s] ease-linear group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px] flex flex-col items-center justify-center text-center p-6">
-                        {settings.hero_title && (
-                            <h1 className="font-serif text-3xl md:text-5xl text-white mb-3 drop-shadow-xl tracking-[0.2em] uppercase animate-in slide-in-from-bottom-4 duration-700">
-                                {settings.hero_title}
-                            </h1>
-                        )}
-                        {settings.hero_subtitle && (
-                            <p className="font-sans text-xs md:text-lg text-white/90 max-w-xl drop-shadow-md tracking-widest font-light animate-in slide-in-from-bottom-6 duration-1000">
-                                {settings.hero_subtitle}
-                            </p>
-                        )}
+                    {/* Deep Premium Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-stone-900/60 flex flex-col items-center justify-center text-center p-6 md:p-12">
+                        <div className="max-w-4xl space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 ease-out">
+                            {settings.hero_title && (
+                                <h1 className="font-serif text-4xl md:text-7xl text-white drop-shadow-2xl tracking-[0.25em] uppercase leading-tight font-light">
+                                    {settings.hero_title}
+                                </h1>
+                            )}
+                            {settings.hero_subtitle && (
+                                <div className="flex flex-col items-center gap-6">
+                                    <div className="w-12 h-[1px] bg-gold-400/60" />
+                                    <p className="font-sans text-xs md:text-sm text-white/90 max-w-xl drop-shadow-md tracking-[0.4em] uppercase font-bold">
+                                        {settings.hero_subtitle}
+                                    </p>
+                                    <div className="w-12 h-[1px] bg-gold-400/60" />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Scroll Indicator */}
+                        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 animate-bounce opacity-50">
+                            <div className="w-[1px] h-12 bg-white/60" />
+                        </div>
                     </div>
+                </div>
+            ) : (
+                <div className="w-full h-32 md:h-48 bg-stone-100 dark:bg-stone-900/40 flex items-center justify-center border-b border-stone-200 dark:border-stone-800">
+                    <h1 className="font-serif text-2xl md:text-4xl tracking-[0.2em] text-stone-300 dark:text-stone-700 uppercase italic">
+                        {settings?.brand_name || 'Varmina'}
+                    </h1>
                 </div>
             )}
 

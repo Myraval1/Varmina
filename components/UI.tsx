@@ -113,14 +113,23 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      <div className={`relative bg-white dark:bg-stone-900 w-full ${sizeClasses[size]} max-h-[95vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95 duration-300 rounded-2xl`}>
-        <div className="flex items-center justify-between p-8 border-b border-stone-100 dark:border-stone-800 sticky top-0 bg-white dark:bg-stone-900 z-10">
-          {title && <h3 className="font-serif text-2xl uppercase tracking-[0.1em] text-stone-900 dark:text-white">{title}</h3>}
-          <button onClick={onClose} className="p-1 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors">
-            <X className="w-5 h-5 text-stone-400" />
+      <div className={`relative bg-white dark:bg-stone-900 w-full ${sizeClasses[size]} max-h-[100vh] md:max-h-[95vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95 duration-300 rounded-t-3xl md:rounded-2xl`}>
+        {title ? (
+          <div className="flex items-center justify-between p-6 md:p-8 border-b border-stone-100 dark:border-stone-800 sticky top-0 bg-white dark:bg-stone-900 z-10">
+            <h3 className="font-serif text-xl md:text-2xl uppercase tracking-[0.1em] text-stone-900 dark:text-white">{title}</h3>
+            <button onClick={onClose} className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors">
+              <X className="w-5 h-5 text-stone-400" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-[40] p-2 bg-white/50 dark:bg-stone-900/50 backdrop-blur-md hover:bg-white dark:hover:bg-stone-800 rounded-full transition-colors border border-stone-100 dark:border-stone-800 shadow-sm"
+          >
+            <X className="w-4 h-4 text-stone-900 dark:text-white" />
           </button>
-        </div>
-        <div className="p-8">
+        )}
+        <div className={title ? "p-6 md:p-8" : "p-0"}>
           {children}
         </div>
       </div>

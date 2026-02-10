@@ -312,15 +312,17 @@ export const AssetsView: React.FC = () => {
                                 <Input
                                     label="Stock Actual"
                                     type="number"
-                                    value={formData.stock}
-                                    onChange={e => setFormData({ ...formData, stock: Number(e.target.value) })}
+                                    value={formData.stock === 0 ? '' : formData.stock}
+                                    onChange={e => setFormData({ ...formData, stock: Number(e.target.value) || 0 })}
                                     required
+                                    placeholder="0"
                                 />
                                 <Input
                                     label="Stock Mínimo (Alerta)"
                                     type="number"
-                                    value={formData.min_stock}
-                                    onChange={e => setFormData({ ...formData, min_stock: Number(e.target.value) })}
+                                    value={formData.min_stock === 0 ? '' : formData.min_stock}
+                                    onChange={e => setFormData({ ...formData, min_stock: Number(e.target.value) || 0 })}
+                                    placeholder="0"
                                 />
                             </div>
                         </div>
@@ -329,8 +331,8 @@ export const AssetsView: React.FC = () => {
                             <Input
                                 label="Costo Unitario (NETO)"
                                 type="number"
-                                value={formData.unit_cost}
-                                onChange={e => setFormData({ ...formData, unit_cost: Number(e.target.value) })}
+                                value={formData.unit_cost === 0 ? '' : formData.unit_cost}
+                                onChange={e => setFormData({ ...formData, unit_cost: Number(e.target.value) || 0 })}
                                 placeholder="0"
                             />
                             <Input

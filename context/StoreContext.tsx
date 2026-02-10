@@ -89,6 +89,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     refreshProducts();
   }, [refreshSettings, refreshProducts]);
 
+  // Dynamic SEO Title
+  useEffect(() => {
+    if (settings?.site_title) {
+      document.title = settings.site_title;
+    }
+    if (settings?.site_description) {
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', settings.site_description);
+      }
+    }
+  }, [settings]);
+
   return (
     <StoreContext.Provider value={{
       products,

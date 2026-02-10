@@ -427,7 +427,7 @@ export const FinanceView: React.FC = () => {
                             label="Monto"
                             type="number"
                             placeholder="0"
-                            value={formData.amount}
+                            value={formData.amount === '0' ? '' : formData.amount}
                             onChange={e => setFormData({ ...formData, amount: e.target.value })}
                             required
                         />
