@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Product, ProductStatus } from '../types';
 import { Button, StatusBadge } from './UI';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { supabaseProductService } from '../services/supabaseProductService';
 import { useStore } from '../context/StoreContext';
 
@@ -22,57 +22,68 @@ export const ProductCard: React.FC<{
     const exchangeRate = settings?.usd_exchange_rate || 950;
     const displayPrice = currency === 'CLP' ? product.price : Math.round(product.price / exchangeRate);
 
+    const isList = layout === 'list';
+
     return (
         <div
-            className={`group cursor-pointer mb-6 md:mb-8 transition-all duration-300 ${layout === 'list' ? 'flex flex-col md:flex-row gap-4 md:gap-6 items-center border-b border-stone-100 dark:border-stone-800 pb-6 md:pb-8' : ''}`}
+            className={`group cursor-pointer relative bg-white dark:bg-stone-900 md:bg-transparent ${isList
+                ? 'flex gap-4 p-3 md:p-0 border border-stone-100 dark:border-stone-800 rounded-lg md:rounded-lg md:border-b md:pb-8 md:border-t-0 md:border-x-0'
+                : 'flex flex-col gap-3'
+                }`}
             onClick={() => onClick(product)}
         >
-            <div className={`relative overflow-hidden bg-stone-100 aspect-[4/5] ${layout === 'list' ? 'w-full md:w-1/3 mb-0' : 'w-full mb-3 md:mb-4'}`}>
+            {/* Image Container */}
+            <div className={`relative overflow-hidden bg-stone-100 rounded-sm ${isList
+                ? 'w-24 h-32 md:w-48 md:h-64 aspect-[3/4] shrink-0'
+                : 'w-full aspect-[3/4]'
+                }`}>
                 <img
                     src={product.images[0]}
                     alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105 group-hover:opacity-0"
+                    className="w-full h-full object-cover transition-transform duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-110"
                 />
-                <img
-                    src={product.images[1] || product.images[0]}
-                    alt={product.name}
-                    className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-700 ease-in-out group-hover:opacity-100 group-hover:scale-105"
-                />
+                {product.images[1] && (
+                    <img
+                        src={product.images[1]}
+                        alt={product.name}
+                        className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-700 ease-in-out group-hover:opacity-100"
+                    />
+                )}
 
-                {/* Custom Badge */}
+                {/* Badge */}
                 {product.badge && (
-                    <div className="absolute top-4 left-4 z-10">
-                        <span className="bg-stone-900/80 backdrop-blur-sm text-white text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-full shadow-lg">
+                    <div className="absolute top-2 left-2 z-10">
+                        <span className="bg-white/90 dark:bg-stone-900/90 text-stone-900 dark:text-white text-[9px] font-bold uppercase tracking-[0.15em] px-2 py-1 rounded-sm shadow-sm backdrop-blur-sm">
                             {product.badge}
                         </span>
                     </div>
                 )}
 
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hidden md:flex">
-                    <span className="bg-white text-stone-900 px-6 py-2 uppercase text-xs tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-500 shadow-xl font-bold">
-                        Ver Detalles
-                    </span>
-                </div>
+                {/* Sold Out Overlay */}
+                {product.status === ProductStatus.SOLD_OUT && (
+                    <div className="absolute inset-0 bg-white/40 dark:bg-black/40 backdrop-grayscale flex items-center justify-center">
+                        <span className="bg-stone-900 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 -rotate-6 shadow-xl border border-white/20">Agotado</span>
+                    </div>
+                )}
             </div>
 
-            <div className={`space-y-1 ${layout === 'list' ? 'flex-1 w-full text-left' : 'text-left'}`}>
-                <div className="flex justify-between items-start gap-2">
-                    <h3 className={`font-serif text-stone-900 dark:text-white leading-tight group-hover:text-gold-600 transition-colors ${layout === 'grid' ? 'text-sm md:text-lg' : 'text-lg md:text-xl'}`}>
-                        {product.name}
-                    </h3>
-                    <span className={`font-sans font-bold text-stone-500 dark:text-gold-200 whitespace-nowrap ${layout === 'grid' ? 'text-xs md:text-sm' : 'text-sm md:text-base'}`}>
-                        {formatPrice(displayPrice, currency)}
-                    </span>
-                </div>
+            {/* Info */}
+            <div className={`flex flex-col ${isList ? 'justify-center py-2 items-start' : ''}`}>
                 {product.collection && (
-                    <p className="text-[8px] md:text-[10px] uppercase tracking-widest text-gold-600 font-bold">{product.collection}</p>
+                    <p className="text-[9px] uppercase tracking-widest text-stone-500 mb-1">{product.collection}</p>
                 )}
-                <p className={`text-stone-500 dark:text-stone-400 ${layout === 'list' ? 'line-clamp-3 my-2 md:my-4 text-xs md:text-sm leading-relaxed' : 'text-[10px] md:text-xs line-clamp-1'}`}>
-                    {product.description}
+
+                <h3 className={`font-serif text-stone-900 dark:text-white leading-tight mb-1 group-hover:text-gold-600 transition-colors duration-300 ${isList ? 'text-base' : 'text-sm md:text-base'}`}>
+                    {product.name}
+                </h3>
+
+                <p className={`font-bold text-stone-900 dark:text-gold-200 ${isList ? 'text-sm' : 'text-xs md:text-sm'}`}>
+                    {formatPrice(displayPrice, currency)}
                 </p>
-                <div className="pt-1 md:pt-2">
-                    <StatusBadge status={product.status} />
-                </div>
+
+                {isList && (
+                    <p className="text-xs text-stone-500 mt-2 line-clamp-2 hidden md:block">{product.description}</p>
+                )}
             </div>
         </div>
     );
@@ -99,109 +110,124 @@ export const ProductDetail: React.FC<{
         : basePrice;
 
     const handleWhatsApp = async () => {
-        // Track interest
         await supabaseProductService.incrementWhatsappClicks(product.id);
-
         const number = settings?.whatsapp_number || '56927435294';
-        const template = settings?.whatsapp_template || 'Hola Varmina, me gustaría consultar por la pieza: "{{product_name}}". ID: {{product_id}}';
-
+        const template = settings?.whatsapp_template || 'Hola Varmina, me interesa: {{product_name}} (ID: {{product_id}})';
         const message = template
             .replace('{{product_name}}', `${product.name}${selectedVariant ? ` (${selectedVariant.name})` : ''}`)
             .replace('{{product_id}}', product.id.slice(0, 8));
-
-        const encoded = encodeURIComponent(message);
-        window.open(`https://wa.me/${number}?text=${encoded}`, '_blank');
+        window.open(`https://wa.me/${number}?text=${encodeURIComponent(message)}`, '_blank');
     };
 
     return (
-        <div className="flex flex-col md:flex-row gap-6 md:gap-12">
-            <div className="md:w-1/2 space-y-4">
-                <div className="aspect-[4/5] bg-stone-100 overflow-hidden relative rounded-sm shadow-inner">
+        <div className="flex flex-col md:flex-row h-full md:h-auto overflow-hidden bg-white dark:bg-stone-950 md:rounded-lg max-w-5xl w-full mx-auto relative shadow-2xl animate-in slide-in-from-bottom-8 duration-500 ease-out">
+            {/* Close Button Mobile/Desktop */}
+            <button
+                onClick={onClose}
+                className="absolute top-4 right-4 z-20 p-2 bg-white/80 dark:bg-stone-900/80 rounded-full text-stone-900 dark:text-white hover:bg-gold-500 hover:text-white transition-colors backdrop-blur-sm shadow-sm"
+            >
+                <X className="w-5 h-5" />
+            </button>
+
+            {/* Image Section */}
+            <div className="md:w-1/2 bg-stone-50 dark:bg-stone-900 relative">
+                <div className="w-full aspect-[3/4] md:h-[650px] relative">
                     <img
                         src={imagesToDisplay[activeImg] || product.images[0]}
-                        className="w-full h-full object-cover animate-in fade-in duration-500"
+                        className="w-full h-full object-cover"
                         alt={product.name}
                     />
+                    {/* Navigation Arrows */}
                     {imagesToDisplay.length > 1 && (
                         <>
                             <button
                                 onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? imagesToDisplay.length - 1 : prev - 1); }}
-                                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 backdrop-blur shadow-xl text-stone-900 rounded-full hover:bg-gold-500 hover:text-white transition-all"
+                                className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white text-stone-900 rounded-full transition-all shadow-sm backdrop-blur-md"
                             >
                                 <ChevronLeft className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === imagesToDisplay.length - 1 ? 0 : prev + 1); }}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 backdrop-blur shadow-xl text-stone-900 rounded-full hover:bg-gold-500 hover:text-white transition-all"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/20 hover:bg-white text-stone-900 rounded-full transition-all shadow-sm backdrop-blur-md"
                             >
                                 <ChevronRight className="w-5 h-5" />
                             </button>
                         </>
                     )}
                 </div>
-                <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar">
-                    {imagesToDisplay.map((img: string, idx: number) => (
-                        <button
-                            key={idx}
-                            onClick={() => setActiveImg(idx)}
-                            className={`w-20 h-24 flex-shrink-0 border-2 transition-all rounded-sm overflow-hidden ${activeImg === idx ? 'border-gold-500 opacity-100 scale-105 shadow-md' : 'border-transparent opacity-60'}`}
-                        >
-                            <img src={img} className="w-full h-full object-cover" alt="thumbnail" />
-                        </button>
-                    ))}
-                </div>
-            </div>
 
-            <div className="md:w-1/2 flex flex-col justify-start py-4">
-                {product.collection && (
-                    <span className="text-[10px] font-bold text-gold-600 uppercase tracking-[0.3em] mb-4">{product.collection}</span>
-                )}
-                <h2 className="font-serif text-3xl md:text-5xl text-stone-900 dark:text-white mb-4 leading-tight">{product.name}</h2>
-                <div className="text-2xl md:text-3xl font-light text-stone-800 dark:text-gold-200 mb-6 md:mb-10">
-                    {formatPrice(currentPrice, currency)}
-                </div>
-
-                <div className="prose prose-stone dark:prose-invert mb-8 md:mb-12 text-sm md:text-base leading-relaxed text-stone-600 dark:text-stone-300">
-                    {product.description}
-                </div>
-
-                {/* Variants Selection */}
-                {product.variants && product.variants.length > 0 && (
-                    <div className="mb-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                        <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-4">Seleccionar Opción</label>
-                        <div className="flex flex-wrap gap-3">
+                {/* Thumbnails */}
+                {imagesToDisplay.length > 1 && (
+                    <div className="absolute bottom-6 left-0 right-0 px-4 flex justify-center gap-2 overflow-x-auto hide-scrollbar z-10">
+                        {imagesToDisplay.map((img: string, idx: number) => (
                             <button
-                                onClick={() => setSelectedVariant(null)}
-                                className={`px-5 py-2.5 text-xs font-bold uppercase tracking-widest border transition-all rounded-full ${!selectedVariant ? 'bg-stone-900 text-white border-stone-900 shadow-lg' : 'bg-transparent border-stone-200 text-stone-500 hover:border-gold-500'}`}
+                                key={idx}
+                                onClick={() => setActiveImg(idx)}
+                                className={`w-12 h-16 shrink-0 border rounded-sm overflow-hidden transition-all duration-300 ${activeImg === idx ? 'border-gold-500 shadow-md scale-110 opacity-100' : 'border-white/50 opacity-60 hover:opacity-100'}`}
                             >
-                                Estándar
+                                <img src={img} className="w-full h-full object-cover" alt="" />
                             </button>
-                            {product.variants.map((v) => (
-                                <button
-                                    key={v.id}
-                                    onClick={() => { setSelectedVariant(v); setActiveImg(0); }}
-                                    className={`px-5 py-2.5 text-xs font-bold uppercase tracking-widest border transition-all rounded-full ${selectedVariant?.id === v.id ? 'bg-stone-900 text-white border-stone-900 shadow-lg' : 'bg-transparent border-stone-200 text-stone-500 hover:border-gold-500'}`}
-                                >
-                                    {v.name}
-                                </button>
-                            ))}
-                        </div>
+                        ))}
                     </div>
                 )}
+            </div>
 
-                <div className="space-y-6 md:mt-auto border-t border-stone-100 dark:border-stone-800 pt-8">
-                    <div className="flex items-center gap-6">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Entrega:</span>
+            {/* Info Section */}
+            <div className="md:w-1/2 p-8 md:p-12 flex flex-col h-auto md:max-h-[650px] overflow-y-auto bg-white dark:bg-stone-950">
+                <div className="mb-auto">
+                    {product.collection && (
+                        <span className="text-[10px] font-bold text-gold-600 uppercase tracking-[0.25em] mb-3 block">{product.collection}</span>
+                    )}
+                    <h2 className="font-serif text-3xl md:text-4xl text-stone-900 dark:text-white mb-2 tracking-wide leading-tight">{product.name}</h2>
+                    <div className="flex items-center gap-4 mb-8 border-b border-stone-100 dark:border-stone-800 pb-6">
+                        <span className="text-xl md:text-2xl font-light text-stone-900 dark:text-gold-200">
+                            {formatPrice(currentPrice, currency)}
+                        </span>
                         <StatusBadge status={product.status} />
                     </div>
 
+                    <div className="prose prose-sm prose-stone dark:prose-invert mb-8 text-stone-600 dark:text-stone-400 leading-relaxed font-sans text-sm md:text-base">
+                        {product.description}
+                    </div>
+
+                    {/* Variants */}
+                    {product.variants && product.variants.length > 0 && (
+                        <div className="mb-8 animate-in fade-in duration-700">
+                            <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold mb-3 block">Seleccionar Opción</label>
+                            <div className="flex flex-wrap gap-2">
+                                <button
+                                    onClick={() => setSelectedVariant(null)}
+                                    className={`px-5 py-2.5 text-xs font-medium border rounded-full transition-all duration-300 ${!selectedVariant ? 'bg-stone-900 text-white border-stone-900 shadow-lg scale-105' : 'bg-transparent text-stone-500 border-stone-200 hover:border-gold-500 hover:text-stone-900'}`}
+                                >
+                                    Estándar
+                                </button>
+                                {product.variants.map((v) => (
+                                    <button
+                                        key={v.id}
+                                        onClick={() => { setSelectedVariant(v); setActiveImg(0); }}
+                                        className={`px-5 py-2.5 text-xs font-medium border rounded-full transition-all duration-300 ${selectedVariant?.id === v.id ? 'bg-stone-900 text-white border-stone-900 shadow-lg scale-105' : 'bg-transparent text-stone-500 border-stone-200 hover:border-gold-500 hover:text-stone-900'}`}
+                                    >
+                                        {v.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="pt-6 mt-8 md:mt-auto">
                     <Button
-                        className="w-full py-5 text-lg font-bold uppercase tracking-[0.2em]"
+                        className="w-full py-4 text-xs md:text-sm font-bold uppercase tracking-[0.2em] bg-stone-900 hover:bg-stone-800 dark:bg-white dark:hover:bg-stone-200 text-white dark:text-stone-900 transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-0.5"
                         disabled={product.status === ProductStatus.SOLD_OUT}
                         onClick={handleWhatsApp}
                     >
-                        Consultar
+                        {product.status === ProductStatus.SOLD_OUT ? 'Agotado' : 'Consultar disponibilidad'}
                     </Button>
+                    <div className="flex items-center justify-center mt-4 opacity-60">
+                        <span className="text-[10px] uppercase tracking-widest text-stone-400">
+                            Envíos disponibles a todo Chile
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
