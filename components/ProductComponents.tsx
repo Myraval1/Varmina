@@ -256,7 +256,14 @@ export const ProductDetail: React.FC<{
                                         onClick={() => { setSelectedVariant(v); setActiveImg(0); }}
                                         className={`px-5 py-2.5 text-xs font-medium border rounded-full transition-all duration-300 ${selectedVariant?.id === v.id ? 'bg-stone-900 dark:bg-white text-white dark:text-stone-900 border-stone-900 dark:border-white shadow-lg scale-105' : 'bg-transparent text-stone-500 border-stone-200 hover:border-gold-500 hover:text-stone-900 dark:hover:text-white'}`}
                                     >
-                                        {v.name}
+                                        <div className="flex flex-col items-center gap-0.5">
+                                            <span>{v.name}</span>
+                                            {v.stock !== undefined && (
+                                                <span className={`text-[8px] uppercase tracking-tighter ${v.stock > 0 ? 'text-green-500' : 'text-red-400 font-bold'}`}>
+                                                    {v.stock > 0 ? `${v.stock} disp.` : 'Agotado'}
+                                                </span>
+                                            )}
+                                        </div>
                                     </button>
                                 ))}
                             </div>

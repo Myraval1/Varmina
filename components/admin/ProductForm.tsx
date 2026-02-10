@@ -41,7 +41,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
     };
 
     const addVariant = () => {
-        const newVariant = { id: crypto.randomUUID(), name: '', price: formData.price || 0, images: [], isPrimary: false };
+        const newVariant = { id: crypto.randomUUID(), name: '', price: formData.price || 0, stock: 0, images: [], isPrimary: false };
         setFormData(prev => ({ ...prev, variants: [...(prev.variants || []), newVariant] }));
     };
 
@@ -98,6 +98,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                 collection: formData.collection,
                 badge: formData.badge,
                 variants: formData.variants,
+                stock: formData.stock,
             };
 
             if (initialData) {
@@ -318,7 +319,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                                     {/* Drag Handle */}
                                                     <GripVertical className="w-5 h-5 text-stone-300 cursor-grab active:cursor-grabbing mt-2" />
 
-                                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                                                         <div className="space-y-1">
                                                             <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Nombre Opción</label>
                                                             <input
@@ -344,6 +345,19 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                                                     placeholder="0"
                                                                 />
                                                             </div>
+                                                        </div>
+
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Stock Variante</label>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={(v.stock === 0 || v.stock === undefined) ? '' : v.stock}
+                                                                onChange={e => updateVariant(v.id, 'stock', parseInt(e.target.value) || 0)}
+                                                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 px-3 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none"
+                                                                autoComplete="off"
+                                                                placeholder="0"
+                                                            />
                                                         </div>
                                                     </div>
 
