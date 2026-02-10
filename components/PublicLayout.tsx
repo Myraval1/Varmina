@@ -1,12 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
+import { useTheme } from '../context/ThemeContext';
 import { APP_NAME } from '../constants';
 import { Sun, Moon } from 'lucide-react';
 import { ToastContainer } from './UI';
 
 export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { darkMode, toggleDarkMode, currency, toggleCurrency } = useStore();
+    const { currency, toggleCurrency } = useStore();
+    const { darkMode, toggleDarkMode } = useTheme();
     const navigate = useNavigate();
 
     return (

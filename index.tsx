@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { StoreProvider } from './context/StoreContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 import { AuthProvider } from './context/AuthContext';
 
@@ -19,7 +20,9 @@ root.render(
       <AuthProvider>
         <StoreProvider>
           <BrowserRouter>
-            <App />
+            <ThemeProvider>
+              <App />
+            </ThemeProvider>
           </BrowserRouter>
         </StoreProvider>
       </AuthProvider>

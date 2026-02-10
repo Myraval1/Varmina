@@ -10,8 +10,6 @@ interface StoreContextType {
   loading: boolean;
   currency: 'CLP' | 'USD';
   toggleCurrency: () => void;
-  darkMode: boolean;
-  toggleDarkMode: () => void;
   refreshProducts: (force?: boolean, silent?: boolean) => Promise<void>;
   toasts: ToastMessage[];
   addToast: (type: ToastMessage['type'], message: string) => void;
@@ -42,7 +40,6 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [products, setProducts] = useState<Product[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [currency, setCurrency] = useState<'CLP' | 'USD'>('CLP');
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('varmina_dark_mode') === 'true');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [settings, setSettings] = useState<BrandSettings | null>(null);
   const [activeAdminTab, setActiveAdminTab] = useState<'inventory' | 'analytics' | 'settings'>('inventory');
@@ -61,22 +58,6 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [removeToast]);
 
   const toggleCurrency = useCallback(() => setCurrency(prev => prev === 'CLP' ? 'USD' : 'CLP'), []);
-
-  const toggleDarkMode = useCallback(() => {
-    setDarkMode(prev => {
-      const newVal = !prev;
-      localStorage.setItem('varmina_dark_mode', String(newVal));
-      if (newVal) document.documentElement.classList.add('dark');
-      else document.documentElement.classList.remove('dark');
-      return newVal;
-    });
-  }, []);
-
-  // Sync dark mode on mount
-  useEffect(() => {
-    if (darkMode) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-  }, []);
 
   // Data Fetching
   const refreshSettings = useCallback(async () => {
@@ -113,7 +94,6 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       products,
       loading: dataLoading,
       currency, toggleCurrency,
-      darkMode, toggleDarkMode,
       refreshProducts,
       toasts, addToast, removeToast,
       settings, refreshSettings,

@@ -54,9 +54,18 @@
       display: none;
     }
 
-    .hide-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    }
+
+    /* Smooth theme transitions */
+    body,
+    div,
+    nav,
+    footer,
+    button,
+    input {
+      transition: background-color 0.3s ease-in-out, border-color 0.3s ease-in-out, color 0.3s ease-in-out;
     }
   </style>
 </head>

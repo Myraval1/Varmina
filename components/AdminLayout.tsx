@@ -1,14 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
+import { useTheme } from '../context/ThemeContext'; // Added useTheme import
 import { useAuth } from '../context/AuthContext';
 import { APP_NAME } from '../constants';
 import { LayoutGrid, Sun, Moon, Store, LogOut, Award, BarChart3 } from 'lucide-react';
 import { ToastContainer } from './UI';
 
 export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const {
-        darkMode, toggleDarkMode,
+    const { darkMode, toggleDarkMode } = useTheme(); // Changed to useTheme
+    const { // Remaining items from useStore
         activeAdminTab, setActiveAdminTab,
         addToast
     } = useStore();
