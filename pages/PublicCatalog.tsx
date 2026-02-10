@@ -99,15 +99,15 @@ export const PublicCatalog = () => {
                                 Catálogo
                             </h2>
 
-                            {/* Mobile Search - Full Width */}
-                            <div className="relative flex-1 md:max-w-md">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                            {/* Mobile Search - Minimalist */}
+                            <div className="relative flex-1 md:max-w-md group">
+                                <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-stone-900 dark:group-focus-within:text-white transition-colors" />
                                 <input
                                     type="text"
-                                    placeholder="Buscar piezas..."
+                                    placeholder="BUSCAR PIEZAS"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full pl-9 pr-4 py-2.5 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-full text-sm focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-sans"
+                                    className="w-full pl-7 pr-4 py-2.5 bg-transparent border-b border-stone-200 dark:border-stone-800 text-xs md:text-sm uppercase tracking-widest placeholder:text-stone-400/70 focus:outline-none focus:border-stone-900 dark:focus:border-white transition-all font-sans text-stone-900 dark:text-white"
                                 />
                             </div>
 
@@ -123,17 +123,17 @@ export const PublicCatalog = () => {
                         </div>
 
                         {/* Bottom: Filter Bar (Mobile Optimized) */}
-                        <div className="flex items-center justify-between md:justify-end">
-                            <span className="text-xs text-stone-500 font-medium md:hidden">
-                                {filteredProducts.length} Resultados
+                        <div className="flex items-center justify-between md:justify-end border-t border-stone-50 dark:border-stone-900/50 pt-3 md:border-none md:pt-0">
+                            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-widest md:hidden">
+                                {filteredProducts.length} Piezas
                             </span>
 
                             <button
                                 onClick={() => setIsFilterOpen(true)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-bold uppercase tracking-wider transition-all ${activeFiltersCount > 0 ? 'bg-stone-900 text-white border-stone-900 dark:bg-white dark:text-stone-900' : 'bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 hover:border-stone-400'}`}
+                                className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-900 dark:text-white hover:text-gold-600 transition-colors"
                             >
-                                <SlidersHorizontal className="w-3.5 h-3.5" />
-                                Filtros {activeFiltersCount > 0 && <span className="ml-1 bg-gold-500 text-white w-4 h-4 rounded-full flex items-center justify-center text-[9px]">{activeFiltersCount}</span>}
+                                <SlidersHorizontal className="w-4 h-4" />
+                                Filtros {activeFiltersCount > 0 && <span className="text-gold-600">({activeFiltersCount})</span>}
                             </button>
                         </div>
                     </div>
