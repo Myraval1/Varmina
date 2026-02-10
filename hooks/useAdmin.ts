@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
 export function useAdmin() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
     const [loading, setLoading] = useState(true);
     const lastCheckedId = useRef<string | null>(null);
@@ -12,7 +12,10 @@ export function useAdmin() {
         let mounted = true;
 
         const checkAdmin = async () => {
-            // Case 1: No user
+            // Wait for global auth initialization
+            if (authLoading) return;
+
+            // Case 1: No user (logged out)
             if (!user) {
                 if (mounted) {
                     setIsAdmin(false);
@@ -23,9 +26,7 @@ export function useAdmin() {
             }
 
             // Case 2: Same user already checked.
-            // If we have a cached result for this user ID, skip the "loading" flash.
             if (user.id === lastCheckedId.current && isAdmin !== null) {
-                // We can optionally re-verify in background, but for UI stability, don't set loading=true
                 if (mounted) setLoading(false);
                 return;
             }
@@ -57,7 +58,8 @@ export function useAdmin() {
         return () => {
             mounted = false;
         };
-    }, [user, isAdmin]); // user ref changes on focus, triggering this. Check inside handles logic.
+    }, [user, authLoading]); // Removed isAdmin to prevent potential loops
 
-    return { isAdmin, loading };
+    // Return loading if either internal check or global auth is loading
+    return { isAdmin, loading: loading || authLoading };
 }
