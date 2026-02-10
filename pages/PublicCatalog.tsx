@@ -100,10 +100,24 @@ export const PublicCatalog = () => {
                     </div>
                 </div>
             ) : (
-                <div className="w-full h-32 md:h-48 bg-stone-100 dark:bg-stone-900/40 flex items-center justify-center border-b border-stone-200 dark:border-stone-800">
-                    <h1 className="font-serif text-2xl md:text-4xl tracking-[0.2em] text-stone-300 dark:text-stone-700 uppercase italic">
-                        {settings?.brand_name || 'Varmina'}
-                    </h1>
+                <div className="w-full py-20 md:py-32 bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900 flex flex-col items-center justify-center text-center px-6 border-b border-stone-100 dark:border-stone-800">
+                    <div className="max-w-3xl space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        {settings?.hero_title && (
+                            <h1 className="font-serif text-3xl md:text-5xl text-stone-900 dark:text-white tracking-[0.2em] uppercase">
+                                {settings.hero_title}
+                            </h1>
+                        )}
+                        {settings?.hero_subtitle && (
+                            <p className="text-[10px] md:text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-[0.3em]">
+                                {settings.hero_subtitle}
+                            </p>
+                        )}
+                        {!settings?.hero_title && !settings?.hero_subtitle && (
+                            <h1 className="font-serif text-2xl md:text-4xl tracking-[0.2em] text-stone-300 dark:text-stone-700 uppercase italic">
+                                {settings?.brand_name || 'Varmina'}
+                            </h1>
+                        )}
+                    </div>
                 </div>
             )}
 
