@@ -8,7 +8,7 @@ import { internalAssetService } from '@/services/internalAssetService';
 import { Product, ProductStatus, InternalAsset } from '@/types';
 import { Button } from '@/components/ui/button'; // Adjust import if needed
 import { Input } from '@/components/ui/input';
-import { Search, Plus, Trash2, ShoppingCart, User, CreditCard, CheckCircle2, Box, Package } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, ShoppingCart, User, CreditCard, CheckCircle2, Box, Package } from 'lucide-react';
 import { formatPrice } from '@/lib/format';
 
 import { attributeService } from '@/services/attributeService';
@@ -73,14 +73,33 @@ export const OrdersView: React.FC = () => {
                     addToast('error', 'No hay más stock disponible');
                     return prev;
                 }
+                addToast('success', `Añadido: ${product.name}${variant ? ` (${variant.name})` : ''}`);
                 return prev.map(i => (i === existing ? { ...i, quantity: i.quantity + 1 } : i));
             }
+            addToast('success', `Añadido: ${product.name}${variant ? ` (${variant.name})` : ''}`);
             return [...prev, { product, quantity: 1, variant }];
         });
     };
 
     const removeFromCart = (index: number) => {
-        setCart(prev => prev.filter((_, i) => i !== index));
+        setCart(prev => {
+            const item = prev[index];
+            if (item) addToast('info', `Eliminado: ${item.product.name}`);
+            return prev.filter((_, i) => i !== index);
+        });
+    };
+
+    const decreaseQuantity = (product: Product, variant?: any) => {
+        setCart(prev => {
+            const existing = prev.find(i => i.product.id === product.id && i.variant?.name === variant?.name);
+            if (!existing) return prev;
+            if (existing.quantity > 1) {
+                addToast('info', `Cantidad reducida: ${product.name}`);
+                return prev.map(i => (i === existing ? { ...i, quantity: i.quantity - 1 } : i));
+            }
+            addToast('info', `Eliminado: ${product.name}`);
+            return prev.filter(i => i !== existing);
+        });
     };
 
     const addToAssetCart = (asset: InternalAsset) => {
@@ -91,14 +110,33 @@ export const OrdersView: React.FC = () => {
                     addToast('error', 'No hay más stock de este activo');
                     return prev;
                 }
+                addToast('success', `Añadido: ${asset.name}`);
                 return prev.map(i => (i === existing ? { ...i, quantity: i.quantity + 1 } : i));
             }
+            addToast('success', `Añadido: ${asset.name}`);
             return [...prev, { asset, quantity: 1 }];
         });
     };
 
     const removeFromAssetCart = (index: number) => {
-        setAssetCart(prev => prev.filter((_, i) => i !== index));
+        setAssetCart(prev => {
+            const item = prev[index];
+            if (item) addToast('info', `Eliminado: ${item.asset.name}`);
+            return prev.filter((_, i) => i !== index);
+        });
+    };
+
+    const decreaseAssetQuantity = (asset: InternalAsset) => {
+        setAssetCart(prev => {
+            const existing = prev.find(i => i.asset.id === asset.id);
+            if (!existing) return prev;
+            if (existing.quantity > 1) {
+                addToast('info', `Cantidad reducida: ${asset.name}`);
+                return prev.map(i => (i === existing ? { ...i, quantity: i.quantity - 1 } : i));
+            }
+            addToast('info', `Eliminado: ${asset.name}`);
+            return prev.filter(i => i !== existing);
+        });
     };
 
     const calculateTotal = () => {
@@ -170,10 +208,37 @@ export const OrdersView: React.FC = () => {
         return matchesSearch && matchesCategory;
     });
 
+    // Optimized lookups for cart quantities
+    const cartQuantities = React.useMemo(() => {
+        const map: Record<string, number> = {};
+        cart.forEach(item => {
+            const key = `${item.product.id}-${item.variant?.name || 'default'}`;
+            map[key] = item.quantity;
+        });
+        return map;
+    }, [cart]);
+
+    const assetQuantities = React.useMemo(() => {
+        const map: Record<string, number> = {};
+        assetCart.forEach(item => {
+            map[item.asset.id] = item.quantity;
+        });
+        return map;
+    }, [assetCart]);
+
     const filteredAssets = assets.filter(a =>
         a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         a.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Helpers for current quantities in cart
+    const getItemQuantity = (productId: string, variantName?: string) => {
+        return cartQuantities[`${productId}-${variantName || 'default'}`] || 0;
+    };
+
+    const getAssetQuantity = (assetId: string) => {
+        return assetQuantities[assetId] || 0;
+    };
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-[calc(100vh-100px)]">
@@ -259,60 +324,107 @@ export const OrdersView: React.FC = () => {
                                         </div>
 
                                         {product.variants && product.variants.length > 0 ? (
-                                            <div className="flex flex-wrap gap-1 mt-auto">
-                                                {product.variants.map((v: any) => (
-                                                    <button
-                                                        key={v.name}
-                                                        disabled={v.stock <= 0}
-                                                        onClick={() => addToCart(product, v)}
-                                                        className="text-[8px] font-bold px-2 py-1 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-gold-500 hover:text-white hover:border-gold-600 rounded-md disabled:opacity-30 transition-colors"
-                                                        title={`Stock: ${v.stock}`}
-                                                    >
-                                                        {v.name}
-                                                    </button>
-                                                ))}
+                                            <div className="grid grid-cols-2 gap-1 mt-auto">
+                                                {product.variants.map((v: any) => {
+                                                    const q = getItemQuantity(product.id, v.name);
+                                                    return (
+                                                        <div key={v.name} className="flex flex-col">
+                                                            <div className={`flex items-center justify-between rounded-md h-7 overflow-hidden shadow-sm transition-all border ${q > 0 ? 'bg-gold-500 text-white border-gold-600' : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-gold-200 border-stone-200 dark:border-stone-800'}`}>
+                                                                <button
+                                                                    disabled={q <= 0}
+                                                                    onClick={(e) => { e.stopPropagation(); decreaseQuantity(product, v); }}
+                                                                    className={`w-7 h-full flex items-center justify-center transition-colors ${q > 0 ? 'hover:bg-gold-600' : 'opacity-20 cursor-not-allowed'}`}
+                                                                >
+                                                                    <Minus className="w-2.5 h-2.5" />
+                                                                </button>
+                                                                <div className="flex flex-col items-center leading-none px-1">
+                                                                    <span className="text-[9px] font-bold">{q}</span>
+                                                                    <span className="text-[6px] uppercase tracking-tighter opacity-70 truncate max-w-[30px]">{v.name || 'S/T'}</span>
+                                                                </div>
+                                                                <button
+                                                                    disabled={v.stock <= 0}
+                                                                    onClick={(e) => { e.stopPropagation(); addToCart(product, v); }}
+                                                                    className={`w-7 h-full flex items-center justify-center transition-colors ${q > 0 ? 'hover:bg-gold-600' : 'hover:bg-gold-100 dark:hover:bg-gold-900/30'}`}
+                                                                >
+                                                                    <Plus className="w-2.5 h-2.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         ) : (
-                                            <Button
-                                                size="sm"
-                                                variant="secondary"
-                                                className="w-full text-[9px] font-bold uppercase tracking-wider h-7 mt-auto bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800"
-                                                disabled={product.status === ProductStatus.SOLD_OUT || (product.stock !== undefined && product.stock <= 0)}
-                                                onClick={() => addToCart(product)}
-                                            >
-                                                <Plus className="w-3 h-3 mr-1" /> Seleccionar
-                                            </Button>
+                                            (() => {
+                                                const q = getItemQuantity(product.id);
+                                                return (
+                                                    <div className={`flex items-center justify-between rounded-md h-8 mt-auto overflow-hidden shadow-md transition-all border ${q > 0 ? 'bg-gold-500 text-white border-gold-600' : 'bg-white dark:bg-stone-900 text-stone-900 dark:text-gold-200 border-stone-200 dark:border-stone-800'}`}>
+                                                        <button
+                                                            disabled={q <= 0}
+                                                            onClick={(e) => { e.stopPropagation(); decreaseQuantity(product); }}
+                                                            className={`w-10 h-full flex items-center justify-center transition-colors border-r ${q > 0 ? 'hover:bg-gold-600 border-gold-400/30' : 'opacity-20 cursor-not-allowed border-stone-100 dark:border-stone-800'}`}
+                                                        >
+                                                            <Minus className="w-3 h-3" />
+                                                        </button>
+                                                        <div className="flex flex-col items-center justify-center leading-none">
+                                                            <span className="text-[10px] font-bold">{q}</span>
+                                                            <span className="text-[7px] uppercase tracking-tighter opacity-80">{q > 0 ? 'En Carrito' : 'Añadir'}</span>
+                                                        </div>
+                                                        <button
+                                                            disabled={product.status === ProductStatus.SOLD_OUT || (product.stock !== undefined && product.stock <= 0)}
+                                                            onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+                                                            className={`w-10 h-full flex items-center justify-center transition-colors border-l ${q > 0 ? 'hover:bg-gold-600 border-gold-400/30' : 'hover:bg-gold-100 dark:hover:bg-gold-900/30 border-stone-100 dark:border-stone-800'}`}
+                                                        >
+                                                            <Plus className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })()
                                         )}
                                     </div>
                                 ))}
                             </div>
                         ) : (
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {filteredAssets.map(asset => (
-                                    <button
-                                        key={asset.id}
-                                        onClick={() => addToAssetCart(asset)}
-                                        disabled={asset.stock <= 0}
-                                        className={`text-left p-3 rounded-xl border transition-all flex flex-col gap-2 group shadow-sm ${asset.stock <= 0 ? 'opacity-40 cursor-not-allowed border-stone-100' : 'bg-stone-50 dark:bg-stone-950 border-stone-100 dark:border-stone-800 hover:border-gold-400 hover:bg-white dark:hover:bg-stone-900'}`}
-                                    >
-                                        <div className="flex justify-between items-start gap-2">
-                                            <div className="flex flex-col flex-1 min-w-0">
-                                                <span className="text-[10px] font-bold text-stone-900 dark:text-white uppercase truncate">{asset.name}</span>
-                                                <span className="text-[8px] text-stone-400 uppercase tracking-widest">{asset.category}</span>
+                                {filteredAssets.map(asset => {
+                                    const q = getAssetQuantity(asset.id);
+                                    return (
+                                        <div
+                                            key={asset.id}
+                                            className={`p-3 rounded-xl border transition-all flex flex-col gap-2 group shadow-sm ${asset.stock <= 0 ? 'opacity-40 cursor-not-allowed border-stone-100' : 'bg-stone-50 dark:bg-stone-950 border-stone-100 dark:border-stone-800 hover:border-gold-400 hover:bg-white dark:hover:bg-stone-900'}`}
+                                        >
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div className="flex flex-col flex-1 min-w-0">
+                                                    <span className="text-[10px] font-bold text-stone-900 dark:text-white uppercase truncate">{asset.name}</span>
+                                                    <span className="text-[8px] text-stone-400 uppercase tracking-widest">{asset.category}</span>
+                                                </div>
+                                                <div className="p-1 px-2 rounded-lg bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-800">
+                                                    <span className={`text-[9px] font-mono font-bold ${asset.stock <= asset.min_stock ? 'text-red-500' : 'text-stone-600'}`}>
+                                                        {asset.stock}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div className="p-1 px-2 rounded-lg bg-white dark:bg-stone-900 border border-stone-100 dark:border-stone-800">
-                                                <span className={`text-[9px] font-mono font-bold ${asset.stock <= asset.min_stock ? 'text-red-500' : 'text-stone-600'}`}>
-                                                    {asset.stock}
-                                                </span>
+                                            <div className="mt-auto flex justify-end">
+                                                <div className={`flex items-center gap-2 rounded-full px-1 py-0.5 shadow-sm transition-all border ${q > 0 ? 'bg-gold-500 text-white border-gold-600' : 'bg-stone-100 dark:bg-stone-900 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-stone-800'}`}>
+                                                    <button
+                                                        disabled={q <= 0}
+                                                        onClick={() => decreaseAssetQuantity(asset)}
+                                                        className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors ${q > 0 ? 'hover:bg-gold-600' : 'opacity-20 cursor-not-allowed'}`}
+                                                    >
+                                                        <Minus className="w-2.5 h-2.5" />
+                                                    </button>
+                                                    <span className="text-[10px] font-bold min-w-[12px] text-center">{q}</span>
+                                                    <button
+                                                        disabled={asset.stock <= 0}
+                                                        onClick={() => addToAssetCart(asset)}
+                                                        className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors ${q > 0 ? 'hover:bg-gold-600' : 'hover:bg-gold-100 dark:hover:bg-gold-900/30'}`}
+                                                    >
+                                                        <Plus className="w-2.5 h-2.5" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="mt-auto flex justify-end">
-                                            <div className="p-1.5 rounded-full bg-stone-100 dark:bg-stone-800 group-hover:bg-gold-500 group-hover:text-white transition-colors">
-                                                <Plus className="w-3 h-3" />
-                                            </div>
-                                        </div>
-                                    </button>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
 

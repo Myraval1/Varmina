@@ -55,9 +55,17 @@ export const AssetsView: React.FC = () => {
         unit_cost: 0, location: ''
     });
 
+    const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+    const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+
     useEffect(() => {
         loadData();
     }, []);
+
+    const resetSelection = () => {
+        setSelectedAssetIds([]);
+        setSelectedProductIds([]);
+    };
 
     const loadData = async () => {
         try {
@@ -129,6 +137,59 @@ export const AssetsView: React.FC = () => {
         }
     };
 
+    // --- BULK LOGIC ---
+    const toggleAssetSelect = (id: string) => {
+        setSelectedAssetIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    };
+
+    const toggleAllAssets = () => {
+        if (selectedAssetIds.length === filteredAssets.length) setSelectedAssetIds([]);
+        else setSelectedAssetIds(filteredAssets.map(a => a.id));
+    };
+
+    const toggleProductSelect = (id: string) => {
+        setSelectedProductIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    };
+
+    const toggleAllProducts = () => {
+        if (selectedProductIds.length === filteredProducts.length) setSelectedProductIds([]);
+        else setSelectedProductIds(filteredProducts.map(p => p.id));
+    };
+
+    const handleBulkDelete = async () => {
+        const count = activeTab === 'internal' ? selectedAssetIds.length : selectedProductIds.length;
+        if (!confirm(`¿Eliminar ${count} items seleccionados?`)) return;
+
+        try {
+            if (activeTab === 'internal') {
+                await internalAssetService.deleteBulk(selectedAssetIds);
+            } else {
+                await supabaseProductService.deleteBulk(selectedProductIds);
+            }
+            addToast('success', `${count} items eliminados`);
+            resetSelection();
+            loadData();
+        } catch (error) {
+            addToast('error', 'Error en eliminación masiva');
+        }
+    };
+
+    const handleBulkUpdate = async (updates: any) => {
+        const count = activeTab === 'internal' ? selectedAssetIds.length : selectedProductIds.length;
+        try {
+            if (activeTab === 'internal') {
+                await internalAssetService.updateBulk(selectedAssetIds, updates);
+            } else {
+                await Promise.all(selectedProductIds.map(id => supabaseProductService.update(id, updates)));
+            }
+            addToast('success', `${count} items actualizados`);
+            resetSelection();
+            loadData();
+        } catch (error) {
+            addToast('error', 'Error en actualización masiva');
+        }
+    };
+
     // --- STORE PRODUCTS LOGIC ---
     const startEditingProduct = (product: Product) => {
         setEditingProductId(product.id);
@@ -144,14 +205,7 @@ export const AssetsView: React.FC = () => {
                 unit_cost: editForm.unit_cost,
                 location: editForm.location
             });
-
-            // Optimistic update
-            setProducts(products.map(p => p.id === id ? {
-                ...p,
-                unit_cost: editForm.unit_cost,
-                location: editForm.location
-            } : p));
-
+            setProducts(products.map(p => p.id === id ? { ...p, ...editForm } : p));
             setEditingProductId(null);
             addToast('success', 'Ficha técnica actualizada');
         } catch (error) {
@@ -283,6 +337,53 @@ export const AssetsView: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Bulk Actions Bar */}
+                        {((activeTab === 'internal' && selectedAssetIds.length > 0) || (activeTab === 'store' && selectedProductIds.length > 0)) && (
+                            <div className="sticky top-4 z-30 bg-stone-900 text-white p-4 mb-6 flex flex-col md:flex-row items-center justify-between rounded-xl shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300 gap-4 border border-stone-800 ring-4 ring-black/5">
+                                <div className="flex items-center gap-4 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest whitespace-nowrap px-3 py-1 bg-white/10 rounded-full">
+                                        {activeTab === 'internal' ? selectedAssetIds.length : selectedProductIds.length} seleccionados
+                                    </span>
+                                    <div className="h-4 w-px bg-stone-700 flex-shrink-0" />
+
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[9px] text-stone-500 uppercase font-bold tracking-widest">Mover a:</span>
+                                        <input
+                                            type="text"
+                                            placeholder="Nueva Ubicación..."
+                                            className="bg-stone-800 border-none rounded-lg px-3 py-1.5 text-[10px] w-32 focus:ring-1 focus:ring-gold-500"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleBulkUpdate({ location: (e.target as HTMLInputElement).value });
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[9px] text-stone-500 uppercase font-bold tracking-widest">Categoría:</span>
+                                        <select
+                                            className="bg-stone-800 border-none rounded-lg px-2 py-1.5 text-[10px] focus:ring-1 focus:ring-gold-500"
+                                            onChange={(e) => handleBulkUpdate({ category: e.target.value })}
+                                        >
+                                            <option value="">Cambiar a...</option>
+                                            {activeTab === 'internal' ? (
+                                                assetCategories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)
+                                            ) : (
+                                                Array.from(new Set(products.map(p => p.category).filter(Boolean))).map(cat => (
+                                                    <option key={cat} value={cat as string}>{cat}</option>
+                                                ))
+                                            )}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 w-full md:w-auto">
+                                    <button onClick={resetSelection} className="flex-1 md:flex-none text-[10px] font-bold uppercase tracking-widest text-stone-400 hover:text-white px-4">Cancelar</button>
+                                    <button onClick={handleBulkDelete} className="flex-1 md:flex-none bg-red-600 text-white px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-red-700 transition-all shadow-md">
+                                        Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Main Content */}
                         <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800 overflow-hidden">
                             {/* Filters */}
@@ -320,6 +421,17 @@ export const AssetsView: React.FC = () => {
                                 <table className="w-full text-left">
                                     <thead>
                                         <tr className="bg-stone-50/50 dark:bg-stone-950/30 text-[10px] uppercase tracking-[0.2em] text-stone-400 border-b border-stone-100 dark:border-stone-800">
+                                            <th className="p-5 w-10">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={activeTab === 'internal'
+                                                        ? (selectedAssetIds.length === filteredAssets.length && filteredAssets.length > 0)
+                                                        : (selectedProductIds.length === filteredProducts.length && filteredProducts.length > 0)
+                                                    }
+                                                    onChange={activeTab === 'internal' ? toggleAllAssets : toggleAllProducts}
+                                                    className="w-4 h-4 accent-gold-500 rounded cursor-pointer"
+                                                />
+                                            </th>
                                             <th className="p-5 font-bold">Pieza / Activo</th>
                                             <th className="p-5 font-bold">Ubicación Física</th>
                                             <th className="p-5 font-bold text-center">Stock</th>
@@ -332,8 +444,16 @@ export const AssetsView: React.FC = () => {
                                         {activeTab === 'internal' ? (
                                             // INTERNAL ASSETS ROW
                                             filteredAssets.map(asset => (
-                                                <tr key={asset.id} className="hover:bg-stone-50/30 dark:hover:bg-stone-800/30 transition-colors">
+                                                <tr key={asset.id} className={`hover:bg-stone-50/30 dark:hover:bg-stone-800/30 transition-colors ${selectedAssetIds.includes(asset.id) ? 'bg-gold-50/30 dark:bg-gold-900/10' : ''}`}>
                                                     <td className="p-5">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedAssetIds.includes(asset.id)}
+                                                            onChange={() => toggleAssetSelect(asset.id)}
+                                                            className="w-4 h-4 accent-gold-500 rounded cursor-pointer"
+                                                        />
+                                                    </td>
+                                                    <td className="p-5 text-stone-900 dark:text-stone-300 font-serif">
                                                         <div className="flex items-center gap-2">
                                                             <div className="font-medium text-xs uppercase text-stone-900 dark:text-white">{asset.name}</div>
                                                             {asset.stock <= (asset.min_stock || 0) && (
@@ -356,8 +476,17 @@ export const AssetsView: React.FC = () => {
                                             // STORE PRODUCTS ROW
                                             filteredProducts.map(product => {
                                                 const isEditing = editingProductId === product.id;
+                                                const isSelected = selectedProductIds.includes(product.id);
                                                 return (
-                                                    <tr key={product.id} className="hover:bg-stone-50/30 dark:hover:bg-stone-800/30 transition-colors">
+                                                    <tr key={product.id} className={`hover:bg-stone-50/30 dark:hover:bg-stone-800/30 transition-colors ${isSelected ? 'bg-gold-50/30 dark:bg-gold-900/10' : ''}`}>
+                                                        <td className="p-5">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={isSelected}
+                                                                onChange={() => toggleProductSelect(product.id)}
+                                                                className="w-4 h-4 accent-gold-500 rounded cursor-pointer"
+                                                            />
+                                                        </td>
                                                         <td className="p-5">
                                                             <div className="flex items-center gap-3">
                                                                 <img src={product.images[0]} className="w-8 h-8 rounded object-cover bg-stone-100" />

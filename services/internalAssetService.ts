@@ -112,5 +112,23 @@ export const internalAssetService = {
             console.error('Error updating asset stock:', updateError);
             throw new Error('Error al actualizar stock del activo.');
         }
+    },
+
+    deleteBulk: async (ids: string[]): Promise<void> => {
+        if (!ids.length) return;
+        const { error } = await supabase.from('internal_assets').delete().in('id', ids);
+        if (error) {
+            console.error('Error in bulk delete:', error);
+            throw new Error('Error al eliminar activos en lote.');
+        }
+    },
+
+    updateBulk: async (ids: string[], updates: Partial<CreateAssetInput>): Promise<void> => {
+        if (!ids.length) return;
+        const { error } = await supabase.from('internal_assets').update(updates).in('id', ids);
+        if (error) {
+            console.error('Error in bulk update:', error);
+            throw new Error('Error al actualizar activos en lote.');
+        }
     }
 };
