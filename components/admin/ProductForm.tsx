@@ -172,11 +172,22 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
         setDraggedIdx(null);
     };
 
+    // Mobile viewport height fix
+    React.useEffect(() => {
+        const updateVH = () => {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+        updateVH();
+        window.addEventListener('resize', updateVH);
+        return () => window.removeEventListener('resize', updateVH);
+    }, []);
+
     return (
-        <form onSubmit={handleSubmit} className="h-full flex flex-col relative bg-stone-50/50 dark:bg-black/20">
+        <form onSubmit={handleSubmit} className="h-full flex flex-col relative bg-stone-50/50 dark:bg-black/20" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
             {/* Header / Actions - Sticky Top - Optimized for Mobile */}
-            <div className="sticky top-0 z-30 px-4 md:px-6 py-3 md:py-4 bg-white/80 dark:bg-stone-900/80 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 flex items-center justify-between shadow-sm transition-all pb-safe">
-                <h2 className="text-[10px] md:text-sm font-bold uppercase tracking-[0.2em] text-stone-900 dark:text-white flex items-center gap-2 min-w-0">
+            <div className="sticky top-0 z-50 px-4 md:px-6 py-3 md:py-4 bg-white/90 dark:bg-stone-900/95 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 flex items-center justify-between shadow-md transition-all pt-safe-top pb-2">
+                <h2 className="text-[10px] md:text-sm font-bold uppercase tracking-[0.2em] text-stone-900 dark:text-white flex items-center gap-2 min-w-0 pr-8">
                     <span className="text-gold-500 shrink-0">{initialData ? 'Editar' : 'Nueva'}</span>
                     <span className="text-stone-400 hidden sm:inline">|</span>
                     <span className="truncate">{initialData ? 'Producto' : 'Pieza'}</span>
@@ -243,7 +254,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                 <label className="text-[10px] font-bold text-gold-600 hover:text-gold-700 cursor-pointer uppercase tracking-wider flex items-center gap-1 bg-gold-50 dark:bg-gold-900/10 px-3 py-1.5 rounded-full transition-colors">
                                     <Upload className="w-3 h-3" />
                                     Subir
-                                    <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                                    <input type="file" multiple accept="image/*" capture={false} className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                                 </label>
                             </div>
 
@@ -288,7 +299,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                     <span className="text-[9px] font-bold text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300 uppercase tracking-wider text-center px-2">
                                         {isUploading ? 'Procesando...' : 'Añadir'}
                                     </span>
-                                    <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                                    <input type="file" multiple accept="image/*" capture={false} className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                                 </label>
                             </div>
                             {errors.images && <p className="mt-3 text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-900/10 p-2 rounded-md text-center uppercase tracking-widest">{errors.images}</p>}
