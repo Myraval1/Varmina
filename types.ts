@@ -28,7 +28,10 @@ export interface Product {
   whatsapp_clicks: number;
   created_at: string;
   updated_at: string;
-  stock?: number; // Optional for now to avoid breaking existing code immediately, but ideally required
+  stock?: number;
+  unit_cost?: number;
+  location?: string | null;
+  erp_category?: string | null;
 }
 
 export interface Transaction {

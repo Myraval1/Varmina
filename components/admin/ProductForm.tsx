@@ -28,8 +28,51 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
     });
     const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [loadingAttributes, setLoadingAttributes] = useState(false);
+
+    // Dynamic lists
+    const [categories, setCategories] = useState<{ name: string, id: string }[]>([]);
+    const [collections, setCollections] = useState<{ name: string, id: string }[]>([]);
+    const [erpCategories, setErpCategories] = useState<{ name: string, id: string }[]>([]); // Added for future use if needed in form
+
+    React.useEffect(() => {
+        const loadAttributes = async () => {
+            setLoadingAttributes(true);
+            try {
+                const [cats, cols, erp] = await Promise.all([
+                    (await import('../../services/attributeService')).attributeService.getByType('category'),
+                    (await import('../../services/attributeService')).attributeService.getByType('collection'),
+                    (await import('../../services/attributeService')).attributeService.getByType('erp_category')
+                ]);
+                setCategories(cats);
+                setCollections(cols);
+                setErpCategories(erp);
+            } catch (err) {
+                console.error('Error loading attributes', err);
+            } finally {
+                setLoadingAttributes(false);
+            }
+        };
+        loadAttributes();
+    }, []);
     const [isUploading, setIsUploading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const sessionUploadedImages = React.useRef<string[]>([]);
+
+    const handleCancel = async () => {
+        // Cleanup images uploaded in this session but not saved
+        if (sessionUploadedImages.current.length > 0) {
+            const promises = sessionUploadedImages.current.map(url =>
+                supabaseProductService.deleteImage(url).catch(err =>
+                    console.error('Error cleaning up orphan image:', url, err)
+                )
+            );
+            await Promise.all(promises);
+            sessionUploadedImages.current = [];
+        }
+        onCancel();
+    };
 
     const validate = () => {
         const newErrors: Record<string, string> = {};
@@ -40,47 +83,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
         return Object.keys(newErrors).length === 0;
     };
 
-    const addVariant = () => {
-        const newVariant = { id: crypto.randomUUID(), name: '', price: formData.price || 0, stock: 0, images: [], isPrimary: false };
-        setFormData(prev => ({ ...prev, variants: [...(prev.variants || []), newVariant] }));
-    };
-
-    const updateVariant = (id: string, field: string, value: any) => {
-        setFormData(prev => {
-            let nextVariants = prev.variants?.map(v => {
-                if (v.id === id) {
-                    const updated = { ...v, [field]: value };
-                    return updated;
-                }
-                // If setting this one to primary, unset others
-                if (field === 'isPrimary' && value === true) {
-                    return { ...v, isPrimary: false };
-                }
-                return v;
-            });
-            return { ...prev, variants: nextVariants };
-        });
-    };
-
-    const toggleVariantImage = (variantId: string, imageUrl: string) => {
-        setFormData(prev => ({
-            ...prev,
-            variants: prev.variants?.map(v => {
-                if (v.id === variantId) {
-                    const images = v.images || [];
-                    const nextImages = images.includes(imageUrl)
-                        ? images.filter((i: string) => i !== imageUrl)
-                        : [...images, imageUrl];
-                    return { ...v, images: nextImages };
-                }
-                return v;
-            })
-        }));
-    };
-
-    const removeVariant = (id: string) => {
-        setFormData(prev => ({ ...prev, variants: prev.variants?.filter(v => v.id !== id) }));
-    };
+    // ... (rest of helper functions)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -108,6 +111,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                 await supabaseProductService.create(dataToSave);
                 addToast('success', 'Producto creado con éxito');
             }
+
+            // Clear session tracking as these are now saved/persistent
+            sessionUploadedImages.current = [];
             onSave();
         } catch (error) {
             console.error('Error saving product:', error);
@@ -130,6 +136,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                 );
 
                 const uploadedUrls = await Promise.all(uploadPromises);
+
+                // Track these uploads for potential cleanup
+                sessionUploadedImages.current.push(...uploadedUrls);
+
                 setFormData(prev => ({ ...prev, images: [...(prev.images || []), ...uploadedUrls] }));
                 addToast('success', `${uploadedUrls.length} imagen(es) subida(s)`);
             } catch (error) {
@@ -145,6 +155,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
         try {
             if (imageUrl.includes('supabase')) {
                 await supabaseProductService.deleteImage(imageUrl);
+                // Remove from tracking if it was from this session
+                sessionUploadedImages.current = sessionUploadedImages.current.filter(url => url !== imageUrl);
             }
             setFormData(prev => ({
                 ...prev,
@@ -172,6 +184,49 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
         setDraggedIdx(null);
     };
 
+    // Helper functions for variants
+    const addVariant = () => {
+        const newVariant = {
+            id: crypto.randomUUID(),
+            name: '',
+            price: formData.price || 0,
+            stock: 0,
+            images: [],
+            isPrimary: false
+        };
+        setFormData(prev => ({ ...prev, variants: [...(prev.variants || []), newVariant] }));
+    };
+
+    const updateVariant = (id: string, field: string, value: any) => {
+        setFormData(prev => ({
+            ...prev,
+            variants: prev.variants?.map(v => v.id === id ? { ...v, [field]: value } : v)
+        }));
+    };
+
+    const removeVariant = (id: string) => {
+        setFormData(prev => ({
+            ...prev,
+            variants: prev.variants?.filter(v => v.id !== id)
+        }));
+    };
+
+    const toggleVariantImage = (variantId: string, imageUrl: string) => {
+        setFormData(prev => ({
+            ...prev,
+            variants: prev.variants?.map(v => {
+                if (v.id !== variantId) return v;
+                const images = v.images || [];
+                return {
+                    ...v,
+                    images: images.includes(imageUrl)
+                        ? images.filter((img: string) => img !== imageUrl)
+                        : [...images, imageUrl]
+                };
+            })
+        }));
+    };
+
     // Mobile viewport height fix
     React.useEffect(() => {
         const updateVH = () => {
@@ -197,7 +252,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onClick={onCancel}
+                        onClick={handleCancel}
                         className="text-[9px] md:text-xs px-2 md:px-4"
                     >
                         Cancelar
@@ -491,24 +546,40 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                             onChange={e => setFormData({ ...formData, category: e.target.value })}
                                             className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-700 rounded-lg py-3 px-4 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none appearance-none cursor-pointer"
                                         >
-                                            <option value="" disabled>Seleccionar...</option>
-                                            <option value="Anillos">Anillos</option>
-                                            <option value="Collares">Collares</option>
-                                            <option value="Aros">Aros</option>
-                                            <option value="Pulseras">Pulseras</option>
+                                            <option value="">Seleccionar...</option>
+                                            {categories.map(cat => (
+                                                <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                            ))}
+                                            {categories.length === 0 && <option value="" disabled>Gestiona categorías en Configuración</option>}
                                         </select>
                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                                             <svg className="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                                         </div>
                                     </div>
                                 </div>
-                                <Input
-                                    label="Colección"
-                                    placeholder="Ej: Invierno 2024"
-                                    value={formData.collection || ''}
-                                    onChange={e => setFormData({ ...formData, collection: e.target.value })}
-                                    className="bg-stone-50 dark:bg-stone-950/50 border-stone-200 dark:border-stone-700 rounded-lg py-3 focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
-                                />
+
+                                <div>
+                                    <label htmlFor="product-collection" className="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Colección</label>
+                                    <div className="relative">
+                                        <select
+                                            id="product-collection"
+                                            name="collection"
+                                            value={formData.collection || ''}
+                                            onChange={e => setFormData({ ...formData, collection: e.target.value })}
+                                            className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-700 rounded-lg py-3 px-4 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none appearance-none cursor-pointer"
+                                        >
+                                            <option value="">Ninguna</option>
+                                            {collections.map(col => (
+                                                <option key={col.id} value={col.name}>{col.name}</option>
+                                            ))}
+                                            {collections.length === 0 && <option value="" disabled>Gestiona colecciones en Configuración</option>}
+                                        </select>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                            <svg className="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <Input
                                     label="Etiqueta Visual"
                                     placeholder="Ej: Nuevo, Oferta"
@@ -528,7 +599,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                 <Button
                     type="button"
                     variant="ghost"
-                    onClick={onCancel}
+                    onClick={handleCancel}
                     className="flex-1 py-3 text-xs border border-stone-200 dark:border-stone-700 rounded-full"
                 >
                     Cancelar
@@ -541,6 +612,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                     Guardar
                 </Button>
             </div>
-        </form>
+        </form >
     );
 };

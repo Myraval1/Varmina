@@ -12,6 +12,9 @@ export interface CreateProductInput {
     badge?: string | null;
     variants?: any[];
     stock?: number;
+    unit_cost?: number;
+    location?: string;
+    erp_category?: string;
 }
 
 export interface UpdateProductInput {
@@ -25,6 +28,9 @@ export interface UpdateProductInput {
     badge?: string | null;
     variants?: any[];
     stock?: number;
+    unit_cost?: number;
+    location?: string;
+    erp_category?: string;
 }
 
 export const supabaseProductService = {
@@ -83,6 +89,9 @@ export const supabaseProductService = {
             badge: input.badge || null,
             variants: input.variants || [],
             stock: input.stock !== undefined ? Math.max(0, input.stock) : 0,
+            unit_cost: input.unit_cost !== undefined ? Math.max(0, input.unit_cost) : 0,
+            location: input.location?.trim() || null,
+            erp_category: input.erp_category?.trim() || null,
         };
 
         const { data, error } = await (supabase as any)
@@ -115,6 +124,9 @@ export const supabaseProductService = {
         if (updates.badge !== undefined) sanitizedUpdates.badge = updates.badge;
         if (updates.variants !== undefined) sanitizedUpdates.variants = updates.variants;
         if (updates.stock !== undefined) sanitizedUpdates.stock = Math.max(0, updates.stock);
+        if (updates.unit_cost !== undefined) sanitizedUpdates.unit_cost = Math.max(0, updates.unit_cost);
+        if (updates.location !== undefined) sanitizedUpdates.location = updates.location;
+        if (updates.erp_category !== undefined) sanitizedUpdates.erp_category = updates.erp_category;
 
         const { data, error } = await (supabase as any)
             .from('products')
