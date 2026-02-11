@@ -192,7 +192,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                     <span className="text-stone-400 hidden sm:inline">|</span>
                     <span className="truncate">{initialData ? 'Producto' : 'Pieza'}</span>
                 </h2>
-                <div className="flex items-center gap-1.5 md:gap-3 shrink-0">
+                <div className="hidden md:flex items-center gap-1.5 md:gap-3 shrink-0">
                     <Button
                         type="button"
                         variant="ghost"
@@ -254,7 +254,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                 <label className="text-[10px] font-bold text-gold-600 hover:text-gold-700 cursor-pointer uppercase tracking-wider flex items-center gap-1 bg-gold-50 dark:bg-gold-900/10 px-3 py-1.5 rounded-full transition-colors">
                                     <Upload className="w-3 h-3" />
                                     Subir
-                                    <input type="file" multiple accept="image/*" capture={false} className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                                    <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                                 </label>
                             </div>
 
@@ -299,7 +299,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                     <span className="text-[9px] font-bold text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300 uppercase tracking-wider text-center px-2">
                                         {isUploading ? 'Procesando...' : 'Añadir'}
                                     </span>
-                                    <input type="file" multiple accept="image/*" capture={false} className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                                    <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                                 </label>
                             </div>
                             {errors.images && <p className="mt-3 text-[10px] font-bold text-red-500 bg-red-50 dark:bg-red-900/10 p-2 rounded-md text-center uppercase tracking-widest">{errors.images}</p>}
@@ -521,6 +521,25 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
 
                     </div>
                 </div>
+            </div>
+
+            {/* Mobile Bottom Actions Bar */}
+            <div className="md:hidden sticky bottom-0 z-50 w-full bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 p-4 pb-safe-bottom shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] flex gap-3 animate-in slide-in-from-bottom-5 duration-300">
+                <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={onCancel}
+                    className="flex-1 py-3 text-xs border border-stone-200 dark:border-stone-700 rounded-full"
+                >
+                    Cancelar
+                </Button>
+                <Button
+                    type="submit"
+                    isLoading={isSubmitting}
+                    className="flex-1 py-3 text-xs bg-stone-900 text-white hover:bg-stone-800 dark:bg-gold-500 dark:text-stone-900 rounded-full shadow-lg"
+                >
+                    Guardar
+                </Button>
             </div>
         </form>
     );
