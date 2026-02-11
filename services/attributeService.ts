@@ -2,7 +2,7 @@ import { createClient } from '@/utils/supabase/client';
 
 const supabase = createClient();
 
-export type AttributeType = 'collection' | 'category' | 'erp_category' | 'asset_category';
+export type AttributeType = 'collection' | 'category' | 'asset_category';
 
 export interface ProductAttribute {
     id: string;

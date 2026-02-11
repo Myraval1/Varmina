@@ -35,7 +35,6 @@ export const AssetsView: React.FC = () => {
     // DATA STATE
     const [assets, setAssets] = useState<InternalAsset[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
-    const [erpCategories, setErpCategories] = useState<ProductAttribute[]>([]);
     const [assetCategories, setAssetCategories] = useState<ProductAttribute[]>([]);
 
     // UI STATE
@@ -52,11 +51,9 @@ export const AssetsView: React.FC = () => {
 
     // INLINE EDIT STATE (Store Products)
     const [editingProductId, setEditingProductId] = useState<string | null>(null);
-    const [editForm, setEditForm] = useState<{ unit_cost: number; location: string; erp_category: string }>({
-        unit_cost: 0, location: '', erp_category: ''
+    const [editForm, setEditForm] = useState<{ unit_cost: number; location: string }>({
+        unit_cost: 0, location: ''
     });
-
-    // const internalCategories = ['Insumos', 'Packaging', 'Transporte', 'Almacenamiento', 'Mobiliario', 'Herramientas'];
 
     useEffect(() => {
         loadData();
@@ -65,15 +62,13 @@ export const AssetsView: React.FC = () => {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [assetsData, productsData, erpCats, assetCats] = await Promise.all([
+            const [assetsData, productsData, assetCats] = await Promise.all([
                 internalAssetService.getAll(),
                 supabaseProductService.getAll(),
-                attributeService.getByType('erp_category'),
                 attributeService.getByType('asset_category')
             ]);
             setAssets(assetsData);
             setProducts(productsData);
-            setErpCategories(erpCats);
             setAssetCategories(assetCats);
         } catch (error) {
             console.error(error);
@@ -139,8 +134,7 @@ export const AssetsView: React.FC = () => {
         setEditingProductId(product.id);
         setEditForm({
             unit_cost: product.unit_cost || 0,
-            location: product.location || '',
-            erp_category: product.erp_category || ''
+            location: product.location || ''
         });
     };
 
@@ -148,20 +142,18 @@ export const AssetsView: React.FC = () => {
         try {
             await supabaseProductService.update(id, {
                 unit_cost: editForm.unit_cost,
-                location: editForm.location,
-                erp_category: editForm.erp_category
+                location: editForm.location
             });
 
             // Optimistic update
             setProducts(products.map(p => p.id === id ? {
                 ...p,
                 unit_cost: editForm.unit_cost,
-                location: editForm.location,
-                erp_category: editForm.erp_category
+                location: editForm.location
             } : p));
 
             setEditingProductId(null);
-            addToast('success', 'Datos ERP actualizados');
+            addToast('success', 'Ficha técnica actualizada');
         } catch (error) {
             addToast('error', 'Error al actualizar producto');
         }
@@ -176,18 +168,11 @@ export const AssetsView: React.FC = () => {
     });
 
     const filteredProducts = products.filter(p => {
-        const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (p.erp_category || '').toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = selectedCategory === 'All' || p.erp_category === selectedCategory;
-        return matchesSearch && matchesCategory;
+        const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType = selectedCategory === 'All' || p.category === selectedCategory;
+        return matchesSearch && matchesType;
     });
 
-    // Calculate Totals based on ACTIVE TAB content primarily, or summary of both?
-    // Let's show summary of the ACTIVE VIEW to be specific.
-
-    const currentList = activeTab === 'internal' ? filteredAssets : filteredProducts;
-
-    // For products, stock might be undefined in some types but we defaulting it to 0
     const totalValue = activeTab === 'internal'
         ? assets.reduce((acc, curr) => acc + (curr.stock * curr.unit_cost), 0)
         : products.reduce((acc, curr) => acc + ((curr.stock || 0) * (curr.unit_cost || 0)), 0);
@@ -201,7 +186,7 @@ export const AssetsView: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 md:px-0">
                 <div>
-                    <h2 className="text-xl md:text-2xl font-serif text-stone-900 dark:text-white uppercase tracking-widest">Operaciones & Logística</h2>
+                    <h2 className="text-xl md:text-2xl font-serif text-stone-900 dark:text-white uppercase tracking-widest">Logística</h2>
                     <p className="text-stone-500 text-[10px] md:text-sm uppercase tracking-widest">Control de inventario, costos y ubicación física de piezas.</p>
                 </div>
 
@@ -306,7 +291,7 @@ export const AssetsView: React.FC = () => {
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                                     <input
                                         type="text"
-                                        placeholder="Buscar..."
+                                        placeholder="Buscar por nombre..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-gold-500 transition-all"
@@ -323,8 +308,9 @@ export const AssetsView: React.FC = () => {
                                             <button key={cat.id} onClick={() => setSelectedCategory(cat.name)} className={`px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest whitespace-nowrap transition-all border ${selectedCategory === cat.name ? 'bg-gold-500 text-stone-900 border-gold-600 shadow-sm' : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800'}`}>{cat.name}</button>
                                         ))
                                     ) : (
-                                        erpCategories.map(cat => (
-                                            <button key={cat.id} onClick={() => setSelectedCategory(cat.name)} className={`px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest whitespace-nowrap transition-all border ${selectedCategory === cat.name ? 'bg-gold-500 text-stone-900 border-gold-600 shadow-sm' : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800'}`}>{cat.name}</button>
+                                        // Product categories filters based on shop categories
+                                        Array.from(new Set(products.map(p => p.category).filter(Boolean))).map(cat => (
+                                            <button key={cat} onClick={() => setSelectedCategory(cat as string)} className={`px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest whitespace-nowrap transition-all border ${selectedCategory === cat ? 'bg-gold-500 text-stone-900 border-gold-600 shadow-sm' : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800'}`}>{cat}</button>
                                         ))
                                     )}
                                 </div>
@@ -334,12 +320,11 @@ export const AssetsView: React.FC = () => {
                                 <table className="w-full text-left">
                                     <thead>
                                         <tr className="bg-stone-50/50 dark:bg-stone-950/30 text-[10px] uppercase tracking-[0.2em] text-stone-400 border-b border-stone-100 dark:border-stone-800">
-                                            <th className="p-5 font-bold">Ítem / Nombre</th>
-                                            <th className="p-5 font-bold">Ubicación</th>
-                                            <th className="p-5 font-bold">Categoría ERP</th>
+                                            <th className="p-5 font-bold">Pieza / Activo</th>
+                                            <th className="p-5 font-bold">Ubicación Física</th>
                                             <th className="p-5 font-bold text-center">Stock</th>
                                             <th className="p-5 font-bold text-right">Costo Unit.</th>
-                                            <th className="p-5 font-bold text-right">Valor Total</th>
+                                            <th className="p-5 font-bold text-right">Valor en Stock</th>
                                             <th className="p-5 font-bold text-center">Acciones</th>
                                         </tr>
                                     </thead>
@@ -357,12 +342,7 @@ export const AssetsView: React.FC = () => {
                                                         </div>
                                                         <div className="text-[10px] text-stone-400">{asset.category}</div>
                                                     </td>
-                                                    <td className="p-5 text-xs text-stone-500">{asset.location || '-'}</td>
-                                                    <td className="p-5">
-                                                        <span className={`px-2 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold ${asset.stock <= (asset.min_stock || 0) ? 'bg-red-50 text-red-600 dark:bg-red-900/10' : 'bg-stone-100 dark:bg-stone-800 text-stone-500'}`}>
-                                                            {asset.category}
-                                                        </span>
-                                                    </td>
+                                                    <td className="p-5 text-xs text-stone-500 italic">{asset.location || 'Sin definir'}</td>
                                                     <td className={`p-5 text-center text-xs font-mono font-bold ${asset.stock <= (asset.min_stock || 0) ? 'text-red-500' : ''}`}>{asset.stock}</td>
                                                     <td className="p-5 text-right text-xs font-mono text-stone-500">{formatCurrency(asset.unit_cost)}</td>
                                                     <td className="p-5 text-right text-xs font-mono font-bold text-stone-900 dark:text-white">{formatCurrency(asset.stock * asset.unit_cost)}</td>
@@ -383,7 +363,7 @@ export const AssetsView: React.FC = () => {
                                                                 <img src={product.images[0]} className="w-8 h-8 rounded object-cover bg-stone-100" />
                                                                 <div>
                                                                     <div className="font-medium text-xs uppercase text-stone-900 dark:text-white max-w-[150px] truncate" title={product.name}>{product.name}</div>
-                                                                    <div className="text-[9px] text-stone-400">SKU: {product.id.slice(0, 6)}</div>
+                                                                    <div className="text-[9px] text-stone-400">{product.category}</div>
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -395,32 +375,14 @@ export const AssetsView: React.FC = () => {
                                                                     className="w-full text-xs bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded p-1"
                                                                     value={editForm.location}
                                                                     onChange={e => setEditForm({ ...editForm, location: e.target.value })}
-                                                                    placeholder="Ubicación..."
+                                                                    placeholder="Ubicación física..."
                                                                 />
                                                             ) : (
-                                                                <span className="text-xs text-stone-500">{product.location || '-'}</span>
+                                                                <span className="text-xs text-stone-500 italic">{product.location || 'Sin definir'}</span>
                                                             )}
                                                         </td>
 
-                                                        {/* ERP Category */}
-                                                        <td className="p-5">
-                                                            {isEditing ? (
-                                                                <select
-                                                                    className="w-full text-xs bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded p-1"
-                                                                    value={editForm.erp_category}
-                                                                    onChange={e => setEditForm({ ...editForm, erp_category: e.target.value })}
-                                                                >
-                                                                    <option value="">Seleccionar...</option>
-                                                                    {erpCategories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                                                                </select>
-                                                            ) : (
-                                                                <span className={`px-2 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold ${product.erp_category ? 'bg-gold-50 text-gold-700 dark:bg-gold-900/10' : 'bg-stone-100 text-stone-400'}`}>
-                                                                    {product.erp_category || 'Sin Clasificar'}
-                                                                </span>
-                                                            )}
-                                                        </td>
-
-                                                        {/* Stock (Read Only here, managed in Inventory) */}
+                                                        {/* Stock */}
                                                         <td className="p-5 text-center text-xs font-mono font-bold bg-stone-50/50 dark:bg-stone-900/50">
                                                             {product.stock || 0}
                                                         </td>
@@ -495,7 +457,7 @@ export const AssetsView: React.FC = () => {
                         <div className="space-y-4">
                             <Input label="Costo Unitario" type="number" value={assetFormData.unit_cost} onChange={e => setAssetFormData({ ...assetFormData, unit_cost: Number(e.target.value) })} />
                             <Input label="Ubicación" value={assetFormData.location} onChange={e => setAssetFormData({ ...assetFormData, location: e.target.value })} />
-                            <textarea className="w-full p-3 bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg text-sm h-24" placeholder="Notas..." value={assetFormData.description} onChange={e => setAssetFormData({ ...assetFormData, description: e.target.value })} />
+                            <textarea className="w-full p-3 bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg text-sm h-24" placeholder="Notas sobre el activo o proveedor..." value={assetFormData.description} onChange={e => setAssetFormData({ ...assetFormData, description: e.target.value })} />
                         </div>
                     </div>
                     <div className="flex justify-end gap-3 pt-6">

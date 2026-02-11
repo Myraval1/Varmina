@@ -11,7 +11,6 @@ import { useStore } from '@/context/StoreContext';
 const ATTRIBUTE_TYPES: { type: AttributeType; label: string; icon: React.ReactNode }[] = [
     { type: 'collection', label: 'Colecciones', icon: <Grid className="w-4 h-4" /> },
     { type: 'category', label: 'Categorías (Tienda)', icon: <List className="w-4 h-4" /> },
-    { type: 'erp_category', label: 'Categorías (Joyas ERP)', icon: <Layers className="w-4 h-4" /> },
     { type: 'asset_category', label: 'Categorías (Insumos/ERP)', icon: <Box className="w-4 h-4" /> },
 ];
 

@@ -30,7 +30,6 @@ export interface Product {
     stock?: number;
     unit_cost?: number;
     location?: string | null;
-    erp_category?: string | null;
 }
 
 export interface Transaction {
@@ -75,7 +74,7 @@ export interface FilterState {
 
 export interface ProductAttribute {
     id: string;
-    type: 'category' | 'collection' | 'erp_category' | 'asset_category';
+    type: 'category' | 'collection' | 'asset_category';
     name: string;
     created_at: string;
 }

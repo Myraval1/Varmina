@@ -39,7 +39,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
     // Dynamic lists
     const [categories, setCategories] = useState<{ name: string, id: string }[]>([]);
     const [collections, setCollections] = useState<{ name: string, id: string }[]>([]);
-    const [erpCategories, setErpCategories] = useState<{ name: string, id: string }[]>([]);
 
     const sessionUploadedImages = React.useRef<string[]>([]);
 
@@ -47,14 +46,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
         const loadAttributes = async () => {
             setLoadingAttributes(true);
             try {
-                const [cats, cols, erp] = await Promise.all([
+                const [cats, cols] = await Promise.all([
                     attributeService.getByType('category'),
-                    attributeService.getByType('collection'),
-                    attributeService.getByType('erp_category')
+                    attributeService.getByType('collection')
                 ]);
                 setCategories(cats);
                 setCollections(cols);
-                setErpCategories(erp);
             } catch (err) {
                 console.error('Error loading attributes', err);
             } finally {

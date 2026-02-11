@@ -122,7 +122,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
                                         className={`w-full flex items-center gap-4 px-4 py-3 rounded-sm text-[11px] font-bold uppercase tracking-[0.15em] transition-all ${activeAdminTab === 'erp' ? 'bg-[#1A1A1A] text-white shadow-lg' : 'text-stone-400 hover:text-stone-900 dark:hover:text-white'}`}
                                     >
                                         <Truck className={`w-4 h-4 ${activeAdminTab === 'erp' ? 'text-gold-400' : ''}`} />
-                                        <span>Gestión ERP y Operaciones</span>
+                                        <span>Logística</span>
                                     </button>
                                 </li>
                                 <li>
