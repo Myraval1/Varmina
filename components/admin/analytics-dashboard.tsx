@@ -1,12 +1,33 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '@/context/StoreContext';
-import { BarChart3, TrendingUp, Activity, MousePointerClick, ShoppingBag } from 'lucide-react';
+import { BarChart3, TrendingUp, Activity, MousePointerClick, ShoppingBag, RotateCcw, AlertCircle } from 'lucide-react';
 import { ProductStatus } from '@/types';
+import { supabaseProductService } from '@/services/supabaseProductService';
+import { Button } from '../ui/button';
 
 export const AnalyticsDashboard: React.FC = () => {
-    const { products } = useStore();
+    const { products, refreshProducts, addToast } = useStore();
+    const [isResetting, setIsResetting] = useState(false);
+
+    const handleResetAnalytics = async () => {
+        if (!confirm('¿Está seguro de que desea reiniciar todas las estadísticas de interés? Esta acción no se puede deshacer.')) {
+            return;
+        }
+
+        setIsResetting(true);
+        try {
+            await supabaseProductService.resetAllAnalytics();
+            await refreshProducts(true);
+            addToast('success', 'Estadísticas reiniciadas correctamente');
+        } catch (error) {
+            console.error(error);
+            addToast('error', 'Error al reiniciar estadísticas');
+        } finally {
+            setIsResetting(false);
+        }
+    };
 
     // Stats Calculations
     const totalClicks = products.reduce((acc, p) => acc + (p.whatsapp_clicks || 0), 0);
@@ -21,9 +42,21 @@ export const AnalyticsDashboard: React.FC = () => {
     return (
         <div className="max-w-7xl mx-auto animate-in fade-in duration-500 pt-8 pb-24">
 
-            <div className="mb-8 md:mb-12">
-                <h1 className="font-serif text-3xl md:text-4xl text-stone-900 dark:text-gold-200 tracking-wider mb-2 uppercase">Analítica</h1>
-                <p className="text-stone-400 text-[10px] md:text-sm font-sans tracking-wide uppercase font-bold">Rendimiento e Interés del Cliente</p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 md:mb-12">
+                <div>
+                    <h1 className="font-serif text-3xl md:text-4xl text-stone-900 dark:text-gold-200 tracking-wider mb-2 uppercase">Analítica</h1>
+                    <p className="text-stone-400 text-[10px] md:text-sm font-sans tracking-wide uppercase font-bold">Rendimiento e Interés del Cliente</p>
+                </div>
+
+                <Button
+                    variant="ghost"
+                    onClick={handleResetAnalytics}
+                    disabled={isResetting || products.length === 0}
+                    className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border border-stone-200 dark:border-stone-800 rounded-xl px-6 h-12 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all"
+                >
+                    <RotateCcw className={`w-3 h-3 ${isResetting ? 'animate-spin' : ''}`} />
+                    {isResetting ? 'Reiniciando...' : 'Reiniciar Estadísticas'}
+                </Button>
             </div>
 
             {/* KPI CARDS */}

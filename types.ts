@@ -75,7 +75,7 @@ export interface FilterState {
 
 export interface ProductAttribute {
     id: string;
-    type: 'category' | 'collection' | 'erp_category';
+    type: 'category' | 'collection' | 'erp_category' | 'asset_category';
     name: string;
     created_at: string;
 }

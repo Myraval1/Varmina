@@ -21,7 +21,8 @@ import {
     Check,
     X,
     List,
-    Warehouse
+    Warehouse,
+    AlertCircle
 } from 'lucide-react';
 import { AttributeManagerSection } from './attribute-manager';
 
@@ -35,6 +36,7 @@ export const AssetsView: React.FC = () => {
     const [assets, setAssets] = useState<InternalAsset[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
     const [erpCategories, setErpCategories] = useState<ProductAttribute[]>([]);
+    const [assetCategories, setAssetCategories] = useState<ProductAttribute[]>([]);
 
     // UI STATE
     const [loading, setLoading] = useState(true);
@@ -54,7 +56,7 @@ export const AssetsView: React.FC = () => {
         unit_cost: 0, location: '', erp_category: ''
     });
 
-    const internalCategories = ['Insumos', 'Packaging', 'Transporte', 'Almacenamiento', 'Mobiliario', 'Herramientas'];
+    // const internalCategories = ['Insumos', 'Packaging', 'Transporte', 'Almacenamiento', 'Mobiliario', 'Herramientas'];
 
     useEffect(() => {
         loadData();
@@ -63,14 +65,16 @@ export const AssetsView: React.FC = () => {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [assetsData, productsData, erpCats] = await Promise.all([
+            const [assetsData, productsData, erpCats, assetCats] = await Promise.all([
                 internalAssetService.getAll(),
                 supabaseProductService.getAll(),
-                attributeService.getByType('erp_category')
+                attributeService.getByType('erp_category'),
+                attributeService.getByType('asset_category')
             ]);
             setAssets(assetsData);
             setProducts(productsData);
             setErpCategories(erpCats);
+            setAssetCategories(assetCats);
         } catch (error) {
             console.error(error);
             addToast('error', 'Error al cargar datos de inventario');
@@ -197,8 +201,8 @@ export const AssetsView: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 md:px-0">
                 <div>
-                    <h2 className="text-xl md:text-2xl font-serif text-stone-900 dark:text-white uppercase tracking-widest">Gestión de Activos</h2>
-                    <p className="text-stone-500 text-[10px] md:text-sm uppercase tracking-widest">Control de inventario, costos y ubicación física.</p>
+                    <h2 className="text-xl md:text-2xl font-serif text-stone-900 dark:text-white uppercase tracking-widest">Operaciones & Logística</h2>
+                    <p className="text-stone-500 text-[10px] md:text-sm uppercase tracking-widest">Control de inventario, costos y ubicación física de piezas.</p>
                 </div>
 
                 {activeTab === 'internal' && (
@@ -242,26 +246,55 @@ export const AssetsView: React.FC = () => {
                 ) : (
                     <>
                         {/* Quick Stats */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                             <div className="bg-white dark:bg-stone-900 p-6 rounded-2xl border border-stone-100 dark:border-stone-800 shadow-sm relative overflow-hidden">
                                 <div className="absolute right-[-10px] top-[-10px] opacity-5">
                                     <Warehouse className="w-24 h-24" />
                                 </div>
                                 <p className="text-stone-400 text-[10px] font-bold uppercase tracking-widest mb-1">
-                                    Valor {activeTab === 'internal' ? 'Insumos' : 'Mercadería'}
+                                    Valor {activeTab === 'internal' ? 'Insumos' : 'Piezas'}
                                 </p>
-                                <h4 className="text-3xl font-serif text-stone-900 dark:text-gold-200">{formatCurrency(totalValue)}</h4>
-                                <p className="text-[10px] text-stone-400 mt-2 font-medium uppercase tracking-wide">Costo Total Inventario</p>
+                                <h4 className="text-2xl md:text-3xl font-serif text-stone-900 dark:text-gold-200">{formatCurrency(totalValue)}</h4>
+                                <p className="text-[10px] text-stone-400 mt-2 font-medium uppercase tracking-wide">Inversión en {activeTab === 'internal' ? 'Stock' : 'Joyas'}</p>
                             </div>
 
                             <div className="bg-white dark:bg-stone-900 p-6 rounded-2xl border border-stone-100 dark:border-stone-800 shadow-sm relative overflow-hidden">
                                 <div className="absolute right-[-10px] top-[-10px] opacity-5">
                                     <Package className="w-24 h-24" />
                                 </div>
-                                <p className="text-stone-400 text-[10px] font-bold uppercase tracking-widest mb-1">Ítems Registrados</p>
-                                <h4 className="text-3xl font-serif text-stone-900 dark:text-white">
+                                <p className="text-stone-400 text-[10px] font-bold uppercase tracking-widest mb-1">Items Únicos</p>
+                                <h4 className="text-2xl md:text-3xl font-serif text-stone-900 dark:text-white">
                                     {activeTab === 'internal' ? assets.length : products.length}
                                 </h4>
+                                <p className="text-[10px] text-stone-400 mt-2 font-medium uppercase tracking-wide">Variedad Registrada</p>
+                            </div>
+
+                            <div className="bg-white dark:bg-stone-900 p-6 rounded-2xl border border-stone-100 dark:border-stone-800 shadow-sm relative overflow-hidden">
+                                <div className="absolute right-[-10px] top-[-10px] opacity-5">
+                                    <Box className="w-24 h-24" />
+                                </div>
+                                <p className="text-stone-400 text-[10px] font-bold uppercase tracking-widest mb-1">Unidades Totales</p>
+                                <h4 className="text-2xl md:text-3xl font-serif text-stone-900 dark:text-white">
+                                    {activeTab === 'internal'
+                                        ? assets.reduce((acc, curr) => acc + curr.stock, 0)
+                                        : products.reduce((acc, curr) => acc + (curr.stock || 0), 0)
+                                    }
+                                </h4>
+                                <p className="text-[10px] text-stone-400 mt-2 font-medium uppercase tracking-wide">Físico Disponible</p>
+                            </div>
+
+                            <div className="bg-white dark:bg-stone-900 p-6 rounded-2xl border border-stone-100 dark:border-stone-800 shadow-sm relative overflow-hidden">
+                                <div className="absolute right-[-10px] top-[-10px] opacity-5">
+                                    <AlertCircle className={`w-24 h-24 ${activeTab === 'internal' && assets.some(a => a.stock <= a.min_stock) ? 'text-red-500 opacity-20' : ''}`} />
+                                </div>
+                                <p className="text-stone-400 text-[10px] font-bold uppercase tracking-widest mb-1">Alertas Stock</p>
+                                <h4 className={`text-2xl md:text-3xl font-serif ${activeTab === 'internal' && assets.filter(a => a.stock <= a.min_stock).length > 0 ? 'text-red-500' : 'text-stone-900 dark:text-white'}`}>
+                                    {activeTab === 'internal'
+                                        ? assets.filter(a => a.stock <= a.min_stock).length
+                                        : products.filter(p => (p.stock || 0) <= 2).length
+                                    }
+                                </h4>
+                                <p className="text-[10px] text-stone-400 mt-2 font-medium uppercase tracking-wide">Items por Reponer</p>
                             </div>
                         </div>
 
@@ -286,8 +319,8 @@ export const AssetsView: React.FC = () => {
                                     <button onClick={() => setSelectedCategory('All')} className={`px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all border ${selectedCategory === 'All' ? 'bg-stone-900 text-white border-stone-900 shadow-sm' : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800'}`}>Todos</button>
 
                                     {activeTab === 'internal' ? (
-                                        internalCategories.map(cat => (
-                                            <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest whitespace-nowrap transition-all border ${selectedCategory === cat ? 'bg-gold-500 text-stone-900 border-gold-600 shadow-sm' : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800'}`}>{cat}</button>
+                                        assetCategories.map(cat => (
+                                            <button key={cat.id} onClick={() => setSelectedCategory(cat.name)} className={`px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest whitespace-nowrap transition-all border ${selectedCategory === cat.name ? 'bg-gold-500 text-stone-900 border-gold-600 shadow-sm' : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800'}`}>{cat.name}</button>
                                         ))
                                     ) : (
                                         erpCategories.map(cat => (
@@ -316,12 +349,21 @@ export const AssetsView: React.FC = () => {
                                             filteredAssets.map(asset => (
                                                 <tr key={asset.id} className="hover:bg-stone-50/30 dark:hover:bg-stone-800/30 transition-colors">
                                                     <td className="p-5">
-                                                        <div className="font-medium text-xs uppercase text-stone-900 dark:text-white">{asset.name}</div>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="font-medium text-xs uppercase text-stone-900 dark:text-white">{asset.name}</div>
+                                                            {asset.stock <= (asset.min_stock || 0) && (
+                                                                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" title="Bajo Stock" />
+                                                            )}
+                                                        </div>
                                                         <div className="text-[10px] text-stone-400">{asset.category}</div>
                                                     </td>
                                                     <td className="p-5 text-xs text-stone-500">{asset.location || '-'}</td>
-                                                    <td className="p-5"><span className="px-2 py-1 bg-stone-100 dark:bg-stone-800 rounded-full text-[9px] uppercase tracking-wider font-bold text-stone-500">{asset.category}</span></td>
-                                                    <td className="p-5 text-center text-xs font-mono font-bold">{asset.stock}</td>
+                                                    <td className="p-5">
+                                                        <span className={`px-2 py-1 rounded-full text-[9px] uppercase tracking-wider font-bold ${asset.stock <= (asset.min_stock || 0) ? 'bg-red-50 text-red-600 dark:bg-red-900/10' : 'bg-stone-100 dark:bg-stone-800 text-stone-500'}`}>
+                                                            {asset.category}
+                                                        </span>
+                                                    </td>
+                                                    <td className={`p-5 text-center text-xs font-mono font-bold ${asset.stock <= (asset.min_stock || 0) ? 'text-red-500' : ''}`}>{asset.stock}</td>
                                                     <td className="p-5 text-right text-xs font-mono text-stone-500">{formatCurrency(asset.unit_cost)}</td>
                                                     <td className="p-5 text-right text-xs font-mono font-bold text-stone-900 dark:text-white">{formatCurrency(asset.stock * asset.unit_cost)}</td>
                                                     <td className="p-5 text-center flex justify-center gap-2">
@@ -441,7 +483,8 @@ export const AssetsView: React.FC = () => {
                             <div>
                                 <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Categoría</label>
                                 <select className="w-full bg-stone-50 dark:bg-stone-950 p-3 rounded-lg border border-stone-200 dark:border-stone-800 text-sm" value={assetFormData.category} onChange={e => setAssetFormData({ ...assetFormData, category: e.target.value })}>
-                                    {internalCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                    <option value="">Seleccionar...</option>
+                                    {assetCategories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
                                 </select>
                             </div>
                             <div className="grid grid-cols-2 gap-4">

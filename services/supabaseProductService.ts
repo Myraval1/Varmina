@@ -160,6 +160,19 @@ export const supabaseProductService = {
         }
     },
 
+    // Reset Analytics for all products
+    resetAllAnalytics: async (): Promise<void> => {
+        const { error } = await supabase
+            .from('products')
+            .update({ whatsapp_clicks: 0 })
+            .neq('id', '00000000-0000-0000-0000-000000000000'); // Dummy condition to update all
+
+        if (error) {
+            console.error('Error resetting analytics:', error);
+            throw new Error('Error al reiniciar las estadísticas.');
+        }
+    },
+
     // Bulk Delete
     deleteBulk: async (ids: string[]): Promise<void> => {
         if (!ids.length) return;

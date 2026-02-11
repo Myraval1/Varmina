@@ -85,5 +85,32 @@ export const internalAssetService = {
             console.error('Error deleting asset:', error);
             throw new Error('Error al eliminar el activo.');
         }
+    },
+
+    updateStock: async (id: string, quantity: number): Promise<void> => {
+        // We use a simple rpc or update. Since we don't have an rpc for this yet, 
+        // we fetch and update, but ideally this should be an atomic increment in SQL.
+        // For now, let's use a simple update with calculated value to stay consistent with existing patterns.
+        const { data: asset, error: fetchError } = await supabase
+            .from('internal_assets')
+            .select('stock')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !asset) {
+            throw new Error('No se pudo encontrar el activo para actualizar stock');
+        }
+
+        const newStock = Math.max(0, asset.stock - quantity);
+
+        const { error: updateError } = await supabase
+            .from('internal_assets')
+            .update({ stock: newStock })
+            .eq('id', id);
+
+        if (updateError) {
+            console.error('Error updating asset stock:', updateError);
+            throw new Error('Error al actualizar stock del activo.');
+        }
     }
 };

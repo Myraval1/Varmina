@@ -379,7 +379,7 @@ export const PublicCatalog = () => {
             </div>
 
             {/* --- Product Detail Modal --- */}
-            <Modal isOpen={!!selectedProduct} onClose={() => setSelectedProduct(null)}>
+            <Modal isOpen={!!selectedProduct} onClose={() => setSelectedProduct(null)} showCloseButton={false}>
                 {selectedProduct && <ProductDetail product={selectedProduct} currency={currency} onClose={() => setSelectedProduct(null)} />}
             </Modal>
         </div>

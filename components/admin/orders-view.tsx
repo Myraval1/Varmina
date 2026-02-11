@@ -4,17 +4,20 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { supabaseProductService } from '@/services/supabaseProductService';
 import { financeService } from '@/services/financeService';
-import { Product, ProductStatus } from '@/types';
+import { internalAssetService } from '@/services/internalAssetService';
+import { Product, ProductStatus, InternalAsset } from '@/types';
 import { Button } from '@/components/ui/button'; // Adjust import if needed
 import { Input } from '@/components/ui/input';
-import { Search, Plus, Trash2, ShoppingCart, User, CreditCard, CheckCircle2 } from 'lucide-react';
+import { Search, Plus, Trash2, ShoppingCart, User, CreditCard, CheckCircle2, Box, Package } from 'lucide-react';
 import { formatPrice } from '@/lib/format';
 
 export const OrdersView: React.FC = () => {
     const { addToast, settings } = useStore();
     const [products, setProducts] = useState<Product[]>([]);
+    const [assets, setAssets] = useState<InternalAsset[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [assetSearchTerm, setAssetSearchTerm] = useState('');
 
     // Cart State
     interface OrderItem {
@@ -22,20 +25,29 @@ export const OrdersView: React.FC = () => {
         quantity: number;
         variant?: any;
     }
+    interface AssetOrderItem {
+        asset: InternalAsset;
+        quantity: number;
+    }
     const [cart, setCart] = useState<OrderItem[]>([]);
+    const [assetCart, setAssetCart] = useState<AssetOrderItem[]>([]);
     const [customerName, setCustomerName] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('Transferencia');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        loadProducts();
+        loadData();
     }, []);
 
-    const loadProducts = async () => {
+    const loadData = async () => {
         try {
-            const data = await supabaseProductService.getAll();
-            setProducts(data);
+            const [pData, aData] = await Promise.all([
+                supabaseProductService.getAll(),
+                internalAssetService.getAll()
+            ]);
+            setProducts(pData);
+            setAssets(aData);
         } catch (error) {
             addToast('error', 'Error al cargar inventario');
         } finally {
@@ -63,11 +75,35 @@ export const OrdersView: React.FC = () => {
         setCart(prev => prev.filter((_, i) => i !== index));
     };
 
+    const addToAssetCart = (asset: InternalAsset) => {
+        setAssetCart(prev => {
+            const existing = prev.find(i => i.asset.id === asset.id);
+            if (existing) {
+                if (existing.quantity >= asset.stock) {
+                    addToast('error', 'No hay más stock de este activo');
+                    return prev;
+                }
+                return prev.map(i => (i === existing ? { ...i, quantity: i.quantity + 1 } : i));
+            }
+            return [...prev, { asset, quantity: 1 }];
+        });
+    };
+
+    const removeFromAssetCart = (index: number) => {
+        setAssetCart(prev => prev.filter((_, i) => i !== index));
+    };
+
     const calculateTotal = () => {
-        return cart.reduce((acc, item) => {
+        const productsTotal = cart.reduce((acc, item) => {
             const price = item.variant ? item.variant.price : item.product.price;
             return acc + (price * item.quantity);
         }, 0);
+
+        // Assets are internal overhead, usually not charged to client?
+        // User asked: "que me pregunte si le añado algun activo como por ejemplo, cajas, bolsas, etc"
+        // Usually these are 0 cost for client but cost for dev.
+        // For now let's assume assets added to order are for stock tracking, $0 for customer.
+        return productsTotal;
     };
 
     const handleSubmitOrder = async () => {
@@ -75,12 +111,20 @@ export const OrdersView: React.FC = () => {
         setIsSubmitting(true);
 
         try {
-            // 1. Deduct Stock for each item
+            // 1. Deduct Stock for each product
             for (const item of cart) {
                 await supabaseProductService.updateStock(
                     item.product.id,
                     item.quantity,
                     item.variant?.name
+                );
+            }
+
+            // 1.5 Deduct Stock for each asset (packaging/extras)
+            for (const item of assetCart) {
+                await internalAssetService.updateStock(
+                    item.asset.id,
+                    item.quantity
                 );
             }
 
@@ -98,8 +142,9 @@ export const OrdersView: React.FC = () => {
 
             addToast('success', 'Venta registrada y stock actualizado');
             setCart([]);
+            setAssetCart([]);
             setCustomerName('');
-            loadProducts(); // Refresh inventory
+            loadData(); // Refresh inventory
 
         } catch (error) {
             console.error(error);
@@ -177,6 +222,44 @@ export const OrdersView: React.FC = () => {
                         </div>
                     ))}
                 </div>
+
+                {/* Extras / Packaging Section */}
+                <div className="pt-8 border-t border-stone-100 dark:border-stone-800">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <Box className="w-5 h-5 text-gold-600" />
+                            <h2 className="text-xl font-serif text-stone-900 dark:text-white uppercase tracking-wider">Insumos & Empaque</h2>
+                        </div>
+                        <div className="relative w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                            <Input
+                                placeholder="Buscar insumos..."
+                                value={assetSearchTerm}
+                                onChange={(e) => setAssetSearchTerm(e.target.value)}
+                                className="pl-9 h-8 text-xs"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {assets.filter(a => a.name.toLowerCase().includes(assetSearchTerm.toLowerCase())).map(asset => (
+                            <button
+                                key={asset.id}
+                                onClick={() => addToAssetCart(asset)}
+                                disabled={asset.stock <= 0}
+                                className={`text-left p-3 rounded-lg border transition-all flex flex-col gap-1 group ${asset.stock <= 0 ? 'opacity-40 cursor-not-allowed border-stone-100' : 'bg-white dark:bg-stone-900 border-stone-100 dark:border-stone-800 hover:border-gold-400'}`}
+                            >
+                                <div className="flex justify-between items-start">
+                                    <span className="text-[10px] font-bold text-stone-900 dark:text-white uppercase truncate">{asset.name}</span>
+                                    <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${asset.stock <= asset.min_stock ? 'bg-red-50 text-red-600' : 'bg-stone-100 text-stone-500'}`}>
+                                        {asset.stock}
+                                    </span>
+                                </div>
+                                <span className="text-[8px] text-stone-400 uppercase tracking-widest">{asset.category}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
             </div>
 
             {/* Right Col: Order Summary */}
@@ -220,29 +303,55 @@ export const OrdersView: React.FC = () => {
 
                     {/* Items List */}
                     <div className="flex-1 overflow-y-auto space-y-3 pr-1 mb-6">
-                        {cart.length === 0 ? (
+                        {cart.length === 0 && assetCart.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-stone-400 text-center">
                                 <p className="text-xs italic">La orden está vacía</p>
                             </div>
                         ) : (
-                            cart.map((item, idx) => (
-                                <div key={idx} className="flex gap-3 bg-white dark:bg-stone-950 p-2 rounded-lg border border-stone-100 dark:border-stone-800">
-                                    <img src={item.product.images[0]} className="w-10 h-10 object-cover rounded bg-stone-100" />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-bold truncate">{item.product.name}</p>
-                                        <p className="text-[10px] text-stone-500">{item.variant ? item.variant.name : 'Standard'}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-xs font-bold">{formatPrice((item.variant ? item.variant.price : item.product.price) * item.quantity, 'CLP')}</p>
-                                        <div className="flex items-center justify-end gap-2 mt-1">
-                                            <span className="text-[10px]">x{item.quantity}</span>
-                                            <button onClick={() => removeFromCart(idx)} className="text-stone-400 hover:text-red-500">
-                                                <Trash2 className="w-3 h-3" />
-                                            </button>
+                            <>
+                                {cart.map((item, idx) => (
+                                    <div key={`p-${idx}`} className="flex gap-3 bg-white dark:bg-stone-950 p-2 rounded-lg border border-stone-100 dark:border-stone-800">
+                                        <img src={item.product.images[0]} className="w-10 h-10 object-cover rounded bg-stone-100" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold truncate">{item.product.name}</p>
+                                            <p className="text-[10px] text-stone-500">{item.variant ? item.variant.name : 'Standard'}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs font-bold">{formatPrice((item.variant ? item.variant.price : item.product.price) * item.quantity, 'CLP')}</p>
+                                            <div className="flex items-center justify-end gap-2 mt-1">
+                                                <span className="text-[10px]">x{item.quantity}</span>
+                                                <button onClick={() => removeFromCart(idx)} className="text-stone-400 hover:text-red-500 transition-colors">
+                                                    <Trash2 className="w-3 h-3" />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))
+                                ))}
+
+                                {assetCart.length > 0 && (
+                                    <div className="pt-2">
+                                        <p className="text-[8px] font-bold uppercase tracking-widest text-stone-400 mb-2 px-1">Empaque & Insumos</p>
+                                        <div className="space-y-2">
+                                            {assetCart.map((item, idx) => (
+                                                <div key={`a-${idx}`} className="flex items-center gap-3 bg-stone-100/50 dark:bg-stone-800/20 p-2 rounded-lg border border-dashed border-stone-200 dark:border-stone-700">
+                                                    <div className="p-1.5 bg-white dark:bg-stone-900 rounded">
+                                                        <Package className="w-3 h-3 text-gold-600" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-[10px] font-bold truncate text-stone-600 dark:text-stone-300">{item.asset.name}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-mono">x{item.quantity}</span>
+                                                        <button onClick={() => removeFromAssetCart(idx)} className="text-stone-400 hover:text-red-500">
+                                                            <Trash2 className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
 

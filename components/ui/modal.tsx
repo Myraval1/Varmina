@@ -9,9 +9,10 @@ interface ModalProps {
     title?: string;
     children: ReactNode;
     size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+    showCloseButton?: boolean;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'md' }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'md', showCloseButton = true }) => {
     const overlayRef = useRef<HTMLDivElement>(null);
 
     // Lock body scroll when open
@@ -68,20 +69,24 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
             <div
                 className={`relative bg-white dark:bg-stone-900 w-full ${sizeClasses[size]} max-h-[92vh] md:max-h-[90vh] flex flex-col shadow-2xl animate-slide-up-mobile md:animate-scale-in rounded-t-[2rem] md:rounded-2xl overflow-hidden mb-safe-bottom`}
             >
-                {title ? (
+                {title && (
                     <div className="flex items-center justify-between p-6 md:p-8 border-b border-stone-100 dark:border-stone-800 sticky top-0 bg-white dark:bg-stone-900 z-10 rounded-t-3xl md:rounded-t-2xl">
                         <h3 className="font-serif text-sm md:text-xl uppercase tracking-[0.2em] text-stone-900 dark:text-gold-200 font-medium pr-8 line-clamp-1">
                             {title}
                         </h3>
-                        <button
-                            onClick={onClose}
-                            className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors"
-                            aria-label="Cerrar diálogo"
-                        >
-                            <X className="w-5 h-5 text-stone-400" />
-                        </button>
+                        {showCloseButton && (
+                            <button
+                                onClick={onClose}
+                                className="p-2 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-colors"
+                                aria-label="Cerrar diálogo"
+                            >
+                                <X className="w-5 h-5 text-stone-400" />
+                            </button>
+                        )}
                     </div>
-                ) : (
+                )}
+
+                {showCloseButton && !title && (
                     <button
                         onClick={onClose}
                         className="absolute top-4 right-4 z-[50] p-2 bg-white/80 dark:bg-stone-800/80 backdrop-blur-md rounded-full shadow-lg hover:rotate-90 transition-all duration-300"
