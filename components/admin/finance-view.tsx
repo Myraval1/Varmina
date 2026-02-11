@@ -204,10 +204,10 @@ export const FinanceView: React.FC = () => {
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-20">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 md:px-0">
                 <div>
-                    <h2 className="text-2xl font-serif text-stone-900 dark:text-white">Finanzas</h2>
-                    <p className="text-stone-500 text-sm">Resumen de ingresos y egresos</p>
+                    <h2 className="text-xl md:text-3xl font-serif text-stone-900 dark:text-white uppercase tracking-wider">Finanzas</h2>
+                    <p className="text-stone-500 text-[10px] md:text-sm uppercase tracking-widest">Resumen de ingresos y egresos</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
                     <Button
@@ -289,46 +289,48 @@ export const FinanceView: React.FC = () => {
 
             {/* List Header & Controls */}
             <div className="flex flex-col gap-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-stone-50 dark:bg-stone-950/50 p-4 rounded-xl border border-stone-200 dark:border-stone-800">
-                    <div className="flex items-center gap-4 flex-1">
-                        <div className="relative flex-1 max-w-md">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-stone-50 dark:bg-stone-950/50 p-3 md:p-4 rounded-xl border border-stone-200 dark:border-stone-800">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+                        <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                             <input
                                 type="text"
                                 placeholder="Buscar transacciones..."
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
-                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold-400 dark:text-white placeholder:text-stone-400"
+                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-gold-400 dark:text-white placeholder:text-stone-400 transition-all font-medium"
                             />
                         </div>
-                        <div className="flex bg-white dark:bg-stone-900 p-1 rounded-lg border border-stone-200 dark:border-stone-800">
+                        <div className="flex bg-white dark:bg-stone-900 p-1 rounded-lg border border-stone-200 dark:border-stone-800 shrink-0">
                             <button
                                 onClick={() => setViewType('all')}
-                                className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${viewType === 'all' ? 'bg-stone-900 text-white dark:bg-white dark:text-stone-900' : 'text-stone-500 hover:text-stone-900 dark:hover:text-white'}`}
+                                className={`flex-1 sm:flex-none px-4 py-2 rounded-md text-[9px] font-bold uppercase tracking-[0.2em] transition-all ${viewType === 'all' ? 'bg-stone-900 text-white dark:bg-white dark:text-stone-900 shadow-md' : 'text-stone-400 hover:text-stone-900 dark:hover:text-white'}`}
                             >
                                 Todas
                             </button>
                             <button
                                 onClick={() => setViewType('income')}
-                                className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${viewType === 'income' ? 'bg-green-600 text-white' : 'text-stone-500 hover:text-green-600'}`}
+                                className={`flex-1 sm:flex-none px-4 py-2 rounded-md text-[9px] font-bold uppercase tracking-[0.2em] transition-all ${viewType === 'income' ? 'bg-green-600 text-white shadow-md' : 'text-stone-400 hover:text-green-600'}`}
                             >
                                 Ingresos
                             </button>
                             <button
                                 onClick={() => setViewType('expense')}
-                                className={`px-4 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all ${viewType === 'expense' ? 'bg-red-600 text-white' : 'text-stone-500 hover:text-red-600'}`}
+                                className={`flex-1 sm:flex-none px-4 py-2 rounded-md text-[9px] font-bold uppercase tracking-[0.2em] transition-all ${viewType === 'expense' ? 'bg-red-600 text-white shadow-md' : 'text-stone-400 hover:text-red-600'}`}
                             >
                                 Gastos
                             </button>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
-                        <Filter className="w-3.5 h-3.5 text-stone-400 mr-2 shrink-0" />
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide shrink-0 lg:max-w-[40%]">
+                        <div className="p-2 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-800 shrink-0">
+                            <Filter className="w-3.5 h-3.5 text-stone-400" />
+                        </div>
                         {['All', ...(viewType === 'expense' ? CATEGORIES.expense : CATEGORIES.income)].map(cat => (
                             <button
                                 key={cat}
                                 onClick={() => setSelectedCategory(cat)}
-                                className={`px-3 py-1.5 rounded-full text-[10px] font-medium whitespace-nowrap transition-colors ${selectedCategory === cat ? 'bg-gold-100 text-gold-700 dark:bg-gold-500/20 dark:text-gold-200 border border-gold-200 dark:border-gold-800' : 'bg-transparent text-stone-500 border border-transparent hover:border-stone-200 dark:hover:border-stone-800'}`}
+                                className={`px-4 py-2 rounded-full text-[9px] font-bold whitespace-nowrap transition-all border ${selectedCategory === cat ? 'bg-gold-50 text-gold-700 border-gold-200 shadow-sm' : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800 hover:border-stone-300'}`}
                             >
                                 {cat === 'All' ? 'TODAS LAS CATEGORÍAS' : cat.toUpperCase()}
                             </button>

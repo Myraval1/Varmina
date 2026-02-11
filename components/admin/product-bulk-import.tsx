@@ -110,7 +110,7 @@ export const ProductBulkImport: React.FC<ProductBulkImportProps> = ({ isOpen, on
             size="xl"
             title="Carga Masiva de Productos"
         >
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full max-h-[80vh]">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Input Side */}
                 <div className="space-y-6">
                     <div className="bg-stone-50 dark:bg-stone-950 p-6 rounded-xl border border-stone-200 dark:border-stone-800 space-y-4">

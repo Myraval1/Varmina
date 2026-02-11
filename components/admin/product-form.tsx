@@ -230,36 +230,27 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
     };
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col relative bg-stone-50 dark:bg-stone-900 md:bg-transparent h-[100dvh] md:h-full fixed md:static inset-0 z-[60] md:z-auto">
-            {/* Header / Actions - Sticky Top - Optimized for Mobile */}
-            <div className="sticky top-0 z-50 px-4 md:px-6 py-3 md:py-4 bg-white/90 dark:bg-stone-900/95 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 flex items-center justify-between shadow-md transition-all pt-safe-top pb-2">
-                <h2 className="text-[10px] md:text-sm font-bold uppercase tracking-[0.2em] text-stone-900 dark:text-white flex items-center gap-2 min-w-0 pr-8">
-                    <span className="text-gold-500 shrink-0">{initialData ? 'Editar' : 'Nueva'}</span>
-                    <span className="text-stone-400 hidden sm:inline">|</span>
-                    <span className="truncate">{initialData ? 'Producto' : 'Pieza'}</span>
-                </h2>
-                <div className="hidden md:flex items-center gap-1.5 md:gap-3 shrink-0">
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleCancel}
-                        className="text-[9px] md:text-xs px-2 md:px-4"
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        type="submit"
-                        isLoading={isSubmitting}
-                        size="sm"
-                        className="bg-stone-900 text-white hover:bg-stone-800 dark:bg-gold-500 dark:text-stone-900 hover:dark:bg-gold-400 text-[9px] md:text-xs px-3 md:px-6 rounded-full shadow-sm"
-                    >
-                        Guardar
-                    </Button>
-                </div>
+        <form onSubmit={handleSubmit} className="flex flex-col h-full bg-stone-50 dark:bg-stone-900 md:bg-transparent overflow-hidden">
+            {/* Top Desktop Actions (Visible only on non-mobile or when integrated elsewhere) */}
+            <div className="hidden md:flex sticky top-0 z-20 px-8 py-4 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm border-b border-stone-100 dark:border-stone-800 items-center justify-end gap-3 shrink-0">
+                <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleCancel}
+                    className="text-xs uppercase tracking-widest font-bold"
+                >
+                    Cancelar
+                </Button>
+                <Button
+                    type="submit"
+                    isLoading={isSubmitting}
+                    className="bg-stone-900 text-white dark:bg-gold-500 dark:text-stone-900 rounded-full px-8 text-xs uppercase tracking-widest font-bold shadow-lg"
+                >
+                    {initialData ? 'Actualizar' : 'Guardar'}
+                </Button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 pb-32 md:px-8 max-w-5xl mx-auto w-full hide-scrollbar pt-6">
+            <div className="flex-1 overflow-y-auto px-4 md:px-8 py-8 md:py-12 max-w-5xl mx-auto w-full hide-scrollbar">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
 
                     {/* LEFT COLUMN - Main Content */}
@@ -585,22 +576,22 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                 </div>
             </div>
 
-            {/* Mobile Bottom Actions Bar */}
-            <div className="md:hidden sticky bottom-0 z-50 w-full bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 p-4 pb-safe-bottom shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] flex gap-3 animate-in slide-in-from-bottom-5 duration-300">
+            {/* Bottom Actions Bar - Sticky at the bottom of the form */}
+            <div className="sticky bottom-0 z-30 w-full bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 p-4 shrink-0 flex gap-3 animate-in slide-in-from-bottom-5 duration-300">
                 <Button
                     type="button"
                     variant="ghost"
                     onClick={handleCancel}
-                    className="flex-1 py-3 text-xs border border-stone-200 dark:border-stone-700 rounded-full"
+                    className="flex-1 py-4 text-xs font-bold uppercase tracking-widest border border-stone-200 dark:border-stone-800 rounded-xl"
                 >
                     Cancelar
                 </Button>
                 <Button
                     type="submit"
                     isLoading={isSubmitting}
-                    className="flex-1 py-3 text-xs bg-stone-900 text-white hover:bg-stone-800 dark:bg-gold-500 dark:text-stone-900 rounded-full shadow-lg"
+                    className="flex-1 py-4 text-xs font-bold uppercase tracking-widest bg-stone-900 text-white dark:bg-gold-500 dark:text-stone-900 rounded-xl shadow-xl active:scale-95 transition-all"
                 >
-                    Guardar
+                    {isSubmitting ? 'Guardando...' : 'Guardar Pieza'}
                 </Button>
             </div>
         </form >

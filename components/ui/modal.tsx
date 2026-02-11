@@ -53,7 +53,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
     return (
         <div
             ref={overlayRef}
-            className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4"
+            className="fixed inset-0 z-[200] flex items-end md:items-center justify-center p-0 md:p-4"
             role="dialog"
             aria-modal="true"
         >
@@ -66,11 +66,11 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
 
             {/* Panel */}
             <div
-                className={`relative bg-white dark:bg-stone-900 w-full ${sizeClasses[size]} max-h-[100vh] md:max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in rounded-t-3xl md:rounded-2xl`}
+                className={`relative bg-white dark:bg-stone-900 w-full ${sizeClasses[size]} max-h-[92vh] md:max-h-[90vh] flex flex-col shadow-2xl animate-slide-up-mobile md:animate-scale-in rounded-t-[2rem] md:rounded-2xl overflow-hidden mb-safe-bottom`}
             >
                 {title ? (
                     <div className="flex items-center justify-between p-6 md:p-8 border-b border-stone-100 dark:border-stone-800 sticky top-0 bg-white dark:bg-stone-900 z-10 rounded-t-3xl md:rounded-t-2xl">
-                        <h3 className="font-serif text-xl md:text-2xl uppercase tracking-[0.1em] text-stone-900 dark:text-white">
+                        <h3 className="font-serif text-sm md:text-xl uppercase tracking-[0.2em] text-stone-900 dark:text-gold-200 font-medium pr-8 line-clamp-1">
                             {title}
                         </h3>
                         <button
@@ -84,14 +84,16 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
                 ) : (
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 z-[40] p-2 bg-white/50 dark:bg-stone-900/50 backdrop-blur-md hover:bg-white dark:hover:bg-stone-800 rounded-full transition-colors border border-stone-100 dark:border-stone-800 shadow-sm"
+                        className="absolute top-4 right-4 z-[50] p-2 bg-white/80 dark:bg-stone-800/80 backdrop-blur-md rounded-full shadow-lg hover:rotate-90 transition-all duration-300"
                         aria-label="Cerrar diálogo"
                     >
-                        <X className="w-4 h-4 text-stone-900 dark:text-white" />
+                        <X className="w-5 h-5 text-stone-900 dark:text-white" />
                     </button>
                 )}
-                <div className={title ? "p-6 md:p-8" : "p-0"}>
-                    {children}
+                <div className={`${title ? "" : "pt-4"} overflow-y-auto flex-1 h-full pb-10 md:pb-0`}>
+                    <div className={title ? "p-6 md:p-8 pt-2 md:pt-8" : "p-0"}>
+                        {children}
+                    </div>
                 </div>
             </div>
         </div>

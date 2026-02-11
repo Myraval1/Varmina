@@ -195,10 +195,10 @@ export const AssetsView: React.FC = () => {
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-20">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 md:px-0">
                 <div>
-                    <h2 className="text-2xl font-serif text-stone-900 dark:text-white uppercase tracking-widest">Gestión ERP y Operaciones</h2>
-                    <p className="text-stone-500 text-sm">Control de inventario, costos y ubicación física.</p>
+                    <h2 className="text-xl md:text-2xl font-serif text-stone-900 dark:text-white uppercase tracking-widest">Gestión de Activos</h2>
+                    <p className="text-stone-500 text-[10px] md:text-sm uppercase tracking-widest">Control de inventario, costos y ubicación física.</p>
                 </div>
 
                 {activeTab === 'internal' && (
@@ -212,24 +212,24 @@ export const AssetsView: React.FC = () => {
             </div>
 
             {/* TAB SWITCHER */}
-            <div className="flex p-1 bg-stone-100 dark:bg-stone-800 rounded-lg w-fit">
+            <div className="flex p-1 bg-stone-100 dark:bg-stone-800 rounded-xl w-full md:w-fit overflow-x-auto scrollbar-hide">
                 <button
                     onClick={() => { setActiveTab('internal'); setSelectedCategory('All'); }}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-md text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'internal' ? 'bg-white dark:bg-stone-700 shadow-sm text-stone-900 dark:text-white' : 'text-stone-500 hover:text-stone-900'}`}
+                    className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-[0.15em] transition-all whitespace-nowrap flex-1 md:flex-none ${activeTab === 'internal' ? 'bg-white dark:bg-stone-700 shadow-md text-stone-900 dark:text-white' : 'text-stone-400 hover:text-stone-600'}`}
                 >
-                    <Box className="w-4 h-4" /> Activos Internos
+                    <Box className="w-3.5 h-3.5" /> Activos Internos
                 </button>
                 <button
                     onClick={() => { setActiveTab('store'); setSelectedCategory('All'); }}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-md text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'store' ? 'bg-white dark:bg-stone-700 shadow-sm text-stone-900 dark:text-white' : 'text-stone-500 hover:text-stone-900'}`}
+                    className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-[0.15em] transition-all whitespace-nowrap flex-1 md:flex-none ${activeTab === 'store' ? 'bg-white dark:bg-stone-700 shadow-md text-stone-900 dark:text-white' : 'text-stone-400 hover:text-stone-600'}`}
                 >
-                    <ShoppingBag className="w-4 h-4" /> Inventario Tienda
+                    <ShoppingBag className="w-3.5 h-3.5" /> Inventario Tienda
                 </button>
                 <button
                     onClick={() => { setActiveTab('attributes'); setSelectedCategory('All'); }}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-md text-xs font-bold uppercase tracking-widest transition-all ${activeTab === 'attributes' ? 'bg-white dark:bg-stone-700 shadow-sm text-stone-900 dark:text-white' : 'text-stone-500 hover:text-stone-900'}`}
+                    className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-[0.15em] transition-all whitespace-nowrap flex-1 md:flex-none ${activeTab === 'attributes' ? 'bg-white dark:bg-stone-700 shadow-md text-stone-900 dark:text-white' : 'text-stone-400 hover:text-stone-600'}`}
                 >
-                    <List className="w-4 h-4" /> Listas y Categorías
+                    <List className="w-3.5 h-3.5" /> Listado Maestros
                 </button>
             </div>
 
@@ -268,28 +268,30 @@ export const AssetsView: React.FC = () => {
                         {/* Main Content */}
                         <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-100 dark:border-stone-800 overflow-hidden">
                             {/* Filters */}
-                            <div className="p-4 border-b border-stone-100 dark:border-stone-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <div className="relative flex-1 max-w-md">
+                            <div className="p-3 md:p-4 border-b border-stone-100 dark:border-stone-800 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                <div className="relative flex-1 max-w-md w-full">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                                     <input
                                         type="text"
                                         placeholder="Buscar..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold-500"
+                                        className="w-full bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-gold-500 transition-all"
                                     />
                                 </div>
-                                <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-                                    <Filter className="w-3.5 h-3.5 text-stone-400 mr-2" />
-                                    <button onClick={() => setSelectedCategory('All')} className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${selectedCategory === 'All' ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}>Todos</button>
+                                <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
+                                    <div className="p-2 bg-stone-50 dark:bg-stone-800 rounded-lg border border-stone-100 dark:border-stone-700 shrink-0">
+                                        <Filter className="w-3 h-3 text-stone-400" />
+                                    </div>
+                                    <button onClick={() => setSelectedCategory('All')} className={`px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all border ${selectedCategory === 'All' ? 'bg-stone-900 text-white border-stone-900 shadow-sm' : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800'}`}>Todos</button>
 
                                     {activeTab === 'internal' ? (
                                         internalCategories.map(cat => (
-                                            <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap ${selectedCategory === cat ? 'bg-gold-500 text-stone-900' : 'bg-stone-100 dark:bg-stone-800 text-stone-500 hover:bg-stone-200'}`}>{cat}</button>
+                                            <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest whitespace-nowrap transition-all border ${selectedCategory === cat ? 'bg-gold-500 text-stone-900 border-gold-600 shadow-sm' : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800'}`}>{cat}</button>
                                         ))
                                     ) : (
                                         erpCategories.map(cat => (
-                                            <button key={cat.id} onClick={() => setSelectedCategory(cat.name)} className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap ${selectedCategory === cat.name ? 'bg-gold-500 text-stone-900' : 'bg-stone-100 dark:bg-stone-800 text-stone-500 hover:bg-stone-200'}`}>{cat.name}</button>
+                                            <button key={cat.id} onClick={() => setSelectedCategory(cat.name)} className={`px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest whitespace-nowrap transition-all border ${selectedCategory === cat.name ? 'bg-gold-500 text-stone-900 border-gold-600 shadow-sm' : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800'}`}>{cat.name}</button>
                                         ))
                                     )}
                                 </div>

@@ -6,7 +6,7 @@ import { Product, ProductStatus } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { supabaseProductService } from '@/services/supabaseProductService';
-import { Plus, Edit2, Trash2, AlertCircle, Package, Copy, Check, X as CloseIcon, FileText } from 'lucide-react';
+import { Plus, Edit2, Trash2, AlertCircle, Package, Copy, Check, X as CloseIcon, FileText, Search } from 'lucide-react';
 import { ProductForm } from '@/components/admin/product-form';
 import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
 import { SettingsView } from '@/components/admin/settings-view';
@@ -31,6 +31,17 @@ export const AdminDashboardView = () => {
     const [filterStatus, setFilterStatus] = useState<ProductStatus | 'All'>('All');
     const [inlinePriceId, setInlinePriceId] = useState<string | null>(null);
     const [inlinePrice, setInlinePrice] = useState<number>(0);
+    const [lastTab, setLastTab] = useState(activeAdminTab);
+
+    // Close modals on tab change
+    React.useEffect(() => {
+        if (activeAdminTab !== lastTab) {
+            setIsCreating(false);
+            setEditingProduct(null);
+            setIsBulkImporting(false);
+            setLastTab(activeAdminTab);
+        }
+    }, [activeAdminTab, lastTab]);
 
     const stats = {
         total: products.length,
@@ -136,67 +147,73 @@ export const AdminDashboardView = () => {
 
                         {/* Header & Controls */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 md:mb-12">
-                            <div>
-                                <h1 className="font-serif text-3xl md:text-4xl text-stone-900 dark:text-gold-200 tracking-wider mb-2 uppercase">Inventario</h1>
-                                <p className="text-stone-400 text-xs font-sans tracking-wide uppercase font-bold">
-                                    {stats.total} Piezas Totales
+                            <div className="px-4 md:px-0">
+                                <h1 className="font-serif text-xl md:text-3xl text-stone-900 dark:text-gold-200 tracking-wider mb-1 uppercase">Inventario</h1>
+                                <p className="text-stone-400 text-[10px] md:text-xs font-sans tracking-[0.2em] uppercase font-bold">
+                                    {stats.total} Piezas Registradas
                                 </p>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3 items-center">
-                                {/* Search Input */}
-                                <div className="relative w-full sm:w-64">
-                                    <input
-                                        type="text"
-                                        placeholder="Buscar por nombre o ID..."
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                        className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg py-2 pl-4 pr-4 text-xs focus:outline-none focus:border-gold-500 transition-colors uppercase tracking-wide placeholder:text-stone-400 dark:text-white"
-                                    />
+                            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-8 px-4 md:px-0">
+                                <div className="w-full lg:w-auto space-y-4">
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <div className="relative flex-1 sm:w-80">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                                            <input
+                                                type="text"
+                                                placeholder="Buscar en inventario..."
+                                                value={search}
+                                                onChange={(e) => setSearch(e.target.value)}
+                                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg py-3 pl-10 pr-4 text-xs focus:outline-none focus:ring-1 focus:ring-gold-500 transition-all uppercase tracking-wide placeholder:text-stone-400 dark:text-white"
+                                            />
+                                        </div>
+                                        <div className="flex bg-white dark:bg-stone-900 p-1 rounded-lg border border-stone-200 dark:border-stone-800 flex-1 sm:flex-none">
+                                            <select
+                                                className="w-full bg-transparent text-[9px] font-bold uppercase tracking-widest px-4 py-2 outline-none border-none text-stone-500 dark:text-stone-400 cursor-pointer"
+                                                value={filterStatus}
+                                                onChange={(e) => setFilterStatus(e.target.value as any)}
+                                            >
+                                                <option value="All">Todos los Estados</option>
+                                                <option value={ProductStatus.IN_STOCK}>Disponible</option>
+                                                <option value={ProductStatus.MADE_TO_ORDER}>Por Encargo</option>
+                                                <option value={ProductStatus.SOLD_OUT}>Agotado</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <select
-                                    className="w-full sm:w-auto bg-white dark:bg-stone-900 text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 outline-none border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 rounded-lg cursor-pointer hover:border-gold-500 transition-colors appearance-none focus:border-gold-500"
-                                    value={filterStatus}
-                                    onChange={(e) => setFilterStatus(e.target.value as any)}
-                                >
-                                    <option value="All">Todos</option>
-                                    <option value={ProductStatus.IN_STOCK}>Disponible</option>
-                                    <option value={ProductStatus.MADE_TO_ORDER}>Por Encargo</option>
-                                    <option value={ProductStatus.SOLD_OUT}>Agotado</option>
-                                </select>
-
-                                <Button
-                                    onClick={() => setIsBulkImporting(true)}
-                                    variant="ghost"
-                                    className="w-full sm:w-auto flex justify-center items-center gap-2 py-2.5 px-6 shrink-0 rounded-full text-[10px] font-bold tracking-widest border border-stone-200 dark:border-stone-800 text-stone-500 hover:text-stone-900 dark:hover:text-white"
-                                >
-                                    <FileText className="w-4 h-4" /> Carga Masiva
-                                </Button>
-
-                                <Button onClick={() => setIsCreating(true)} className="w-full sm:w-auto flex justify-center items-center gap-2 py-2.5 px-6 shrink-0 rounded-full text-xs font-bold tracking-widest shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 bg-stone-900 text-white dark:bg-gold-500 dark:text-stone-900">
-                                    <Plus className="w-4 h-4" /> Nueva Pieza
-                                </Button>
+                                <div className="flex gap-2 w-full lg:w-auto">
+                                    <Button
+                                        onClick={() => setIsBulkImporting(true)}
+                                        variant="ghost"
+                                        className="flex-1 lg:flex-none py-3 px-6 rounded-xl text-[9px] font-bold tracking-widest border border-stone-200 dark:border-stone-800 text-stone-400 hover:text-stone-900"
+                                    >
+                                        Carga Masiva
+                                    </Button>
+                                    <Button onClick={() => setIsCreating(true)} className="flex-1 lg:flex-none py-3 px-8 rounded-xl text-[9px] font-bold tracking-widest bg-stone-900 text-white dark:bg-gold-500 dark:text-stone-900 shadow-xl">
+                                        <Plus className="w-4 h-4 mr-1" /> Nueva Pieza
+                                    </Button>
+                                </div>
                             </div>
                         </div>
 
                         {/* Stats Overview - Premium Cards */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                            <div className="bg-white dark:bg-stone-900 p-5 rounded-xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] border border-stone-100 dark:border-stone-800 flex flex-col items-center justify-center text-center group hover:border-gold-500/30 transition-colors">
-                                <span className="text-3xl font-serif text-stone-900 dark:text-white mb-2 group-hover:scale-110 transition-transform duration-500">{stats.total}</span>
-                                <span className="text-[9px] uppercase tracking-widest text-stone-400 font-bold">Total Piezas</span>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8 px-4 md:px-0">
+                            <div className="bg-white dark:bg-stone-900 p-4 md:p-5 rounded-xl border border-stone-100 dark:border-stone-800 flex flex-col items-center justify-center text-center group transition-all">
+                                <span className="text-xl md:text-3xl font-serif text-stone-900 dark:text-white mb-1">{stats.total}</span>
+                                <span className="text-[8px] md:text-[9px] uppercase tracking-widest text-stone-400 font-bold">Total</span>
                             </div>
-                            <div className="bg-white dark:bg-stone-900 p-5 rounded-xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] border border-stone-100 dark:border-stone-800 flex flex-col items-center justify-center text-center group hover:border-green-500/30 transition-colors">
-                                <span className="text-3xl font-serif text-green-600 dark:text-green-400 mb-2 group-hover:scale-110 transition-transform duration-500">{stats.inStock}</span>
-                                <span className="text-[9px] uppercase tracking-widest text-stone-400 font-bold">Disponible</span>
+                            <div className="bg-white dark:bg-stone-900 p-4 md:p-5 rounded-xl border border-stone-100 dark:border-stone-800 flex flex-col items-center justify-center text-center group transition-all">
+                                <span className="text-xl md:text-3xl font-serif text-green-600 dark:text-green-400 mb-1">{stats.inStock}</span>
+                                <span className="text-[8px] md:text-[9px] uppercase tracking-widest text-stone-400 font-bold">Stock</span>
                             </div>
-                            <div className="bg-white dark:bg-stone-900 p-5 rounded-xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] border border-stone-100 dark:border-stone-800 flex flex-col items-center justify-center text-center group hover:border-blue-500/30 transition-colors">
-                                <span className="text-3xl font-serif text-blue-600 dark:text-blue-400 mb-2 group-hover:scale-110 transition-transform duration-500">{stats.madeToOrder}</span>
-                                <span className="text-[9px] uppercase tracking-widest text-stone-400 font-bold">Por Encargo</span>
+                            <div className="bg-white dark:bg-stone-900 p-4 md:p-5 rounded-xl border border-stone-100 dark:border-stone-800 flex flex-col items-center justify-center text-center group transition-all">
+                                <span className="text-xl md:text-3xl font-serif text-blue-600 dark:text-blue-400 mb-1">{stats.madeToOrder}</span>
+                                <span className="text-[8px] md:text-[9px] uppercase tracking-widest text-stone-400 font-bold">Encargo</span>
                             </div>
-                            <div className="bg-white dark:bg-stone-900 p-5 rounded-xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] border border-stone-100 dark:border-stone-800 flex flex-col items-center justify-center text-center group hover:border-red-500/30 transition-colors">
-                                <span className="text-3xl font-serif text-stone-400 dark:text-stone-500 mb-2 group-hover:scale-110 transition-transform duration-500">{stats.soldOut}</span>
-                                <span className="text-[9px] uppercase tracking-widest text-stone-400 font-bold">Agotado</span>
+                            <div className="bg-white dark:bg-stone-900 p-4 md:p-5 rounded-xl border border-stone-100 dark:border-stone-800 flex flex-col items-center justify-center text-center group transition-all">
+                                <span className="text-xl md:text-3xl font-serif text-stone-400 mb-1">{stats.soldOut}</span>
+                                <span className="text-[8px] md:text-[9px] uppercase tracking-widest text-stone-400 font-bold">Agotado</span>
                             </div>
                         </div>
 
@@ -394,6 +411,7 @@ export const AdminDashboardView = () => {
                 isOpen={isCreating || !!editingProduct}
                 onClose={() => { setIsCreating(false); setEditingProduct(null); }}
                 size="xl"
+                title={editingProduct ? 'Editar Pieza' : 'Nueva Pieza'}
             >
                 <ProductForm
                     initialData={editingProduct || undefined}
