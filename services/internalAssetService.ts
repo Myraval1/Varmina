@@ -1,5 +1,7 @@
-import { supabase } from '../lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 import { InternalAsset } from '../types';
+
+const supabase = createClient();
 
 export interface CreateAssetInput {
     name: string;

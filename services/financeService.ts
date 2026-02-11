@@ -1,6 +1,7 @@
-
-import { supabase } from '../lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 import { Transaction } from '../types';
+
+const supabase = createClient();
 
 export interface CreateTransactionInput {
     description: string;
@@ -128,12 +129,12 @@ export const financeService = {
         }
 
         const income = data
-            ?.filter(t => t.type === 'income')
-            .reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+            ?.filter((t: any) => t.type === 'income')
+            .reduce((sum: number, t: any) => sum + Number(t.amount), 0) || 0;
 
         const expense = data
-            ?.filter(t => t.type === 'expense')
-            .reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+            ?.filter((t: any) => t.type === 'expense')
+            .reduce((sum: number, t: any) => sum + Number(t.amount), 0) || 0;
 
         return {
             income,

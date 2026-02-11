@@ -1,5 +1,6 @@
+import { createClient } from '@/utils/supabase/client';
 
-import { supabase } from '../lib/supabase';
+const supabase = createClient();
 
 export type AttributeType = 'collection' | 'category' | 'erp_category';
 

@@ -1,5 +1,7 @@
-import { supabase } from '../lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 import { Product, ProductStatus } from '../types';
+
+const supabase = createClient();
 
 export interface CreateProductInput {
     name: string;
@@ -285,5 +287,58 @@ export const supabaseProductService = {
 
         if (error) throw new Error('Error al duplicar el producto');
         return data as any as Product;
+    },
+
+    // Update Stock Logic
+    updateStock: async (id: string, quantityToDeduct: number, variantName?: string): Promise<void> => {
+        // 1. Fetch current product
+        const { data: product, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error || !product) throw new Error('Producto no encontrado');
+
+        const p = product as any as Product;
+        let newStatus = p.status;
+        let updates: any = {};
+
+        // 2. Handle Variants
+        if (variantName && p.variants && p.variants.length > 0) {
+            const variantIndex = p.variants.findIndex((v: any) => v.name === variantName);
+            if (variantIndex === -1) throw new Error('Variante no encontrada');
+
+            const updatedVariants = [...p.variants];
+            const currentStock = updatedVariants[variantIndex].stock || 0;
+            const newStock = Math.max(0, currentStock - quantityToDeduct);
+            updatedVariants[variantIndex].stock = newStock;
+
+            updates.variants = updatedVariants;
+
+            // Optional: Check if all variants are out of stock?
+            // For now, only main status if MAIN stock is used.
+            // But if we use variants, main stock might be sum of variants or separate.
+            // Let's assume strict separation: if variant, we touch variant.
+        }
+        // 3. Handle Main Stock (if no variant selected OR if we want to deduct from global too)
+        else {
+            const currentStock = p.stock || 0;
+            const newStock = Math.max(0, currentStock - quantityToDeduct);
+            updates.stock = newStock;
+
+            if (newStock === 0) {
+                newStatus = ProductStatus.SOLD_OUT;
+                updates.status = newStatus;
+            }
+        }
+
+        // 4. Updates
+        const { error: updateError } = await (supabase as any)
+            .from('products')
+            .update(updates)
+            .eq('id', id);
+
+        if (updateError) throw new Error('Error al actualizar stock');
     }
 };

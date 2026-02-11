@@ -1,0 +1,14 @@
+'use client';
+
+import { AdminLayout } from "@/components/admin/admin-layout";
+import { ProtectedRoute } from "@/components/admin/protected-route";
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+    return (
+        <ProtectedRoute>
+            <AdminLayout>
+                {children}
+            </AdminLayout>
+        </ProtectedRoute>
+    );
+}

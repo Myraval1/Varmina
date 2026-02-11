@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
 interface ThemeContextType {
@@ -9,30 +11,33 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [darkMode, setDarkMode] = useState(() => {
-        // Check local storage or system preference
-        if (typeof window !== 'undefined') {
-            const stored = localStorage.getItem('varmina_dark_mode');
-            if (stored !== null) return stored === 'true';
-            // Default to light mode unless explicitly set to dark
-            return false;
+    // Always start with false (light mode) to match server render and avoid hydration mismatch.
+    const [darkMode, setDarkMode] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    // On first client mount, read the stored preference
+    useEffect(() => {
+        const stored = localStorage.getItem('varmina_dark_mode');
+        if (stored === 'true') {
+            setDarkMode(true);
         }
-        return false;
-    });
+        setMounted(true);
+    }, []);
 
     const toggleDarkMode = useCallback(() => {
         setDarkMode(prev => !prev);
     }, []);
 
-    // Effect to apply class
+    // Apply dark class and persist preference
     useEffect(() => {
+        if (!mounted) return; // Don't persist on initial mount before reading storage
         localStorage.setItem('varmina_dark_mode', String(darkMode));
         if (darkMode) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
-    }, [darkMode]);
+    }, [darkMode, mounted]);
 
     return (
         <ThemeContext.Provider value={{ darkMode, toggleDarkMode, setDarkMode }}>

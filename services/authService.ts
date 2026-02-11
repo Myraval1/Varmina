@@ -1,5 +1,7 @@
-import { supabase } from '../lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 import { User, Session, AuthError } from '@supabase/supabase-js';
+
+const supabase = createClient();
 
 export interface AuthService {
     signIn: (email: string, password: string) => Promise<{ user: User | null; session: Session | null; error: AuthError | null }>;
@@ -19,7 +21,7 @@ export const authService: AuthService = {
                 .from('profiles')
                 .select('role')
                 .eq('id', userId)
-                .single() as any;
+                .single();
 
             if (error) {
                 console.error('Error fetching admin profile:', error);
