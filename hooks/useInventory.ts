@@ -8,7 +8,30 @@ export function useInventory() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchInventory = async () => {
+    useEffect(() => {
+        let mounted = true;
+
+        const fetchInventory = async () => {
+            setLoading(true);
+            try {
+                const data = await supabaseProductService.getAll();
+                if (mounted) setProducts(data);
+            } catch (error) {
+                console.error("Failed to load inventory:", error);
+                if (mounted) addToast('error', 'Error al cargar inventario');
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        };
+
+        fetchInventory();
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    const refreshInventory = async () => {
         setLoading(true);
         try {
             const data = await supabaseProductService.getAll();
@@ -20,12 +43,6 @@ export function useInventory() {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        fetchInventory();
-    }, []);
-
-    const refreshInventory = () => fetchInventory();
 
     return { products, loading, refreshInventory };
 }

@@ -8,8 +8,13 @@ import { ToastContainer, LoadingScreen } from './UI';
 
 export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { currency, toggleCurrency, settings, loading } = useStore();
-    const { darkMode, toggleDarkMode } = useTheme();
+    const { darkMode, toggleDarkMode, setDarkMode } = useTheme();
     const navigate = useNavigate();
+
+    // Force Dark Mode on Public Layout (User Preference)
+    React.useEffect(() => {
+        setDarkMode(true);
+    }, [setDarkMode]);
 
     return (
         <div className={`min-h-screen flex flex-col transition-colors duration-500 ${darkMode ? 'dark bg-stone-950' : 'bg-stone-50'}`}>

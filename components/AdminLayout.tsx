@@ -8,7 +8,13 @@ import { LayoutGrid, Sun, Moon, Store, LogOut, Award, BarChart3, DollarSign, Tru
 import { ToastContainer } from './UI';
 
 export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { darkMode, toggleDarkMode } = useTheme(); // Changed to useTheme
+    const { darkMode, toggleDarkMode, setDarkMode } = useTheme(); // Changed to useTheme
+
+    // Force Light Mode on Admin Layout (User Preference)
+    React.useEffect(() => {
+        setDarkMode(false);
+    }, [setDarkMode]);
+
     const { // Remaining items from useStore
         activeAdminTab, setActiveAdminTab,
         addToast

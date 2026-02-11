@@ -29,11 +29,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
     const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loadingAttributes, setLoadingAttributes] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     // Dynamic lists
     const [categories, setCategories] = useState<{ name: string, id: string }[]>([]);
     const [collections, setCollections] = useState<{ name: string, id: string }[]>([]);
-    const [erpCategories, setErpCategories] = useState<{ name: string, id: string }[]>([]); // Added for future use if needed in form
+    const [erpCategories, setErpCategories] = useState<{ name: string, id: string }[]>([]);
+
+    const sessionUploadedImages = React.useRef<string[]>([]);
 
     React.useEffect(() => {
         const loadAttributes = async () => {
@@ -55,10 +59,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
         };
         loadAttributes();
     }, []);
-    const [isUploading, setIsUploading] = useState(false);
-    const [errors, setErrors] = useState<Record<string, string>>({});
-
-    const sessionUploadedImages = React.useRef<string[]>([]);
 
     const handleCancel = async () => {
         // Cleanup images uploaded in this session but not saved
@@ -197,7 +197,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
         setFormData(prev => ({ ...prev, variants: [...(prev.variants || []), newVariant] }));
     };
 
-    const updateVariant = (id: string, field: string, value: any) => {
+    const updateVariant = (id: string, field: string, value: string | number) => {
         setFormData(prev => ({
             ...prev,
             variants: prev.variants?.map(v => v.id === id ? { ...v, [field]: value } : v)
@@ -220,7 +220,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                 return {
                     ...v,
                     images: images.includes(imageUrl)
-                        ? images.filter((img: string) => img !== imageUrl)
+                        ? images.filter(img => img !== imageUrl)
                         : [...images, imageUrl]
                 };
             })
@@ -239,7 +239,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
     }, []);
 
     return (
-        <form onSubmit={handleSubmit} className="h-full flex flex-col relative bg-stone-50/50 dark:bg-black/20" style={{ height: 'calc(var(--vh, 1vh) * 100)' }}>
+        <form onSubmit={handleSubmit} className="flex flex-col relative bg-stone-50 dark:bg-stone-900 md:bg-transparent h-[100dvh] md:h-full fixed md:static inset-0 z-[60] md:z-auto">
             {/* Header / Actions - Sticky Top - Optimized for Mobile */}
             <div className="sticky top-0 z-50 px-4 md:px-6 py-3 md:py-4 bg-white/90 dark:bg-stone-900/95 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 flex items-center justify-between shadow-md transition-all pt-safe-top pb-2">
                 <h2 className="text-[10px] md:text-sm font-bold uppercase tracking-[0.2em] text-stone-900 dark:text-white flex items-center gap-2 min-w-0 pr-8">

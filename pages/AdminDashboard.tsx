@@ -15,14 +15,14 @@ import { useInventory } from '../hooks/useInventory';
 // --- MAIN ADMIN COMPONENT ---
 export const AdminDashboard = () => {
   const { addToast, activeAdminTab } = useStore();
-  const { products, loading, refreshInventory } = useInventory(); // NEW: Local inventory hook
+  const { products, loading, refreshInventory } = useInventory();
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isBulkImporting, setIsBulkImporting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string[] | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [search, setSearch] = useState(''); // New search state
+  const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<ProductStatus | 'All'>('All');
   const [inlinePriceId, setInlinePriceId] = useState<string | null>(null);
   const [inlinePrice, setInlinePrice] = useState<number>(0);
@@ -142,12 +142,12 @@ export const AdminDashboard = () => {
                     placeholder="Buscar por nombre o ID..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-sm py-2 pl-4 pr-4 text-xs focus:outline-none focus:border-gold-500 transition-colors uppercase tracking-wide placeholder:text-stone-300"
+                    className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg py-2 pl-4 pr-4 text-xs focus:outline-none focus:border-gold-500 transition-colors uppercase tracking-wide placeholder:text-stone-400 dark:text-white"
                   />
                 </div>
 
                 <select
-                  className="w-full sm:w-auto bg-white dark:bg-stone-900 text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 outline-none border border-stone-200 dark:border-stone-800 dark:text-stone-300 rounded-sm cursor-pointer hover:border-gold-500 transition-colors appearance-none"
+                  className="w-full sm:w-auto bg-white dark:bg-stone-900 text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 outline-none border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 rounded-lg cursor-pointer hover:border-gold-500 transition-colors appearance-none focus:border-gold-500"
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value as any)}
                 >

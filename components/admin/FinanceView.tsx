@@ -54,10 +54,19 @@ export const FinanceView: React.FC = () => {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [viewType, setViewType] = useState<'all' | 'income' | 'expense'>('all');
 
+    interface BulkPreviewItem {
+        id: number;
+        description: string;
+        amount: number;
+        category: string;
+        date: string;
+        isValid: boolean;
+    }
+
     // Bulk State
     const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
     const [bulkData, setBulkData] = useState('');
-    const [bulkPreview, setBulkPreview] = useState<any[]>([]);
+    const [bulkPreview, setBulkPreview] = useState<BulkPreviewItem[]>([]);
 
     useEffect(() => {
         loadData();
@@ -287,7 +296,7 @@ export const FinanceView: React.FC = () => {
                                 placeholder="Buscar transacciones..."
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
-                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold-400"
+                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold-400 dark:text-white placeholder:text-stone-400"
                             />
                         </div>
                         <div className="flex bg-white dark:bg-stone-900 p-1 rounded-lg border border-stone-200 dark:border-stone-800">
@@ -317,7 +326,7 @@ export const FinanceView: React.FC = () => {
                             <button
                                 key={cat}
                                 onClick={() => setSelectedCategory(cat)}
-                                className={`px-3 py-1.5 rounded-full text-[10px] font-medium whitespace-nowrap transition-colors ${selectedCategory === cat ? 'bg-gold-100 text-gold-700 dark:bg-gold-500/20 dark:text-gold-200 border border-gold-200' : 'bg-transparent text-stone-500 border border-transparent hover:border-stone-200'}`}
+                                className={`px-3 py-1.5 rounded-full text-[10px] font-medium whitespace-nowrap transition-colors ${selectedCategory === cat ? 'bg-gold-100 text-gold-700 dark:bg-gold-500/20 dark:text-gold-200 border border-gold-200 dark:border-gold-800' : 'bg-transparent text-stone-500 border border-transparent hover:border-stone-200 dark:hover:border-stone-800'}`}
                             >
                                 {cat === 'All' ? 'TODAS LAS CATEGORÍAS' : cat.toUpperCase()}
                             </button>
@@ -446,7 +455,7 @@ export const FinanceView: React.FC = () => {
                             name="category"
                             value={formData.category}
                             onChange={e => setFormData({ ...formData, category: e.target.value })}
-                            className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md p-2 text-sm outline-none focus:border-stone-900 dark:focus:border-stone-500 transition-colors text-stone-900 dark:text-white"
+                            className="w-full bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md p-2 text-sm outline-none focus:border-gold-500 transition-colors text-stone-900 dark:text-white"
                         >
                             <option value="">Seleccionar...</option>
                             {(modalType === 'income' ? CATEGORIES.income : CATEGORIES.expense).map(cat => (
@@ -509,7 +518,7 @@ export const FinanceView: React.FC = () => {
                                 </button>
                             </div>
                             <textarea
-                                className="w-full h-48 bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-xl p-4 text-xs font-mono outline-none focus:border-gold-400 transition-all text-stone-800 dark:text-stone-200 shadow-inner"
+                                className="w-full h-48 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-xl p-4 text-xs font-mono outline-none focus:border-gold-400 transition-all text-stone-800 dark:text-stone-200 shadow-inner"
                                 placeholder={"Descripción, Monto, Categoría (opcional), Fecha (opcional) \nEj: Venta Anillo, 150000, Ventas, 2024-02-10"}
                                 value={bulkData}
                                 onChange={e => setBulkData(e.target.value)}

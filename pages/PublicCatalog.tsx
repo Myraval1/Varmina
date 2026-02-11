@@ -133,13 +133,13 @@ export const PublicCatalog = () => {
 
                             {/* Mobile Search - Minimalist */}
                             <div className="relative flex-1 md:max-w-md group">
-                                <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-stone-900 dark:group-focus-within:text-white transition-colors" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 group-focus-within:text-gold-500 transition-colors pointer-events-none" />
                                 <input
                                     type="text"
                                     placeholder="BUSCAR PIEZAS"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full pl-7 pr-4 py-2.5 bg-transparent border-b border-stone-200 dark:border-stone-800 text-xs md:text-sm uppercase tracking-widest placeholder:text-stone-400/70 focus:outline-none focus:border-stone-900 dark:focus:border-white transition-all font-sans text-stone-900 dark:text-white"
+                                    className="w-full pl-9 pr-4 py-2 bg-stone-50 dark:bg-stone-900 border border-transparent focus:border-stone-300 dark:focus:border-stone-700 rounded-full text-xs md:text-sm uppercase tracking-widest placeholder:text-stone-400 focus:outline-none transition-all font-sans text-stone-900 dark:text-white hover:bg-stone-100 dark:hover:bg-stone-800"
                                 />
                             </div>
 
@@ -199,17 +199,28 @@ export const PublicCatalog = () => {
                         </button>
                     </div>
                 ) : (
-                    <div className={`animate-in fade-in slide-in-from-bottom-4 duration-700 ${layout === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-x-8 md:gap-y-12' : 'flex flex-col gap-4 max-w-3xl mx-auto'}`}>
-                        {filteredProducts.map(product => (
-                            <ProductCard
-                                key={product.id}
-                                product={product}
-                                currency={currency}
-                                layout={layout}
-                                onClick={setSelectedProduct}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        {!search && filteredProducts.length > 0 && (
+                            <div className="mb-8 md:mb-12 text-center animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100">
+                                <h3 className="font-serif text-xl md:text-3xl text-stone-900 dark:text-white uppercase tracking-[0.2em]">
+                                    {categoryFilter !== 'All' ? categoryFilter : (collectionFilter !== 'All' ? collectionFilter : 'Colección Exclusiva')}
+                                </h3>
+                                <div className="w-12 h-[1px] bg-gold-500 mx-auto mt-4"></div>
+                            </div>
+                        )}
+
+                        <div className={`animate-in fade-in slide-in-from-bottom-4 duration-700 ${layout === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-16' : 'flex flex-col gap-6 max-w-3xl mx-auto'}`}>
+                            {filteredProducts.map(product => (
+                                <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    currency={currency}
+                                    layout={layout}
+                                    onClick={setSelectedProduct}
+                                />
+                            ))}
+                        </div>
+                    </>
                 )}
             </div>
 
