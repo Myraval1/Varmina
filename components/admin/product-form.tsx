@@ -17,7 +17,7 @@ interface ProductFormProps {
 }
 
 export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, onCancel }) => {
-    const { addToast } = useStore();
+    const { addToast, attributes } = useStore();
     const [formData, setFormData] = useState<Partial<Product>>(initialData || {
         name: '',
         description: '',
@@ -32,34 +32,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
     });
     const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [loadingAttributes, setLoadingAttributes] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // Dynamic lists
-    const [categories, setCategories] = useState<{ name: string, id: string }[]>([]);
-    const [collections, setCollections] = useState<{ name: string, id: string }[]>([]);
+    // Dynamic lists from StoreContext
+    const categories = attributes.filter(a => a.type === 'category');
+    const collections = attributes.filter(a => a.type === 'collection');
 
     const sessionUploadedImages = React.useRef<string[]>([]);
-
-    React.useEffect(() => {
-        const loadAttributes = async () => {
-            setLoadingAttributes(true);
-            try {
-                const [cats, cols] = await Promise.all([
-                    attributeService.getByType('category'),
-                    attributeService.getByType('collection')
-                ]);
-                setCategories(cats);
-                setCollections(cols);
-            } catch (err) {
-                console.error('Error loading attributes', err);
-            } finally {
-                setLoadingAttributes(false);
-            }
-        };
-        loadAttributes();
-    }, []);
 
     const handleCancel = async () => {
         // Cleanup images uploaded in this session but not saved

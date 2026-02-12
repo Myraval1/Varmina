@@ -92,16 +92,6 @@ export const AnalyticsDashboard: React.FC = () => {
                     <h1 className="font-serif text-4xl text-stone-900 dark:text-gold-200 tracking-[0.1em] mb-2 uppercase">Analítica</h1>
                     <p className="text-stone-400 text-[10px] font-sans tracking-[0.3em] uppercase font-bold">Rendimiento de Joyería e Inventario</p>
                 </div>
-
-                <Button
-                    variant="outline"
-                    onClick={handleResetAnalytics}
-                    disabled={isResetting || products.length === 0}
-                    className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border border-stone-200 dark:border-stone-800 rounded-xl px-6 h-12 hover:bg-stone-900 hover:text-white dark:hover:bg-gold-500 dark:hover:text-stone-900 transition-all shadow-sm"
-                >
-                    <RotateCcw className={`w-3 h-3 ${isResetting ? 'animate-spin' : ''}`} />
-                    Reiniciar Métricas de Interés
-                </Button>
             </div>
 
             {/* PRODUCT VALUATION GRID */}
@@ -230,14 +220,26 @@ export const AnalyticsDashboard: React.FC = () => {
 
             {/* PRODUCT RANKING */}
             <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-[2.5rem] overflow-hidden shadow-sm">
-                <div className="px-10 py-10 border-b border-stone-100 dark:border-stone-800 flex items-center gap-4">
-                    <div className="p-4 bg-gold-50 dark:bg-gold-900/20 rounded-2xl">
-                        <BarChart3 className="w-7 h-7 text-gold-600" />
+                <div className="px-10 py-10 border-b border-stone-100 dark:border-stone-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="p-4 bg-gold-50 dark:bg-gold-900/20 rounded-2xl">
+                            <BarChart3 className="w-7 h-7 text-gold-600" />
+                        </div>
+                        <div>
+                            <h2 className="text-base font-bold uppercase tracking-[0.3em] text-stone-900 dark:text-white">RANKING DE DESEO</h2>
+                            <p className="text-[10px] text-stone-400 uppercase tracking-widest font-bold mt-1">Top 10 piezas con más consultas en WhatsApp</p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 className="text-base font-bold uppercase tracking-[0.3em] text-stone-900 dark:text-white">RANKING DE DESEO</h2>
-                        <p className="text-[10px] text-stone-400 uppercase tracking-widest font-bold mt-1">Top 10 piezas con más consultas en WhatsApp</p>
-                    </div>
+
+                    <Button
+                        variant="outline"
+                        onClick={handleResetAnalytics}
+                        disabled={isResetting || products.length === 0}
+                        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border border-stone-200 dark:border-stone-800 rounded-xl px-6 h-12 hover:bg-stone-900 hover:text-white dark:hover:bg-gold-500 dark:hover:text-stone-900 transition-all shadow-sm"
+                    >
+                        <RotateCcw className={`w-3 h-3 ${isResetting ? 'animate-spin' : ''}`} />
+                        Reiniciar Métricas de Interés
+                    </Button>
                 </div>
 
                 <div className="divide-y divide-stone-100 dark:divide-stone-800">

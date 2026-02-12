@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabaseProductService } from '@/services/supabaseProductService';
 import { Product } from '@/types';
 import { useStore } from '@/context/StoreContext';
+import { createClient } from '@/utils/supabase/client';
+
+const supabase = createClient();
 
 export function useInventory() {
     const { addToast } = useStore();
@@ -26,8 +29,14 @@ export function useInventory() {
 
         fetchInventory();
 
+        const channel = supabase
+            .channel('inventory_realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, fetchInventory)
+            .subscribe();
+
         return () => {
             mounted = false;
+            supabase.removeChannel(channel);
         };
     }, []);
 

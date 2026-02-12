@@ -13,15 +13,21 @@ import { formatPrice } from '@/lib/format';
 
 import { attributeService } from '@/services/attributeService';
 
+import { createClient } from '@/utils/supabase/client';
+
+const supabase = createClient();
+
 export const OrdersView: React.FC = () => {
-    const { addToast, settings } = useStore();
-    const [products, setProducts] = useState<Product[]>([]);
+    const { addToast, settings, products: globalProducts, attributes } = useStore();
     const [assets, setAssets] = useState<InternalAsset[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<'products' | 'assets'>('products');
     const [selectedCategory, setSelectedCategory] = useState('All');
-    const [categories, setCategories] = useState<string[]>([]);
+
+    // Derived from StoreContext
+    const products = globalProducts;
+    const categories = attributes.filter(a => a.type === 'category').map(c => c.name);
 
     // Cart State
     interface OrderItem {
@@ -42,24 +48,28 @@ export const OrdersView: React.FC = () => {
 
     useEffect(() => {
         loadData();
+
+        const sub = supabase
+            .channel('orders_view_assets')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'internal_assets' }, () => {
+                loadData(true);
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(sub);
+        };
     }, []);
 
-    const loadData = async () => {
+    const loadData = async (silent = false) => {
         try {
-            const [pData, aData, attrCats] = await Promise.all([
-                supabaseProductService.getAll(),
-                internalAssetService.getAll(),
-                attributeService.getByType('category')
-            ]);
-            setProducts(pData);
+            if (!silent) setLoading(true);
+            const aData = await internalAssetService.getAll();
             setAssets(aData);
-
-            // Use manual categories from master list
-            setCategories(attrCats.map(c => c.name));
         } catch (error) {
-            addToast('error', 'Error al cargar inventario');
+            if (!silent) addToast('error', 'Error al cargar inventario de activos');
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
 

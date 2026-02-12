@@ -26,8 +26,12 @@ import {
 } from 'lucide-react';
 import { AttributeManagerSection } from './attribute-manager';
 
+import { createClient } from '@/utils/supabase/client';
+
+const supabase = createClient();
+
 export const AssetsView: React.FC = () => {
-    const { addToast } = useStore();
+    const { addToast, attributes } = useStore();
 
     // TABS
     const [activeTab, setActiveTab] = useState<'internal' | 'store' | 'attributes'>('internal');
@@ -35,7 +39,9 @@ export const AssetsView: React.FC = () => {
     // DATA STATE
     const [assets, setAssets] = useState<InternalAsset[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
-    const [assetCategories, setAssetCategories] = useState<ProductAttribute[]>([]);
+
+    // Derived from StoreContext
+    const assetCategories = attributes.filter(a => a.type === 'asset_category');
 
     // UI STATE
     const [loading, setLoading] = useState(true);
@@ -46,7 +52,7 @@ export const AssetsView: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAsset, setEditingAsset] = useState<InternalAsset | null>(null);
     const [assetFormData, setAssetFormData] = useState<CreateAssetInput>({
-        name: '', category: 'Insumos', stock: 0, min_stock: 5, unit_cost: 0, location: '', description: ''
+        name: '', category: '', stock: 0, min_stock: 5, unit_cost: 0, location: '', description: ''
     });
 
     // INLINE EDIT STATE (Store Products)
@@ -60,6 +66,18 @@ export const AssetsView: React.FC = () => {
 
     useEffect(() => {
         loadData();
+
+        // Realtime for Internal Assets
+        const sub = supabase
+            .channel('internal_assets_view')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'internal_assets' }, () => {
+                loadData(true);
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(sub);
+        };
     }, []);
 
     const resetSelection = () => {
@@ -67,28 +85,30 @@ export const AssetsView: React.FC = () => {
         setSelectedProductIds([]);
     };
 
-    const loadData = async () => {
+    const loadData = async (silent = false) => {
         try {
-            setLoading(true);
-            const [assetsData, productsData, assetCats] = await Promise.all([
+            if (!silent) setLoading(true);
+            const [assetsData, productsData] = await Promise.all([
                 internalAssetService.getAll(),
-                supabaseProductService.getAll(),
-                attributeService.getByType('asset_category')
+                supabaseProductService.getAll()
             ]);
             setAssets(assetsData);
             setProducts(productsData);
-            setAssetCategories(assetCats);
         } catch (error) {
             console.error(error);
-            addToast('error', 'Error al cargar datos de inventario');
+            if (!silent) addToast('error', 'Error al cargar datos de inventario');
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
         }
     };
 
     // --- INTERNAL ASSETS LOGIC ---
     const handleAssetSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!assetFormData.category) {
+            addToast('error', 'Por favor selecciona una categoría');
+            return;
+        }
         try {
             if (editingAsset) {
                 await internalAssetService.update(editingAsset.id, assetFormData);
@@ -100,7 +120,7 @@ export const AssetsView: React.FC = () => {
             setIsModalOpen(false);
             setEditingAsset(null);
             resetAssetForm();
-            loadData();
+            loadData(true);
         } catch (error) {
             addToast('error', 'Error al guardar');
         }
@@ -108,7 +128,7 @@ export const AssetsView: React.FC = () => {
 
     const resetAssetForm = () => {
         setAssetFormData({
-            name: '', category: 'Insumos', stock: 0, min_stock: 5, unit_cost: 0, location: '', description: ''
+            name: '', category: '', stock: 0, min_stock: 5, unit_cost: 0, location: '', description: ''
         });
     };
 

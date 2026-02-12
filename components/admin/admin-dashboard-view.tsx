@@ -44,12 +44,12 @@ export const AdminDashboardView = () => {
 
     const stats = {
         total: products.length,
-        inStock: products.filter(p => p.status === ProductStatus.IN_STOCK).length,
-        madeToOrder: products.filter(p => p.status === ProductStatus.MADE_TO_ORDER).length,
-        soldOut: products.filter(p => p.status === ProductStatus.SOLD_OUT).length,
+        inStock: products.filter((p: Product) => p.status === ProductStatus.IN_STOCK).length,
+        madeToOrder: products.filter((p: Product) => p.status === ProductStatus.MADE_TO_ORDER).length,
+        soldOut: products.filter((p: Product) => p.status === ProductStatus.SOLD_OUT).length,
     };
 
-    const filteredInventory = products.filter(p => {
+    const filteredInventory = products.filter((p: Product) => {
         const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.id.includes(search);
         const matchesStatus = filterStatus === 'All' || p.status === filterStatus;
         return matchesSearch && matchesStatus;
@@ -61,7 +61,7 @@ export const AdminDashboardView = () => {
 
     const toggleSelectAll = () => {
         if (selectedIds.length === filteredInventory.length) setSelectedIds([]);
-        else setSelectedIds(filteredInventory.map(p => p.id));
+        else setSelectedIds(filteredInventory.map((p: Product) => p.id));
     };
 
     const handleDeleteBulk = async () => {
@@ -253,7 +253,7 @@ export const AdminDashboardView = () => {
                                     </div>
 
                                     <div className="divide-y divide-stone-100 dark:divide-stone-800">
-                                        {filteredInventory.map(product => (
+                                        {filteredInventory.map((product: Product) => (
                                             <div key={product.id} className="flex flex-col lg:grid lg:grid-cols-12 items-center px-4 md:px-6 py-6 md:py-5 hover:bg-stone-50 dark:hover:bg-stone-800/30 transition-colors group relative">
 
                                                 {/* Desktop Checkbox */}
