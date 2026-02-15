@@ -70,6 +70,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
 
         setIsSubmitting(true);
         try {
+            const totalStock = formData.variants && formData.variants.length > 0
+                ? formData.variants.reduce((sum, v) => sum + (v.stock || 0), 0)
+                : (formData.stock || 0);
+
             const dataToSave = {
                 name: formData.name!,
                 description: formData.description,
@@ -80,7 +84,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                 collection: formData.collection,
                 badge: formData.badge,
                 variants: formData.variants,
-                stock: formData.stock,
+                stock: totalStock,
+                location: formData.location // Added location
             };
 
             if (initialData) {
@@ -370,8 +375,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                                     {/* Drag Handle */}
                                                     <GripVertical className="w-5 h-5 text-stone-300 cursor-grab active:cursor-grabbing mt-2" />
 
-                                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                        <div className="space-y-1">
+                                                    <div className="flex-1 grid grid-cols-2 lg:grid-cols-5 gap-3">
+                                                        <div className="space-y-1 col-span-2 lg:col-span-1">
                                                             <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Nombre Opción</label>
                                                             <input
                                                                 type="text"
@@ -384,7 +389,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                                         </div>
 
                                                         <div className="space-y-1">
-                                                            <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Precio Variante</label>
+                                                            <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Precio</label>
                                                             <div className="relative">
                                                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs">$</span>
                                                                 <input
@@ -400,15 +405,40 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                                         </div>
 
                                                         <div className="space-y-1">
-                                                            <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Stock Variante</label>
+                                                            <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Costo (COGS)</label>
+                                                            <div className="relative">
+                                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs">$</span>
+                                                                <input
+                                                                    type="number"
+                                                                    value={v.unit_cost === 0 || v.unit_cost === undefined ? '' : v.unit_cost}
+                                                                    onChange={e => updateVariant(v.id, 'unit_cost', Number(e.target.value) || 0)}
+                                                                    className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 pl-6 pr-3 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none"
+                                                                    placeholder="0"
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Stock</label>
                                                             <input
                                                                 type="number"
                                                                 min="0"
                                                                 value={(v.stock === 0 || v.stock === undefined) ? '' : v.stock}
                                                                 onChange={e => updateVariant(v.id, 'stock', parseInt(e.target.value) || 0)}
-                                                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 px-3 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none"
+                                                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 px-3 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none text-center"
                                                                 autoComplete="off"
                                                                 placeholder="0"
+                                                            />
+                                                        </div>
+
+                                                        <div className="space-y-1 col-span-2 lg:col-span-1">
+                                                            <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Ubicación</label>
+                                                            <input
+                                                                type="text"
+                                                                value={v.location || ''}
+                                                                onChange={e => updateVariant(v.id, 'location', e.target.value)}
+                                                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 px-3 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none"
+                                                                placeholder="Ej: Cajón A"
                                                             />
                                                         </div>
                                                     </div>
@@ -467,23 +497,41 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                         <div className="bg-white dark:bg-stone-900 rounded-xl shadow-[0_2px_20px_-5px_rgba(0,0,0,0.05)] border border-stone-100 dark:border-stone-800 p-5 md:p-8">
                             <h3 className="text-xs font-bold uppercase tracking-widest text-stone-900 dark:text-white mb-6 border-b border-stone-100 dark:border-stone-800 pb-2">Estado y Stock</h3>
 
-                            <div className="mb-8">
+                            <div className="mb-6 space-y-6">
                                 <div className="space-y-2">
-                                    <label htmlFor="product-stock" className="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Stock General</label>
+                                    <label htmlFor="product-location" className="block text-[10px] font-bold uppercase tracking-widest text-stone-400">Ubicación Física General</label>
+                                    <input
+                                        id="product-location"
+                                        placeholder="Ej: Vitrina Principal"
+                                        value={formData.location || ''}
+                                        onChange={e => setFormData({ ...formData, location: e.target.value })}
+                                        className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-700 rounded-lg py-3 px-4 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none transition-all"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label htmlFor="product-stock" className="block text-[10px] font-bold uppercase tracking-widest text-stone-400">Stock Total</label>
                                     <div className="relative">
                                         <input
                                             id="product-stock"
                                             name="stock"
                                             type="number"
                                             min="0"
-                                            value={formData.stock === 0 ? '' : formData.stock}
+                                            disabled={formData.variants && formData.variants.length > 0}
+                                            value={formData.variants && formData.variants.length > 0
+                                                ? formData.variants.reduce((sum, v) => sum + (v.stock || 0), 0)
+                                                : (formData.stock === 0 ? '' : formData.stock)
+                                            }
                                             onChange={e => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
                                             onFocus={(e) => e.target.select()}
-                                            className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-700 rounded-lg py-3 pl-4 pr-24 text-lg font-bold text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none transition-all placeholder:text-stone-300 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-700 rounded-lg py-3 pl-4 pr-24 text-lg font-bold text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none transition-all placeholder:text-stone-300 disabled:opacity-50"
                                             placeholder="0"
                                         />
                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-stone-400 uppercase tracking-wider">UNIDADES</div>
                                     </div>
+                                    {formData.variants && formData.variants.length > 0 && (
+                                        <p className="text-[9px] text-stone-400 italic">Calculado automáticamente desde variantes.</p>
+                                    )}
                                 </div>
                             </div>
 

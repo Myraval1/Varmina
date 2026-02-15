@@ -11,6 +11,8 @@ export interface ProductVariant {
     stock: number;
     images?: string[]; // Images specifically for this variant
     isPrimary?: boolean; // Whether this variant is shown by default
+    unit_cost?: number; // COGS
+    location?: string | null; // Physical location
 }
 
 export interface Product {

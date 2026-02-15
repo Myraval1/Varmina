@@ -167,13 +167,13 @@ export const SettingsView: React.FC = () => {
                                 className="bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 rounded-lg py-3 focus:border-gold-500 focus:ring-1 focus:ring-gold-500 dark:text-white"
                             />
                             <div className="space-y-2">
-                                <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-400">Plantilla de Consulta</label>
+                                <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-400">Plantilla de Cotización (WhatsApp)</label>
                                 <textarea
                                     className="w-full bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg p-4 font-mono text-[10px] dark:text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 h-24 resize-none"
                                     value={settings?.whatsapp_template || ''}
                                     onChange={e => settings && setSettings({ ...settings, whatsapp_template: e.target.value })}
                                 />
-                                <p className="text-[9px] text-stone-400">Usa {"{{product_name}}"} y {"{{product_id}}"} como variables.</p>
+                                <p className="text-[9px] text-stone-400">Personaliza el mensaje inicial. Variables: {"{{brand_name}}"}, {"{{total_price}}"}. Los productos se añadirán automáticamente debajo.</p>
                             </div>
                         </div>
                     </section>

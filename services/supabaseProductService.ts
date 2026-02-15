@@ -15,7 +15,7 @@ export interface CreateProductInput {
     variants?: any[];
     stock?: number;
     unit_cost?: number;
-    location?: string;
+    location?: string | null;
     erp_category?: string;
 }
 
@@ -31,7 +31,7 @@ export interface UpdateProductInput {
     variants?: any[];
     stock?: number;
     unit_cost?: number;
-    location?: string;
+    location?: string | null;
     erp_category?: string;
 }
 

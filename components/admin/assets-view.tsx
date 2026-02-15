@@ -61,8 +61,8 @@ export const AssetsView: React.FC = () => {
 
     // INLINE EDIT STATE (Store Products)
     const [editingProductId, setEditingProductId] = useState<string | null>(null);
-    const [editForm, setEditForm] = useState<{ unit_cost: number; location: string }>({
-        unit_cost: 0, location: ''
+    const [editForm, setEditForm] = useState<{ unit_cost: number; location: string; variants: any[] }>({
+        unit_cost: 0, location: '', variants: []
     });
 
     const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
@@ -219,22 +219,43 @@ export const AssetsView: React.FC = () => {
         setEditingProductId(product.id);
         setEditForm({
             unit_cost: product.unit_cost || 0,
-            location: product.location || ''
+            location: product.location || '',
+            variants: JSON.parse(JSON.stringify(product.variants || []))
         });
     };
 
     const saveProductEdit = async (id: string) => {
         try {
+            const totalStock = editForm.variants.length > 0
+                ? editForm.variants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0)
+                : products.find(p => p.id === id)?.stock;
+
             await supabaseProductService.update(id, {
                 unit_cost: editForm.unit_cost,
-                location: editForm.location
+                location: editForm.location,
+                variants: editForm.variants,
+                stock: totalStock
             });
-            setProducts(products.map(p => p.id === id ? { ...p, ...editForm } : p));
+
+            setProducts(products.map(p => p.id === id ? {
+                ...p,
+                unit_cost: editForm.unit_cost,
+                location: editForm.location,
+                variants: editForm.variants,
+                stock: totalStock
+            } : p));
             setEditingProductId(null);
             addToast('success', 'Ficha técnica actualizada');
         } catch (error) {
             addToast('error', 'Error al actualizar producto');
         }
+    };
+
+    const updateVariantEdit = (variantId: string, field: string, value: any) => {
+        setEditForm(prev => ({
+            ...prev,
+            variants: prev.variants.map(v => v.id === variantId ? { ...v, [field]: value } : v)
+        }));
     };
 
     // --- FILTERS & STATS ---
@@ -278,7 +299,12 @@ export const AssetsView: React.FC = () => {
 
     const totalValue = activeTab === 'internal'
         ? assets.reduce((acc, curr) => acc + (curr.stock * curr.unit_cost), 0)
-        : products.reduce((acc, curr) => acc + ((curr.stock || 0) * (curr.unit_cost || 0)), 0);
+        : products.reduce((acc, curr) => {
+            if (curr.variants && curr.variants.length > 0) {
+                return acc + curr.variants.reduce((sum, v) => sum + ((v.stock || 0) * (v.unit_cost || 0)), 0);
+            }
+            return acc + ((curr.stock || 0) * (curr.unit_cost || 0));
+        }, 0);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
@@ -373,13 +399,13 @@ export const AssetsView: React.FC = () => {
 
                             <div className="bg-white dark:bg-stone-900 p-6 rounded-2xl border border-stone-100 dark:border-stone-800 shadow-sm relative overflow-hidden">
                                 <div className="absolute right-[-10px] top-[-10px] opacity-5">
-                                    <AlertCircle className={`w-24 h-24 ${activeTab === 'internal' && assets.some(a => a.stock <= a.min_stock) ? 'text-red-500 opacity-20' : ''}`} />
+                                    <AlertCircle className={`w-24 h-24 ${((activeTab === 'internal' && assets.some(a => a.stock <= (a.min_stock || 0))) || (activeTab === 'store' && products.some(p => p.variants && p.variants.length > 0 ? p.variants.some(v => (v.stock || 0) <= 2) : (p.stock || 0) <= 2))) ? 'text-red-500 opacity-20' : ''}`} />
                                 </div>
                                 <p className="text-stone-400 text-[10px] font-bold uppercase tracking-widest mb-1">Alertas Stock</p>
-                                <h4 className={`text-2xl md:text-3xl font-serif ${activeTab === 'internal' && assets.filter(a => a.stock <= a.min_stock).length > 0 ? 'text-red-500' : 'text-stone-900 dark:text-white'}`}>
+                                <h4 className={`text-2xl md:text-3xl font-serif ${(activeTab === 'internal' && assets.filter(a => a.stock <= (a.min_stock || 0)).length > 0) || (activeTab === 'store' && products.filter(p => p.variants && p.variants.length > 0 ? p.variants.some(v => (v.stock || 0) <= 2) : (p.stock || 0) <= 2).length > 0) ? 'text-red-500' : 'text-stone-900 dark:text-white'}`}>
                                     {activeTab === 'internal'
-                                        ? assets.filter(a => a.stock <= a.min_stock).length
-                                        : products.filter(p => (p.stock || 0) <= 2).length
+                                        ? assets.filter(a => a.stock <= (a.min_stock || 0)).length
+                                        : products.filter(p => p.variants && p.variants.length > 0 ? p.variants.some(v => (v.stock || 0) <= 2) : (p.stock || 0) <= 2).length
                                     }
                                 </h4>
                                 <p className="text-[10px] text-stone-400 mt-2 font-medium uppercase tracking-wide">Items por Reponer</p>
@@ -544,78 +570,148 @@ export const AssetsView: React.FC = () => {
                                             filteredProducts.map(product => {
                                                 const isEditing = editingProductId === product.id;
                                                 const isSelected = selectedProductIds.includes(product.id);
+                                                const hasVariants = product.variants && product.variants.length > 0;
+
                                                 return (
-                                                    <tr key={product.id} className={`hover:bg-stone-50/30 dark:hover:bg-stone-800/30 transition-colors ${isSelected ? 'bg-gold-50/30 dark:bg-gold-900/10' : ''}`}>
-                                                        <td className="p-5">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isSelected}
-                                                                onChange={() => toggleProductSelect(product.id)}
-                                                                className="w-4 h-4 accent-gold-500 rounded cursor-pointer"
-                                                            />
-                                                        </td>
-                                                        <td className="p-5">
-                                                            <div className="flex items-center gap-3">
-                                                                <img src={product.images[0]} className="w-8 h-8 rounded object-cover bg-stone-100" />
-                                                                <div>
-                                                                    <div className="font-medium text-xs uppercase text-stone-900 dark:text-white max-w-[150px] truncate" title={product.name}>{product.name}</div>
-                                                                    <div className="text-[9px] text-stone-400">{product.category}</div>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-
-                                                        {/* Location */}
-                                                        <td className="p-5">
-                                                            {isEditing ? (
+                                                    <React.Fragment key={product.id}>
+                                                        <tr className={`hover:bg-stone-50/30 dark:hover:bg-stone-800/30 transition-colors ${isSelected ? 'bg-gold-50/30 dark:bg-gold-900/10' : ''} ${hasVariants ? 'border-b-0' : ''}`}>
+                                                            <td className="p-5">
                                                                 <input
-                                                                    className="w-full text-xs bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded p-1"
-                                                                    value={editForm.location}
-                                                                    onChange={e => setEditForm({ ...editForm, location: e.target.value })}
-                                                                    placeholder="Ubicación física..."
+                                                                    type="checkbox"
+                                                                    checked={isSelected}
+                                                                    onChange={() => toggleProductSelect(product.id)}
+                                                                    className="w-4 h-4 accent-gold-500 rounded cursor-pointer"
                                                                 />
-                                                            ) : (
-                                                                <span className="text-xs text-stone-500 italic">{product.location || 'Sin definir'}</span>
-                                                            )}
-                                                        </td>
-
-                                                        {/* Stock */}
-                                                        <td className="p-5 text-center text-xs font-mono font-bold bg-stone-50/50 dark:bg-stone-900/50">
-                                                            {product.stock || 0}
-                                                        </td>
-
-                                                        {/* Unit Cost */}
-                                                        <td className="p-5 text-right">
-                                                            {isEditing ? (
-                                                                <input
-                                                                    type="number"
-                                                                    className="w-20 text-xs bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded p-1 text-right"
-                                                                    value={editForm.unit_cost}
-                                                                    onChange={e => setEditForm({ ...editForm, unit_cost: Number(e.target.value) })}
-                                                                />
-                                                            ) : (
-                                                                <span className="text-xs font-mono text-stone-500">{formatCurrency(product.unit_cost || 0)}</span>
-                                                            )}
-                                                        </td>
-
-                                                        {/* Total */}
-                                                        <td className="p-5 text-right text-xs font-mono font-bold text-stone-900 dark:text-white">
-                                                            {formatCurrency((product.stock || 0) * (isEditing ? editForm.unit_cost : (product.unit_cost || 0)))}
-                                                        </td>
-
-                                                        {/* Actions */}
-                                                        <td className="p-5 text-center">
-                                                            {isEditing ? (
-                                                                <div className="flex justify-center gap-1">
-                                                                    <button onClick={() => saveProductEdit(product.id)} className="p-1.5 bg-green-50 text-green-600 rounded hover:bg-green-100"><Check className="w-3.5 h-3.5" /></button>
-                                                                    <button onClick={() => setEditingProductId(null)} className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100"><X className="w-3.5 h-3.5" /></button>
+                                                            </td>
+                                                            <td className="p-5">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="relative">
+                                                                        <img src={product.images[0]} className="w-8 h-8 rounded object-cover bg-stone-100" />
+                                                                        {hasVariants && (
+                                                                            <div className="absolute -top-1 -right-1 bg-gold-500 text-[7px] font-bold px-1 rounded-full text-stone-900">V</div>
+                                                                        )}
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="font-medium text-xs uppercase text-stone-900 dark:text-white max-w-[150px] truncate" title={product.name}>{product.name}</div>
+                                                                        <div className="text-[9px] text-stone-400">{product.category}</div>
+                                                                    </div>
                                                                 </div>
-                                                            ) : (
-                                                                <button onClick={() => startEditingProduct(product)} className="p-2 text-stone-400 hover:text-stone-900 transition-colors">
-                                                                    <Edit2 className="w-3.5 h-3.5" />
-                                                                </button>
-                                                            )}
-                                                        </td>
-                                                    </tr>
+                                                            </td>
+
+                                                            <td className="p-5 text-stone-500 italic">
+                                                                {isEditing ? (
+                                                                    !hasVariants && (
+                                                                        <input
+                                                                            className="w-full text-xs bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded p-1"
+                                                                            value={editForm.location}
+                                                                            onChange={e => setEditForm({ ...editForm, location: e.target.value })}
+                                                                            placeholder="Ubicación..."
+                                                                        />
+                                                                    )
+                                                                ) : (
+                                                                    !hasVariants && <span className="text-xs">{product.location || 'Sin definir'}</span>
+                                                                )}
+                                                                {hasVariants && <span className="text-[9px] text-stone-400">Var. Múltiples</span>}
+                                                            </td>
+
+                                                            <td className="p-5 text-center text-xs font-mono font-bold bg-stone-50/50 dark:bg-stone-900/50">
+                                                                {product.stock || 0}
+                                                            </td>
+
+                                                            <td className="p-5 text-right">
+                                                                {isEditing ? (
+                                                                    !hasVariants && (
+                                                                        <input
+                                                                            type="number"
+                                                                            className="w-20 text-xs bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded p-1 text-right"
+                                                                            value={editForm.unit_cost}
+                                                                            onChange={e => setEditForm({ ...editForm, unit_cost: Number(e.target.value) })}
+                                                                        />
+                                                                    )
+                                                                ) : (
+                                                                    !hasVariants && <span className="text-xs font-mono text-stone-500">{formatCurrency(product.unit_cost || 0)}</span>
+                                                                )}
+                                                            </td>
+
+                                                            <td className="p-5 text-right text-xs font-mono font-bold text-stone-900 dark:text-white">
+                                                                {hasVariants
+                                                                    ? formatCurrency(product.variants.reduce((sum, v) => sum + ((v.stock || 0) * (v.unit_cost || 0)), 0))
+                                                                    : formatCurrency((product.stock || 0) * (product.unit_cost || 0))
+                                                                }
+                                                            </td>
+
+                                                            <td className="p-5 text-center">
+                                                                <div className="flex justify-center gap-2">
+                                                                    {isEditing ? (
+                                                                        <>
+                                                                            <button onClick={() => saveProductEdit(product.id)} className="p-1.5 bg-green-50 text-green-600 rounded hover:bg-green-100" title="Guardar"><Check className="w-4 h-4" /></button>
+                                                                            <button onClick={() => setEditingProductId(null)} className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100" title="Cancelar"><X className="w-4 h-4" /></button>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <button onClick={() => startEditingProduct(product)} className="p-2 text-stone-400 hover:text-stone-900 transition-colors" title="Editar"><Edit2 className="w-3.5 h-3.5" /></button>
+                                                                            <button onClick={() => { if (confirm('¿Eliminar pieza de inventario?')) supabaseProductService.delete(product.id).then(() => loadData(true)) }} className="p-2 text-stone-400 hover:text-red-500 transition-colors" title="Eliminar"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+
+                                                        {hasVariants && product.variants.map((variant: any) => {
+                                                            const vEdit = isEditing ? editForm.variants.find((v: any) => v.id === variant.id) : null;
+                                                            return (
+                                                                <tr key={variant.id} className="bg-stone-50/20 dark:bg-stone-950/10 border-l-2 border-gold-500/50">
+                                                                    <td />
+                                                                    <td className="p-3 pl-10 border-b border-stone-100/50 dark:border-stone-800/20">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <List className="w-3 h-3 text-stone-300" />
+                                                                            <span className="text-[10px] uppercase font-bold text-stone-500">{variant.name}</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="p-3 border-b border-stone-100/50 dark:border-stone-800/20 text-stone-400 italic">
+                                                                        {isEditing ? (
+                                                                            <input
+                                                                                className="w-full text-[10px] bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded p-1"
+                                                                                value={vEdit?.location || ''}
+                                                                                onChange={e => updateVariantEdit(variant.id, 'location', e.target.value)}
+                                                                                placeholder="Ubicación..."
+                                                                            />
+                                                                        ) : (
+                                                                            <span className="text-[10px]">{variant.location || 'Sin definir'}</span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="p-3 text-center border-b border-stone-100/50 dark:border-stone-800/20">
+                                                                        {isEditing ? (
+                                                                            <input
+                                                                                type="number"
+                                                                                className="w-16 text-[10px] bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded p-1 text-center font-bold"
+                                                                                value={vEdit?.stock || 0}
+                                                                                onChange={e => updateVariantEdit(variant.id, 'stock', Number(e.target.value))}
+                                                                            />
+                                                                        ) : (
+                                                                            <span className={`text-[10px] font-mono font-bold ${variant.stock <= 2 ? 'text-red-500 underline decoration-dotted' : 'text-stone-500'}`}>{variant.stock}</span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="p-3 text-right border-b border-stone-100/50 dark:border-stone-800/20">
+                                                                        {isEditing ? (
+                                                                            <input
+                                                                                type="number"
+                                                                                className="w-20 text-[10px] bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded p-1 text-right"
+                                                                                value={vEdit?.unit_cost || 0}
+                                                                                onChange={e => updateVariantEdit(variant.id, 'unit_cost', Number(e.target.value))}
+                                                                            />
+                                                                        ) : (
+                                                                            <span className="text-[10px] font-mono text-stone-400">{formatCurrency(variant.unit_cost || 0)}</span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="p-3 text-right border-b border-stone-100/50 dark:border-stone-800/20">
+                                                                        <span className="text-[10px] font-mono text-stone-400">{formatCurrency((variant.stock || 0) * (variant.unit_cost || 0))}</span>
+                                                                    </td>
+                                                                    <td className="border-b border-stone-100/50 dark:border-stone-800/20" />
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </React.Fragment>
                                                 );
                                             })
                                         )}

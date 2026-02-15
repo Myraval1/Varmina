@@ -148,7 +148,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency,
             </div>
 
             {/* Info Section */}
-            <div className="md:w-1/2 p-6 md:p-12 flex flex-col h-auto md:max-h-[650px] overflow-y-auto bg-white dark:bg-stone-950">
+            <div className="md:w-1/2 p-6 md:p-12 flex flex-col h-auto bg-white dark:bg-stone-950">
                 <div className="mb-auto">
                     {product.collection && (
                         <span className="text-[10px] font-bold text-gold-600 uppercase tracking-[0.25em] mb-3 block">{product.collection}</span>

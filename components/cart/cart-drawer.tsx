@@ -19,18 +19,30 @@ export const CartDrawer: React.FC = () => {
         }
 
         const phone = settings.whatsapp_number.replace(/\D/g, '');
-        const header = `Hola *${settings.brand_name}*, me interesan las siguientes piezas:\n\n`;
+
+        // Base Template
+        let header = `Hola *${settings.brand_name}*, me interesan las siguientes piezas:\n\n`;
+        let footer = `\n\nTotal Estimado: ${currency === 'CLP' ? `$${totalPrice.toLocaleString('es-CL')}` : `USD $${Math.ceil(totalPrice / (settings.usd_exchange_rate || 950))}`}\n\nQuedo atento a su respuesta.`;
+
+        // If a template exists in settings, we use it as the header/wrapper if it doesn't contain item-specific placeholders,
+        // or we can allow a more complex template. For now, let's allow the user to at least customize the greeting.
+        if (settings.whatsapp_template) {
+            header = settings.whatsapp_template
+                .replace(/{{brand_name}}/g, settings.brand_name)
+                .replace(/{{total_price}}/g, currency === 'CLP' ? `$${totalPrice.toLocaleString('es-CL')}` : `USD $${Math.ceil(totalPrice / (settings.usd_exchange_rate || 950))}`)
+                + '\n\n';
+        }
+
         const itemsList = items.map(item => {
             const price = currency === 'CLP'
                 ? `$${item.product.price.toLocaleString('es-CL')}`
                 : `USD $${Math.ceil(item.product.price / (settings.usd_exchange_rate || 950))}`;
 
-            return `💎 *${item.product.name}* (x${item.quantity})\n   Precio: ${price}\n   Ref: ${item.product.id.slice(0, 8)}`;
+            const variantScale = item.selectedVariant ? ` [${item.selectedVariant}]` : '';
+            return `💎 *${item.product.name}${variantScale}* (x${item.quantity})\n   Precio: ${price}\n   Ref: ${item.product.id.slice(0, 8)}`;
         }).join('\n\n');
 
-        const footer = `\n\nTotal Estimado: ${currency === 'CLP' ? `$${totalPrice.toLocaleString('es-CL')}` : `USD $${Math.ceil(totalPrice / (settings.usd_exchange_rate || 950))}`}\n\nQuedo atento a su respuesta.`;
-
-        const message = encodeURIComponent(header + itemsList + footer);
+        const message = encodeURIComponent(header + itemsList + (settings.whatsapp_template ? '' : footer));
         window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
     };
 
