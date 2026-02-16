@@ -1,7 +1,8 @@
 'use client';
 
-import React, { ReactNode, useEffect, useRef } from 'react';
+import React, { ReactNode, useEffect, useRef, useCallback } from 'react';
 import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ModalProps {
     isOpen: boolean;
@@ -32,18 +33,19 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
     }, [isOpen]);
 
     // Close on Escape
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') onClose();
+    }, [onClose]);
+
     useEffect(() => {
         if (!isOpen) return;
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
-        };
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, onClose]);
+    }, [isOpen, handleKeyDown]);
 
     if (!isOpen) return null;
 
-    const sizeClasses = {
+    const sizeClasses: Record<string, string> = {
         sm: 'max-w-md',
         md: 'max-w-2xl',
         lg: 'max-w-4xl',
@@ -57,6 +59,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
             className="fixed inset-0 z-[200] flex items-end md:items-center justify-center p-0 md:p-4"
             role="dialog"
             aria-modal="true"
+            aria-label={title || 'Modal'}
         >
             {/* Backdrop */}
             <div
@@ -67,7 +70,14 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
 
             {/* Panel */}
             <div
-                className={`relative bg-white dark:bg-stone-900 w-full ${sizeClasses[size]} max-h-[92vh] md:max-h-[90vh] flex flex-col shadow-2xl animate-slide-up-mobile md:animate-scale-in rounded-t-[2rem] md:rounded-2xl overflow-hidden mb-safe-bottom`}
+                className={cn(
+                    "relative bg-white dark:bg-stone-900 w-full flex flex-col shadow-2xl overflow-hidden",
+                    "animate-slide-up-mobile md:animate-scale-in",
+                    "rounded-t-[2rem] md:rounded-2xl",
+                    "max-h-[92vh] md:max-h-[90vh]",
+                    "mb-safe-bottom",
+                    sizeClasses[size]
+                )}
             >
                 {title && (
                     <div className="flex items-center justify-between p-6 md:p-8 border-b border-stone-100 dark:border-stone-800 sticky top-0 bg-white dark:bg-stone-900 z-10 rounded-t-3xl md:rounded-t-2xl">
@@ -95,7 +105,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
                         <X className="w-5 h-5 text-stone-900 dark:text-white" />
                     </button>
                 )}
-                <div className={`${title ? "" : "pt-4"} overflow-y-auto flex-1 h-full pb-10 md:pb-0`}>
+                <div className={cn(title ? "" : "pt-4", "overflow-y-auto flex-1 h-full pb-10 md:pb-0")}>
                     <div className={title ? "p-6 md:p-8 pt-2 md:pt-8" : "p-0"}>
                         {children}
                     </div>
