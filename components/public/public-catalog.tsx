@@ -182,7 +182,7 @@ export const PublicCatalog = () => {
                                     placeholder="BUSCAR PIEZAS"
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full pl-9 pr-10 py-2 bg-stone-50 dark:bg-stone-900 border border-transparent focus:border-stone-300 dark:focus:border-stone-700 rounded-full text-xs md:text-sm uppercase tracking-widest placeholder:text-stone-400 focus:outline-none transition-all font-sans text-stone-900 dark:text-white hover:bg-stone-100 dark:hover:bg-stone-800"
+                                    className="w-full pl-9 pr-10 py-2 bg-stone-50 dark:bg-stone-900 border border-transparent focus:border-stone-300 dark:border-stone-800 dark:focus:border-stone-700 rounded-full text-xs md:text-sm uppercase tracking-widest placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none transition-all font-sans text-stone-900 dark:text-white hover:bg-stone-100 dark:hover:bg-stone-800"
                                 />
                                 {search && (
                                     <button
@@ -245,7 +245,7 @@ export const PublicCatalog = () => {
                     </div>
                 ) : filteredProducts.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-32 text-center animate-fade-in">
-                        <div className="w-20 h-20 bg-stone-50 dark:bg-stone-900 rounded-full flex items-center justify-center mb-6 text-stone-300">
+                        <div className="w-20 h-20 bg-stone-50 dark:bg-stone-900/50 border border-transparent dark:border-stone-800 rounded-full flex items-center justify-center mb-6 text-stone-300 dark:text-stone-600">
                             <Search className="w-8 h-8" />
                         </div>
                         <h3 className="font-serif text-xl md:text-2xl text-stone-900 dark:text-white mb-2">Sin resultados</h3>
@@ -354,7 +354,7 @@ export const PublicCatalog = () => {
                                             className={cn(
                                                 "flex items-center justify-between w-full p-3 text-sm rounded-lg transition-all",
                                                 sort === option.value
-                                                    ? 'bg-stone-100 dark:bg-stone-900 text-stone-900 dark:text-white font-bold'
+                                                    ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-white font-bold'
                                                     : 'text-stone-500 hover:bg-stone-50 dark:hover:bg-stone-900/50'
                                             )}
                                         >
@@ -377,7 +377,7 @@ export const PublicCatalog = () => {
                                                 "px-4 py-2 text-xs uppercase tracking-wider border rounded-full transition-all",
                                                 categoryFilter === cat
                                                     ? 'bg-stone-900 text-white border-stone-900 dark:bg-white dark:text-stone-900 dark:border-white'
-                                                    : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:border-gold-500'
+                                                    : 'border-stone-200 dark:border-stone-800 dark:text-stone-400 text-stone-500 hover:border-gold-500 dark:hover:border-gold-500 hover:text-stone-800 dark:hover:text-stone-200'
                                             )}
                                         >
                                             {cat === 'All' ? 'Todas' : cat}
@@ -399,7 +399,7 @@ export const PublicCatalog = () => {
                                                     "px-4 py-2 text-xs uppercase tracking-wider border rounded-full transition-all",
                                                     collectionFilter === col
                                                         ? 'bg-stone-900 text-white border-stone-900 dark:bg-white dark:text-stone-900 dark:border-white'
-                                                        : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:border-gold-500'
+                                                        : 'border-stone-200 dark:border-stone-800 dark:text-stone-400 text-stone-500 hover:border-gold-500 dark:hover:border-gold-500 hover:text-stone-800 dark:hover:text-stone-200'
                                                 )}
                                             >
                                                 {col === 'All' ? 'Todas' : col}
@@ -484,7 +484,7 @@ export const PublicCatalog = () => {
                         </div>
 
                         {/* Drawer Footer */}
-                        <div className="p-6 border-t border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-900/30 pb-safe">
+                        <div className="p-6 border-t border-stone-100 dark:border-stone-800 bg-stone-50 dark:bg-stone-950 pb-safe">
                             <div className="flex gap-4">
                                 <button
                                     onClick={() => { clearAllFilters(); setIsFilterOpen(false); }}

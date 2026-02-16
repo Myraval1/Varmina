@@ -35,7 +35,6 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children
 
     const handleCurrencyToggle = () => {
         toggleCurrency();
-        addToast('info', `Moneda cambiada a ${currency === 'CLP' ? 'USD' : 'CLP'}`);
     };
 
     return (
