@@ -347,7 +347,7 @@ export const AssetsView: React.FC = () => {
                     onClick={() => { setActiveTab('attributes'); setSelectedCategory('All'); }}
                     className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-[0.15em] transition-all whitespace-nowrap flex-1 md:flex-none ${activeTab === 'attributes' ? 'bg-white dark:bg-stone-700 shadow-md text-stone-900 dark:text-white' : 'text-stone-400 hover:text-stone-600'}`}
                 >
-                    <List className="w-3.5 h-3.5" /> Listado Maestros
+                    <List className="w-3.5 h-3.5" /> Listado Maestro
                 </button>
             </div>
 

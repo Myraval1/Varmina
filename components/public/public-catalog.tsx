@@ -267,7 +267,26 @@ export const PublicCatalog = () => {
                                 <h3 className="font-serif text-xl md:text-3xl text-stone-900 dark:text-white uppercase tracking-[0.2em]">
                                     {categoryFilter !== 'All' ? categoryFilter : (collectionFilter !== 'All' ? collectionFilter : 'Colección Exclusiva')}
                                 </h3>
-                                <div className="w-12 h-[1px] bg-gold-500 mx-auto mt-4" />
+
+                                {/* Active Filters Pills */}
+                                {(statusFilter !== 'All' || minPrice > 0 || maxPrice < 300000) && (
+                                    <div className="flex flex-wrap justify-center gap-2 mt-4 max-w-2xl mx-auto">
+                                        {statusFilter !== 'All' && (
+                                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-stone-100 dark:bg-stone-800 rounded-full text-[10px] uppercase font-bold text-stone-600 dark:text-stone-300">
+                                                {statusFilter}
+                                                <button onClick={() => setStatusFilter('All')} className="hover:text-red-500"><X className="w-3 h-3" /></button>
+                                            </span>
+                                        )}
+                                        {(minPrice > 0 || maxPrice < 300000) && (
+                                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-stone-100 dark:bg-stone-800 rounded-full text-[10px] uppercase font-bold text-stone-600 dark:text-stone-300">
+                                                ${minPrice.toLocaleString()} - ${maxPrice === 300000 ? 'No Max' : maxPrice.toLocaleString()}
+                                                <button onClick={() => { setMinPrice(0); setMaxPrice(300000); }} className="hover:text-red-500"><X className="w-3 h-3" /></button>
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="w-12 h-[1px] bg-gold-500 mx-auto mt-6" />
                                 <p className="text-[10px] text-stone-400 uppercase tracking-widest mt-3 font-bold">
                                     {filteredProducts.length} {filteredProducts.length === 1 ? 'pieza' : 'piezas'}
                                 </p>

@@ -16,7 +16,6 @@ export interface CreateProductInput {
     stock?: number;
     unit_cost?: number;
     location?: string | null;
-    erp_category?: string;
 }
 
 export interface UpdateProductInput {
@@ -32,7 +31,6 @@ export interface UpdateProductInput {
     stock?: number;
     unit_cost?: number;
     location?: string | null;
-    erp_category?: string;
 }
 
 export const supabaseProductService = {
@@ -93,7 +91,6 @@ export const supabaseProductService = {
             stock: input.stock !== undefined ? Math.max(0, input.stock) : 0,
             unit_cost: input.unit_cost !== undefined ? Math.max(0, input.unit_cost) : 0,
             location: input.location?.trim() || null,
-            erp_category: input.erp_category?.trim() || null,
         };
 
         const { data, error } = await supabase
@@ -128,7 +125,6 @@ export const supabaseProductService = {
         if (updates.stock !== undefined) sanitizedUpdates.stock = Math.max(0, updates.stock);
         if (updates.unit_cost !== undefined) sanitizedUpdates.unit_cost = Math.max(0, updates.unit_cost);
         if (updates.location !== undefined) sanitizedUpdates.location = updates.location;
-        if (updates.erp_category !== undefined) sanitizedUpdates.erp_category = updates.erp_category;
 
         const { data, error } = await (supabase as any)
             .from('products')

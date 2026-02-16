@@ -137,9 +137,9 @@ export const AttributeManagerSection: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={() => handleDelete(attr.id)}
-                                            className="text-stone-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                            className="text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded items-center justify-center flex transition-colors p-2"
                                         >
-                                            <Trash2 className="w-3.5 h-3.5" />
+                                            <Trash2 className="w-4 h-4" />
                                         </button>
                                     </div>
                                 ))}

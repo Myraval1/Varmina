@@ -205,15 +205,9 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency,
                         <StatusBadge status={product.status} />
                     </div>
 
-                    {product.description && (
-                        <div className="prose-brand mb-8 font-sans text-xs md:text-base whitespace-pre-line">
-                            {product.description}
-                        </div>
-                    )}
-
                     {/* Variants */}
                     {product.variants && product.variants.length > 0 && (
-                        <div className="mb-8 animate-fade-in">
+                        <div className="mb-6 md:mb-8 animate-fade-in">
                             <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold mb-3 block">
                                 {product.variants.length > 1 ? 'Seleccionar Opción' : 'Opción'}
                             </label>
@@ -223,18 +217,18 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency,
                                         key={v.id}
                                         onClick={() => { setSelectedVariant(v); setActiveImg(0); }}
                                         className={cn(
-                                            "px-5 py-2.5 text-xs font-medium border rounded-full transition-all duration-300",
+                                            "px-4 py-3 md:px-5 md:py-2.5 text-xs font-medium border rounded-lg md:rounded-full transition-all duration-300 w-full md:w-auto text-left md:text-center flex items-center justify-between md:justify-center",
                                             selectedVariant?.id === v.id
-                                                ? "bg-stone-900 dark:bg-white text-white dark:text-stone-900 border-stone-900 dark:border-white shadow-lg scale-105"
+                                                ? "bg-stone-900 dark:bg-white text-white dark:text-stone-900 border-stone-900 dark:border-white shadow-lg scale-[1.02] md:scale-105"
                                                 : "bg-transparent text-stone-500 border-stone-200 hover:border-gold-500 hover:text-stone-900 dark:hover:text-white"
                                         )}
                                     >
-                                        <div className="flex flex-col items-center gap-0.5">
-                                            <span>{v.name}</span>
+                                        <div className="flex flex-row md:flex-col items-center gap-2 md:gap-0.5 w-full md:w-auto justify-between md:justify-center">
+                                            <span className="font-bold md:font-medium">{v.name}</span>
                                             {v.stock !== undefined && (
                                                 <span className={cn(
-                                                    "text-[8px] uppercase tracking-tighter",
-                                                    v.stock > 0 ? "text-green-500" : "text-red-400 font-bold"
+                                                    "text-[9px] md:text-[8px] uppercase tracking-tighter bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full md:bg-transparent md:p-0",
+                                                    v.stock > 0 ? "text-green-600 dark:text-green-400" : "text-red-500 font-bold"
                                                 )}>
                                                     {v.stock > 0 ? `${v.stock} disp.` : 'Agotado'}
                                                 </span>
@@ -243,6 +237,12 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency,
                                     </button>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {product.description && (
+                        <div className="prose-brand mb-8 font-sans text-sm md:text-base whitespace-pre-line text-stone-600 dark:text-stone-300 leading-relaxed">
+                            {product.description}
                         </div>
                     )}
                 </div>

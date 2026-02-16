@@ -30,7 +30,7 @@ export const Input: React.FC<InputProps> = ({ label, error, hint, className = ''
                     props.onFocus?.(e);
                 }}
                 className={cn(
-                    "w-full bg-transparent border-b border-stone-300 py-2.5 text-stone-900 font-serif text-lg focus:border-gold-400 focus:outline-none transition-colors dark:border-stone-700 dark:text-stone-100",
+                    "w-full bg-transparent border-b border-stone-300 py-2.5 px-3 text-stone-900 font-serif text-lg focus:border-gold-400 focus:outline-none transition-colors dark:border-stone-700 dark:text-stone-100",
                     error && "border-red-500 focus:border-red-500",
                     className
                 )}
