@@ -59,7 +59,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, currency, lay
                     src={primaryImage}
                     alt={product.name}
                     className={cn(
-                        "w-full h-full object-cover transition-all duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-105",
+                        "w-full h-full object-contain transition-all duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-105",
                         !imgLoaded && "opacity-0"
                     )}
                     loading="lazy"
@@ -71,7 +71,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, currency, lay
                     <img
                         src={hoverImage}
                         alt={product.name}
-                        className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-700 ease-in-out group-hover:opacity-100 scale-105"
+                        className="absolute inset-0 w-full h-full object-contain opacity-0 transition-opacity duration-700 ease-in-out group-hover:opacity-100 scale-105"
                         loading="lazy"
                     />
                 )}

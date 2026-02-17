@@ -26,6 +26,7 @@ import {
     ArrowUpDown
 } from 'lucide-react';
 import { AttributeManagerSection } from './attribute-manager';
+import { cn } from '@/lib/utils';
 
 import { createClient } from '@/utils/supabase/client';
 
@@ -533,11 +534,11 @@ export const AssetsView: React.FC = () => {
                                             <th className="p-5 font-bold text-center">Acciones</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-stone-50 dark:divide-stone-800/50">
+                                    <tbody className="">
                                         {activeTab === 'internal' ? (
                                             // INTERNAL ASSETS ROW
                                             filteredAssets.map(asset => (
-                                                <tr key={asset.id} className={`hover:bg-stone-50/30 dark:hover:bg-stone-800/30 transition-colors ${selectedAssetIds.includes(asset.id) ? 'bg-gold-50/30 dark:bg-gold-900/10' : ''}`}>
+                                                <tr key={asset.id} className={`hover:bg-stone-50/30 dark:hover:bg-stone-800/30 transition-colors border-b border-stone-100 dark:border-stone-800/50 ${selectedAssetIds.includes(asset.id) ? 'bg-gold-50/30 dark:bg-gold-900/10' : ''}`}>
                                                     <td className="p-5">
                                                         <input
                                                             type="checkbox"
@@ -574,20 +575,27 @@ export const AssetsView: React.FC = () => {
 
                                                 return (
                                                     <React.Fragment key={product.id}>
-                                                        <tr className={`hover:bg-stone-50/30 dark:hover:bg-stone-800/30 transition-colors ${isSelected ? 'bg-gold-50/30 dark:bg-gold-900/10' : ''} ${hasVariants ? 'border-b-0' : ''}`}>
-                                                            <td className="p-5">
+                                                        <tr className={cn(
+                                                            "hover:bg-stone-50/30 dark:hover:bg-stone-800/30 transition-colors",
+                                                            isSelected && "bg-gold-50/30 dark:bg-gold-900/10",
+                                                            !hasVariants && "border-b border-stone-100 dark:border-stone-800/50"
+                                                        )}>
+                                                            <td className="p-5 relative">
                                                                 <input
                                                                     type="checkbox"
                                                                     checked={isSelected}
                                                                     onChange={() => toggleProductSelect(product.id)}
-                                                                    className="w-4 h-4 accent-gold-500 rounded cursor-pointer"
+                                                                    className="w-4 h-4 accent-gold-500 rounded cursor-pointer relative z-10"
                                                                 />
+                                                                {hasVariants && (
+                                                                    <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-0.5 h-6 bg-gold-500/20" />
+                                                                )}
                                                             </td>
                                                             <td className="p-5">
                                                                 <div className="flex items-center gap-3">
                                                                     {!hasVariants && product.images?.[0] && (
                                                                         <div className="relative flex-shrink-0">
-                                                                            <img src={product.images[0]} className="w-8 h-8 rounded object-cover bg-stone-100" alt="" />
+                                                                            <img src={product.images[0]} className="w-8 h-8 rounded object-contain bg-stone-100" alt="" />
                                                                         </div>
                                                                     )}
                                                                     {hasVariants && (
@@ -662,15 +670,26 @@ export const AssetsView: React.FC = () => {
                                                             </td>
                                                         </tr>
 
-                                                        {hasVariants && product.variants.map((variant: any) => {
+                                                        {hasVariants && product.variants.map((variant: any, vIdx) => {
                                                             const vEdit = isEditing ? editForm.variants.find((v: any) => v.id === variant.id) : null;
+                                                            const isLast = vIdx === product.variants!.length - 1;
                                                             return (
-                                                                <tr key={variant.id} className="bg-stone-50/20 dark:bg-stone-950/10 border-l-2 border-gold-500/50">
-                                                                    <td />
-                                                                    <td className="p-3 pl-10 border-b border-stone-100/50 dark:border-stone-800/20">
-                                                                        <span className="text-[10px] uppercase font-bold text-stone-500">— {variant.name}</span>
+                                                                <tr key={variant.id} className={cn(
+                                                                    "bg-stone-50/20 dark:bg-stone-950/20 group/variant",
+                                                                    isLast && "border-b border-stone-100 dark:border-stone-800/50"
+                                                                )}>
+                                                                    <td className="p-5 relative">
+                                                                        <div className={cn(
+                                                                            "absolute left-1/2 -translate-x-1/2 w-0.5 bg-gold-500/20",
+                                                                            vIdx === 0 ? "top-0" : "-top-px",
+                                                                            isLast ? "h-1/2" : "h-[calc(100%+2px)]"
+                                                                        )} />
+                                                                        <div className="absolute left-1/2 top-1/2 w-3 h-0.5 bg-gold-500/20" />
                                                                     </td>
-                                                                    <td className="p-3 border-b border-stone-100/50 dark:border-stone-800/20 text-stone-400 italic">
+                                                                    <td className="p-3 pl-10 border-b border-stone-100/10 dark:border-stone-800/10">
+                                                                        <span className="text-[10px] uppercase font-bold text-stone-500">{variant.name}</span>
+                                                                    </td>
+                                                                    <td className="p-3 border-b border-stone-100/10 dark:border-stone-800/10 text-stone-400 italic">
                                                                         {isEditing ? (
                                                                             <input
                                                                                 className="w-full text-[10px] bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded p-1"
@@ -682,7 +701,7 @@ export const AssetsView: React.FC = () => {
                                                                             <span className="text-[10px]">{variant.location || 'Sin definir'}</span>
                                                                         )}
                                                                     </td>
-                                                                    <td className="p-3 text-center border-b border-stone-100/50 dark:border-stone-800/20">
+                                                                    <td className="p-3 text-center border-b border-stone-100/10 dark:border-stone-800/10">
                                                                         {isEditing ? (
                                                                             <input
                                                                                 type="number"
@@ -694,7 +713,7 @@ export const AssetsView: React.FC = () => {
                                                                             <span className={`text-[10px] font-mono font-bold ${variant.stock <= 2 ? 'text-red-500 underline decoration-dotted' : 'text-stone-500'}`}>{variant.stock}</span>
                                                                         )}
                                                                     </td>
-                                                                    <td className="p-3 text-right border-b border-stone-100/50 dark:border-stone-800/20">
+                                                                    <td className="p-3 text-right border-b border-stone-100/10 dark:border-stone-800/10">
                                                                         {isEditing ? (
                                                                             <input
                                                                                 type="number"
@@ -706,10 +725,10 @@ export const AssetsView: React.FC = () => {
                                                                             <span className="text-[10px] font-mono text-stone-400">{formatCurrency(variant.unit_cost || 0)}</span>
                                                                         )}
                                                                     </td>
-                                                                    <td className="p-3 text-right border-b border-stone-100/50 dark:border-stone-800/20">
+                                                                    <td className="p-3 text-right border-b border-stone-100/10 dark:border-stone-800/10">
                                                                         <span className="text-[10px] font-mono text-stone-400">{formatCurrency((variant.stock || 0) * (variant.unit_cost || 0))}</span>
                                                                     </td>
-                                                                    <td className="border-b border-stone-100/50 dark:border-stone-800/20" />
+                                                                    <td className="border-b border-stone-100/10 dark:border-stone-800/10" />
                                                                 </tr>
                                                             );
                                                         })}

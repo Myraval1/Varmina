@@ -313,7 +313,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                         onDrop={() => handleDrop(idx)}
                                         className={`group relative aspect-square bg-stone-50 dark:bg-stone-950 rounded-lg border border-stone-100 dark:border-stone-800 overflow-hidden cursor-move transition-all shadow-sm hover:shadow-md ${draggedIdx === idx ? 'opacity-30 ring-2 ring-gold-500' : ''}`}
                                     >
-                                        <img src={img} className="w-full h-full object-cover" alt={`Media ${idx}`} />
+                                        <img src={img} className="w-full h-full object-contain" alt={`Media ${idx}`} />
 
                                         {/* Overlay Actions */}
                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
@@ -473,7 +473,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                                                 onClick={() => toggleVariantImage(v.id, img)}
                                                                 className={`w-12 h-12 rounded-lg border-2 overflow-hidden transition-all flex-shrink-0 ${v.images?.includes(img) ? 'border-gold-500 ring-2 ring-gold-200 dark:ring-gold-900/30' : 'border-stone-200 dark:border-stone-800 opacity-60 hover:opacity-100 hover:border-stone-300'}`}
                                                             >
-                                                                <img src={img} className="w-full h-full object-cover" />
+                                                                <img src={img} className="w-full h-full object-contain" />
                                                             </button>
                                                         ))}
                                                         {(!formData.images || formData.images.length === 0) && (
