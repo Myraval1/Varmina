@@ -244,8 +244,8 @@ export const AdminDashboardView = () => {
                                         <div className="col-span-1">
                                             <input type="checkbox" checked={selectedIds.length === filteredInventory.length && filteredInventory.length > 0} onChange={toggleSelectAll} className="w-4 h-4 accent-gold-500 rounded-sm cursor-pointer" />
                                         </div>
-                                        <div className="col-span-1">Imagen</div>
-                                        <div className="col-span-4">Producto / Detalles</div>
+                                        <div className="col-span-2">Imagen</div>
+                                        <div className="col-span-3">Producto / Detalles</div>
                                         <div className="col-span-1 text-center">Stock</div>
                                         <div className="col-span-1 text-center">Precio</div>
                                         <div className="col-span-2 text-center">Estado</div>
@@ -277,14 +277,14 @@ export const AdminDashboardView = () => {
 
                                                 <div className="w-full flex lg:contents gap-4 items-center">
                                                     {/* Image */}
-                                                    <div className="col-span-1 flex-shrink-0">
+                                                    <div className="col-span-2 flex-shrink-0">
                                                         <div className="relative w-28 h-36 lg:w-24 lg:h-32 overflow-hidden bg-stone-100 border border-stone-200 dark:border-stone-800 rounded-lg shadow-sm">
                                                             <img src={product.images[0]} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                                         </div>
                                                     </div>
 
                                                     {/* Product Info */}
-                                                    <div className="col-span-1 lg:col-span-4 flex flex-col gap-1.5 flex-grow lg:ml-4 min-w-0">
+                                                    <div className="col-span-1 lg:col-span-3 flex flex-col gap-1.5 flex-grow lg:ml-4 min-w-0">
                                                         <div className="flex flex-wrap items-center gap-2">
                                                             <h3 className="font-serif text-lg lg:text-sm text-stone-900 dark:text-white leading-tight uppercase tracking-wide truncate pr-4">{product.name}</h3>
                                                             {product.badge && (
