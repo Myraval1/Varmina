@@ -316,7 +316,7 @@ export const OrdersView: React.FC = () => {
                                 {filteredProducts.map(product => (
                                     <div key={product.id} className="bg-stone-50 dark:bg-stone-950/50 border border-stone-100 dark:border-stone-800 rounded-xl p-2.5 flex flex-col gap-2 group hover:border-gold-400 transition-all shadow-sm">
                                         <div className="aspect-square bg-white dark:bg-stone-900 rounded-lg overflow-hidden relative border border-stone-100 dark:border-stone-800">
-                                            <img src={product.images[0]} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" />
+                                            <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                             {product.status === ProductStatus.SOLD_OUT && (
                                                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                                     <span className="text-[8px] font-bold text-white uppercase bg-red-500 px-1.5 py-0.5 rounded">Agotado</span>
@@ -497,7 +497,7 @@ export const OrdersView: React.FC = () => {
                             <>
                                 {cart.map((item, idx) => (
                                     <div key={`p-${idx}`} className="flex gap-3 bg-white dark:bg-stone-950 p-2 rounded-lg border border-stone-100 dark:border-stone-800">
-                                        <img src={item.product.images[0]} className="w-10 h-10 object-contain rounded bg-stone-100" />
+                                        <img src={item.product.images[0]} className="w-10 h-10 object-cover rounded bg-stone-100" />
                                         <div className="flex-1 min-w-0">
                                             <p className="text-xs font-bold truncate">{item.product.name}</p>
                                             <p className="text-[10px] text-stone-500">{item.variant ? item.variant.name : 'Standard'}</p>

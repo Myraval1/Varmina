@@ -111,7 +111,7 @@ export const CartDrawer: React.FC = () => {
                                         <img
                                             src={item.product.images[0]}
                                             alt={item.product.name}
-                                            className="w-full h-full object-contain"
+                                            className="w-full h-full object-cover"
                                         />
                                     )}
                                 </div>

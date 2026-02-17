@@ -272,7 +272,7 @@ export const AnalyticsDashboard: React.FC = () => {
                                     {idx + 1}
                                 </span>
                                 <div className="relative w-10 h-12 md:w-16 md:h-20 bg-stone-100 dark:bg-stone-800 shrink-0 rounded-lg md:rounded-xl overflow-hidden shadow-md md:shadow-lg border border-stone-200/50 dark:border-stone-700">
-                                    {p.images?.[0] && <img src={p.images[0]} className="w-full h-full object-contain group-hover:scale-110 transition-all duration-700" alt="" />}
+                                    {p.images?.[0] && <img src={p.images[0]} className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" alt="" />}
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <h4 className="font-serif text-sm md:text-2xl text-stone-900 dark:text-white truncate mb-0.5 md:mb-1 group-hover:text-gold-600 transition-colors uppercase tracking-tight">{p.name}</h4>

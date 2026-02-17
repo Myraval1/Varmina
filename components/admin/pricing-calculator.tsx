@@ -157,7 +157,7 @@ export const PricingCalculator: React.FC = () => {
                                         onClick={() => loadProduct(p)}
                                         className="w-full flex items-center gap-4 p-4 hover:bg-gold-50 dark:hover:bg-gold-900/10 transition-colors border-b border-stone-100 dark:border-stone-800 last:border-0"
                                     >
-                                        <img src={p.images[0]} alt="" className="w-10 h-10 rounded object-contain shadow-sm" />
+                                        <img src={p.images[0]} alt="" className="w-10 h-10 rounded object-cover shadow-sm" />
                                         <div className="text-left">
                                             <p className="text-xs font-bold uppercase tracking-wide text-stone-900 dark:text-white">{p.name}</p>
                                             <p className="text-[10px] text-stone-500 uppercase">Costo: {formatPrice(p.unit_cost || 0)} | Precio: {formatPrice(p.price)}</p>
@@ -170,7 +170,7 @@ export const PricingCalculator: React.FC = () => {
                     </div>
                     {selectedProduct ? (
                         <div className="flex items-center gap-4 p-4 bg-gold-50/50 dark:bg-gold-900/10 rounded-xl border border-gold-100 dark:border-gold-900/30">
-                            <img src={selectedProduct.images[0]} alt="" className="w-12 h-12 rounded-lg object-contain shadow-md" />
+                            <img src={selectedProduct.images[0]} alt="" className="w-12 h-12 rounded-lg object-cover shadow-md" />
                             <div>
                                 <p className="text-[10px] text-gold-600 font-bold uppercase tracking-widest mb-1">Analizando Pieza</p>
                                 <h4 className="text-sm font-serif text-stone-900 dark:text-white uppercase tracking-wider">{selectedProduct.name}</h4>
@@ -444,7 +444,7 @@ export const PricingCalculator: React.FC = () => {
                             {productRoiList.map(p => (
                                 <tr key={p.id} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/20 group transition-colors">
                                     <td className="p-5 flex items-center gap-3">
-                                        <img src={p.images[0]} className="w-8 h-8 rounded object-contain shadow-sm bg-stone-100" />
+                                        <img src={p.images[0]} className="w-8 h-8 rounded object-cover shadow-sm bg-stone-100" />
                                         <span className="text-xs font-bold uppercase tracking-wide text-stone-900 dark:text-white truncate max-w-[200px]">{p.name}</span>
                                     </td>
                                     <td className="p-5 text-right text-xs font-mono text-stone-500">{formatPrice(p.unit_cost || 0)}</td>

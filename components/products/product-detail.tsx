@@ -126,7 +126,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency,
                     <img
                         key={imagesToDisplay[activeImg]}
                         src={imagesToDisplay[activeImg] || product.images[0]}
-                        className="w-full h-full object-contain animate-fade-in"
+                        className="w-full h-full object-cover animate-fade-in"
                         alt={product.name}
                         draggable={false}
                     />
@@ -178,7 +178,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency,
                                 )}
                                 aria-label={`Ver imagen ${idx + 1}`}
                             >
-                                <img src={img} className="w-full h-full object-contain" alt="" draggable={false} />
+                                <img src={img} className="w-full h-full object-cover" alt="" draggable={false} />
                             </button>
                         ))}
                     </div>
