@@ -426,7 +426,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                                             />
                                                         </div>
 
-                                                        <div className="space-y-1 col-span-1 md:col-span-1 lg:col-span-3">
+                                                        <div className="space-y-1 col-span-1 md:col-span-1 lg:col-span-2">
                                                             <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Precio</label>
                                                             <div className="relative">
                                                                 <span className="absolute left-2 top-1/2 -translate-y-1/2 text-stone-400 text-xs">$</span>
@@ -442,7 +442,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                                             </div>
                                                         </div>
 
-                                                        <div className="space-y-1 col-span-1 md:col-span-1 lg:col-span-3">
+                                                        <div className="space-y-1 col-span-1 md:col-span-1 lg:col-span-2">
                                                             <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Costo</label>
                                                             <div className="relative">
                                                                 <span className="absolute left-2 top-1/2 -translate-y-1/2 text-stone-400 text-xs">$</span>
@@ -456,20 +456,20 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                                             </div>
                                                         </div>
 
-                                                        <div className="space-y-1 col-span-1 md:col-span-1 lg:col-span-1">
+                                                        <div className="space-y-1 col-span-1 md:col-span-1 lg:col-span-2">
                                                             <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Stock</label>
                                                             <input
                                                                 type="number"
                                                                 min="0"
                                                                 value={(v.stock === 0 || v.stock === undefined) ? '' : v.stock}
                                                                 onChange={e => updateVariant(v.id, 'stock', parseInt(e.target.value) || 0)}
-                                                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 px-1 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none text-center"
+                                                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 px-3 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none text-center"
                                                                 autoComplete="off"
                                                                 placeholder="0"
                                                             />
                                                         </div>
 
-                                                        <div className="space-y-1 col-span-1 md:col-span-3 lg:col-span-2">
+                                                        <div className="space-y-1 col-span-1 md:col-span-3 lg:col-span-3">
                                                             <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Ubicación</label>
                                                             <input
                                                                 type="text"
