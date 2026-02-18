@@ -363,7 +363,7 @@ export const AdminDashboardView = () => {
                                                 </div>
 
                                                 {/* Actions */}
-                                                <div className="hidden lg:flex justify-center items-center gap-2 lg:opacity-0 group-hover:lg:opacity-100 transition-opacity">
+                                                <div className="flex justify-center items-center gap-2 transition-opacity mt-4 lg:mt-0">
                                                     <div className="flex gap-2">
                                                         <button onClick={() => handleDuplicate(product.id)} className="p-2 text-stone-400 hover:text-gold-600 hover:bg-gold-50 dark:hover:bg-gold-900/10 rounded-full transition-all flex items-center gap-2 border border-transparent hover:border-gold-200" title="Duplicar">
                                                             <Copy className="w-4 h-4" />

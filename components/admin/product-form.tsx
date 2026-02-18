@@ -349,7 +349,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveImage(img, idx)}
-                                            className="absolute top-2 right-2 p-1.5 bg-white text-stone-500 hover:text-red-500 rounded-full shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all hover:scale-110"
+                                            className="absolute top-2 right-2 p-1.5 bg-white text-stone-500 hover:text-red-500 rounded-full shadow-sm transition-all hover:scale-110"
                                         >
                                             <X className="w-3.5 h-3.5" />
                                         </button>
