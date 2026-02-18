@@ -31,6 +31,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
         stock: 0
     });
     const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+    const [draggedVariantIdx, setDraggedVariantIdx] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -107,31 +108,44 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
         }
     };
 
+    const processFiles = async (files: FileList | File[]) => {
+        setIsUploading(true);
+        try {
+            // Optimization step
+            const optimizationPromises = Array.from(files).map((file: File) => compressImage(file));
+            const optimizedFiles = await Promise.all(optimizationPromises);
+
+            const uploadPromises = optimizedFiles.map((file: File) =>
+                supabaseProductService.uploadImage(file)
+            );
+
+            const uploadedUrls = await Promise.all(uploadPromises);
+
+            // Track these uploads for potential cleanup
+            sessionUploadedImages.current.push(...uploadedUrls);
+
+            setFormData(prev => ({ ...prev, images: [...(prev.images || []), ...uploadedUrls] }));
+            addToast('success', `${uploadedUrls.length} imagen(es) subida(s)`);
+        } catch (error) {
+            console.error('Error uploading images:', error);
+            addToast('error', 'Error al subir imágenes');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            setIsUploading(true);
-            try {
-                // Optimization step
-                const optimizationPromises = Array.from(e.target.files).map((file: File) => compressImage(file));
-                const optimizedFiles = await Promise.all(optimizationPromises);
+            await processFiles(e.target.files);
+        }
+    };
 
-                const uploadPromises = optimizedFiles.map((file: File) =>
-                    supabaseProductService.uploadImage(file)
-                );
+    const handleFileDrop = async (e: React.DragEvent) => {
+        e.preventDefault();
+        if (isUploading) return;
 
-                const uploadedUrls = await Promise.all(uploadPromises);
-
-                // Track these uploads for potential cleanup
-                sessionUploadedImages.current.push(...uploadedUrls);
-
-                setFormData(prev => ({ ...prev, images: [...(prev.images || []), ...uploadedUrls] }));
-                addToast('success', `${uploadedUrls.length} imagen(es) subida(s)`);
-            } catch (error) {
-                console.error('Error uploading images:', error);
-                addToast('error', 'Error al subir imágenes');
-            } finally {
-                setIsUploading(false);
-            }
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            await processFiles(e.dataTransfer.files);
         }
     };
 
@@ -166,6 +180,17 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
         nextImages.splice(idx, 0, draggedItem);
         setFormData({ ...formData, images: nextImages });
         setDraggedIdx(null);
+    };
+
+    const handleVariantDragStart = (idx: number) => setDraggedVariantIdx(idx);
+    const handleVariantDrop = (idx: number) => {
+        if (draggedVariantIdx === null) return;
+        const nextVariants = [...(formData.variants || [])];
+        const draggedItem = nextVariants[draggedVariantIdx];
+        nextVariants.splice(draggedVariantIdx, 1);
+        nextVariants.splice(idx, 0, draggedItem);
+        setFormData({ ...formData, variants: nextVariants });
+        setDraggedVariantIdx(null);
     };
 
     // Helper functions for variants
@@ -303,7 +328,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                 </label>
                             </div>
 
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            <div
+                                className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4 rounded-xl transition-colors ${isUploading ? 'bg-stone-50 dark:bg-stone-900/50' : ''}`}
+                                onDragOver={handleDragOver}
+                                onDrop={handleFileDrop}
+                            >
                                 {formData.images?.map((img, idx) => (
                                     <div
                                         key={idx}
@@ -342,7 +371,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                         <Upload className="w-5 h-5 text-stone-400 group-hover:text-gold-500 transition-colors" />
                                     </div>
                                     <span className="text-[9px] font-bold text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300 uppercase tracking-wider text-center px-2">
-                                        {isUploading ? 'Procesando...' : 'Añadir'}
+                                        {isUploading ? 'Procesando...' : 'Añadir o Arrastra'}
                                     </span>
                                     <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                                 </label>
@@ -369,76 +398,85 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                     </div>
                                 ) : (
                                     formData.variants?.map((v, i) => (
-                                        <div key={v.id} className="p-4 md:p-5 bg-stone-50 dark:bg-stone-950/30 rounded-lg border border-stone-100 dark:border-stone-800 transition-all hover:bg-stone-100/50 dark:hover:bg-stone-800/30">
+                                        <div
+                                            key={v.id}
+                                            draggable
+                                            onDragStart={() => handleVariantDragStart(i)}
+                                            onDragOver={handleDragOver}
+                                            onDrop={() => handleVariantDrop(i)}
+                                            className={`p-4 md:p-5 bg-stone-50 dark:bg-stone-950/30 rounded-lg border border-stone-100 dark:border-stone-800 transition-all hover:bg-stone-100/50 dark:hover:bg-stone-800/30 ${draggedVariantIdx === i ? 'opacity-30 ring-2 ring-gold-500' : ''}`}
+                                        >
                                             <div className="flex flex-col gap-4">
                                                 <div className="flex items-start gap-3 md:gap-4">
                                                     {/* Drag Handle */}
-                                                    <GripVertical className="w-5 h-5 text-stone-300 cursor-grab active:cursor-grabbing mt-2" />
+                                                    <div className="cursor-grab active:cursor-grabbing p-2 -ml-2">
+                                                        <GripVertical className="w-5 h-5 text-stone-300" />
+                                                    </div>
 
-                                                    <div className="flex-1 grid grid-cols-2 lg:grid-cols-5 gap-3">
-                                                        <div className="space-y-1 col-span-2 lg:col-span-1">
+                                                    <div className="flex-1 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-3">
+                                                        <div className="space-y-1 col-span-2 md:col-span-2 lg:col-span-3">
                                                             <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Nombre Opción</label>
                                                             <input
                                                                 type="text"
                                                                 value={v.name}
                                                                 onChange={e => updateVariant(v.id, 'name', e.target.value)}
                                                                 className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 px-3 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none"
-                                                                placeholder="Ej: Oro 18k / Talla 7"
+                                                                placeholder="Ej: Oro 18k"
                                                                 autoComplete="off"
                                                             />
                                                         </div>
 
-                                                        <div className="space-y-1">
+                                                        <div className="space-y-1 col-span-1 md:col-span-1 lg:col-span-3">
                                                             <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Precio</label>
                                                             <div className="relative">
-                                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs">$</span>
+                                                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-stone-400 text-xs">$</span>
                                                                 <input
                                                                     type="number"
                                                                     value={v.price === 0 ? '' : v.price}
                                                                     onChange={e => updateVariant(v.id, 'price', Number(e.target.value) || 0)}
                                                                     onFocus={(e) => e.target.select()}
-                                                                    className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 pl-6 pr-3 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none"
+                                                                    className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 pl-5 pr-2 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none"
                                                                     autoComplete="off"
                                                                     placeholder="0"
                                                                 />
                                                             </div>
                                                         </div>
 
-                                                        <div className="space-y-1">
-                                                            <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Costo (COGS)</label>
+                                                        <div className="space-y-1 col-span-1 md:col-span-1 lg:col-span-3">
+                                                            <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Costo</label>
                                                             <div className="relative">
-                                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-xs">$</span>
+                                                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-stone-400 text-xs">$</span>
                                                                 <input
                                                                     type="number"
                                                                     value={v.unit_cost === 0 || v.unit_cost === undefined ? '' : v.unit_cost}
                                                                     onChange={e => updateVariant(v.id, 'unit_cost', Number(e.target.value) || 0)}
-                                                                    className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 pl-6 pr-3 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none"
+                                                                    className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 pl-5 pr-2 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none"
                                                                     placeholder="0"
                                                                 />
                                                             </div>
                                                         </div>
 
-                                                        <div className="space-y-1">
+                                                        <div className="space-y-1 col-span-1 md:col-span-1 lg:col-span-1">
                                                             <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Stock</label>
                                                             <input
                                                                 type="number"
                                                                 min="0"
                                                                 value={(v.stock === 0 || v.stock === undefined) ? '' : v.stock}
                                                                 onChange={e => updateVariant(v.id, 'stock', parseInt(e.target.value) || 0)}
-                                                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 px-3 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none text-center"
+                                                                className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 px-1 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none text-center"
                                                                 autoComplete="off"
                                                                 placeholder="0"
                                                             />
                                                         </div>
 
-                                                        <div className="space-y-1 col-span-2 lg:col-span-1">
+                                                        <div className="space-y-1 col-span-1 md:col-span-3 lg:col-span-2">
                                                             <label className="text-[9px] uppercase tracking-wider text-stone-400 font-bold block">Ubicación</label>
                                                             <input
                                                                 type="text"
                                                                 value={v.location || ''}
                                                                 onChange={e => updateVariant(v.id, 'location', e.target.value)}
                                                                 className="w-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-md py-2 px-3 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none"
-                                                                placeholder="Ej: Cajón A"
+                                                                placeholder="Ej: A-1"
                                                             />
                                                         </div>
                                                     </div>
@@ -471,9 +509,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                                                 key={idx}
                                                                 type="button"
                                                                 onClick={() => toggleVariantImage(v.id, img)}
-                                                                className={`w-12 h-12 rounded-lg border-2 overflow-hidden transition-all flex-shrink-0 ${v.images?.includes(img) ? 'border-gold-500 ring-2 ring-gold-200 dark:ring-gold-900/30' : 'border-stone-200 dark:border-stone-800 opacity-60 hover:opacity-100 hover:border-stone-300'}`}
+                                                                className={`w-12 h-12 rounded-lg border-2 overflow-hidden transition-all flex-shrink-0 relative ${v.images?.includes(img) ? 'border-gold-500 ring-2 ring-gold-200 dark:ring-gold-900/30' : 'border-stone-200 dark:border-stone-800 opacity-60 hover:opacity-100 hover:border-stone-300'}`}
                                                             >
                                                                 <img src={img} className="w-full h-full object-cover" />
+                                                                {v.images?.includes(img) && (
+                                                                    <div className="absolute top-0 right-0 bg-gold-500 text-stone-900 text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-bl-lg">
+                                                                        {v.images.indexOf(img) + 1}
+                                                                    </div>
+                                                                )}
                                                             </button>
                                                         ))}
                                                         {(!formData.images || formData.images.length === 0) && (
