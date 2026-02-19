@@ -4,7 +4,8 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { Product, ProductStatus, ProductVariant } from '@/types';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { ChevronLeft, ChevronRight, X, Share2, Heart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Share2, Heart, Copy, Check } from 'lucide-react';
+import { Modal } from '@/components/ui/modal';
 import { supabaseProductService } from '@/services/supabaseProductService';
 import { useStore } from '@/context/StoreContext';
 import { useCart } from '@/context/CartContext';
@@ -22,6 +23,8 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency,
     const { addItem } = useCart();
     const [activeImg, setActiveImg] = useState(0);
     const [isAdding, setIsAdding] = useState(false);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
 
     // Initialize with primary variant or first variant
     const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(() => {
@@ -89,15 +92,27 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency,
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: product.name,
+                    title: `Varmina - ${product.name}`,
+                    text: `Mira esta joya increíble: ${product.name}`,
                     url,
                 });
             } catch {
-                // User cancelled share
+                // User cancelled or failed
             }
         } else {
+            setIsShareModalOpen(true);
+        }
+    };
+
+    const handleCopyLink = async () => {
+        const url = `${window.location.origin}/product/${product.id}`;
+        try {
             await navigator.clipboard.writeText(url);
-            addToast('info', 'Enlace copiado');
+            setIsCopied(true);
+            addToast('success', 'Enlace copiado al portapapeles');
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch {
+            addToast('error', 'No se pudo copiar el enlace');
         }
     };
 
@@ -275,6 +290,49 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency,
                     </div>
                 </div>
             </div>
+
+            {/* Share Fallback Modal */}
+            <Modal
+                isOpen={isShareModalOpen}
+                onClose={() => setIsShareModalOpen(false)}
+                title="Compartir Joya"
+                size="sm"
+            >
+                <div className="space-y-6">
+                    <p className="text-sm text-stone-500 dark:text-stone-400 text-center">
+                        Copia el enlace para compartir esta pieza exclusiva.
+                    </p>
+
+                    <div className="flex items-center gap-2 p-2 bg-stone-50 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-700">
+                        <input
+                            type="text"
+                            readOnly
+                            value={`${typeof window !== 'undefined' ? window.location.origin : ''}/product/${product.id}`}
+                            className="flex-1 bg-transparent text-xs text-stone-600 dark:text-stone-300 focus:outline-none px-2"
+                        />
+                        <button
+                            onClick={handleCopyLink}
+                            className={cn(
+                                "p-2 rounded-md transition-all active:scale-95",
+                                isCopied
+                                    ? "bg-green-500 text-white"
+                                    : "bg-stone-900 dark:bg-white text-white dark:text-stone-900 hover:opacity-90"
+                            )}
+                        >
+                            {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                    </div>
+
+                    <div className="flex justify-center">
+                        <button
+                            onClick={() => setIsShareModalOpen(false)}
+                            className="text-xs font-bold uppercase tracking-widest text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 transition-colors"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

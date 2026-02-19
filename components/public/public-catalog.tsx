@@ -24,6 +24,32 @@ export const PublicCatalog = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [showScrollTop, setShowScrollTop] = useState(false);
 
+    // Update URL when product is selected/deselected
+    useEffect(() => {
+        if (selectedProduct) {
+            window.history.pushState({ productId: selectedProduct.id }, '', `/product/${selectedProduct.id}`);
+        }
+    }, [selectedProduct]);
+
+    // Handle browser back button
+    useEffect(() => {
+        const handlePopState = (event: PopStateEvent) => {
+            if (selectedProduct) {
+                // If we have a product open and user hits back, close it
+                setSelectedProduct(null);
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [selectedProduct]);
+
+    const handleCloseProduct = useCallback(() => {
+        setSelectedProduct(null);
+        // Revert URL to catalog
+        window.history.pushState(null, '', '/');
+    }, []);
+
     // Filters
     const [minPrice, setMinPrice] = useState(0);
     const [maxPrice, setMaxPrice] = useState(300000);
@@ -517,8 +543,8 @@ export const PublicCatalog = () => {
             </button>
 
             {/* --- Product Detail Modal --- */}
-            <Modal isOpen={!!selectedProduct} onClose={() => setSelectedProduct(null)} showCloseButton={false} size="xl">
-                {selectedProduct && <ProductDetail product={selectedProduct} currency={currency} onClose={() => setSelectedProduct(null)} />}
+            <Modal isOpen={!!selectedProduct} onClose={handleCloseProduct} showCloseButton={false} size="xl">
+                {selectedProduct && <ProductDetail product={selectedProduct} currency={currency} onClose={handleCloseProduct} />}
             </Modal>
         </div>
     );
