@@ -6,7 +6,7 @@ import { useStore } from '@/context/StoreContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import { APP_NAME } from '@/lib/constants';
-import { LayoutGrid, Sun, Moon, Store, LogOut, Award, BarChart3, DollarSign, Truck, ShoppingCart, Calculator } from 'lucide-react';
+import { LayoutGrid, Sun, Moon, Store, LogOut, Award, BarChart3, DollarSign, Truck, ShoppingCart, Calculator, Paintbrush } from 'lucide-react';
 import { ToastContainer } from '@/components/ui/toast-container';
 
 export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -136,6 +136,15 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
                                 </li>
                                 <li>
                                     <button
+                                        onClick={() => setActiveAdminTab('designer')}
+                                        className={`w-full flex items-center gap-4 px-4 py-3 rounded-sm text-[11px] font-bold uppercase tracking-[0.15em] transition-all ${activeAdminTab === 'designer' ? 'bg-[#1A1A1A] text-white shadow-lg' : 'text-stone-400 hover:text-stone-900 dark:hover:text-white'}`}
+                                    >
+                                        <Paintbrush className={`w-4 h-4 ${activeAdminTab === 'designer' ? 'text-gold-400' : ''}`} />
+                                        <span>Diseñador</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
                                         onClick={() => window.open('/', '_blank')}
                                         className="w-full flex items-center gap-4 px-4 py-3 text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-50 dark:hover:bg-stone-900 rounded-sm text-[11px] font-bold uppercase tracking-[0.15em] transition-all group"
                                     >
@@ -221,6 +230,7 @@ const MenuButton = ({ activeAdminTab, setActiveAdminTab, toggleDarkMode, handleL
 
     const menuItems = [
         { id: 'analytics', label: 'Analítica', icon: BarChart3 },
+        { id: 'designer', label: 'Diseñador', icon: Paintbrush },
         { id: 'settings', label: 'Ajustes', icon: Award },
     ];
 

@@ -213,7 +213,7 @@ export const OrdersView: React.FC = () => {
     // Filter Products
     const filteredProducts = products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (p.collection && p.collection.toLowerCase().includes(searchTerm.toLowerCase()));
+            (p.collections && p.collections.some(c => c.toLowerCase().includes(searchTerm.toLowerCase())));
         const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
         return matchesSearch && matchesCategory;
     });

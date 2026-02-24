@@ -23,7 +23,7 @@ export interface Product {
     images: string[];
     status: ProductStatus;
     category: string | null;
-    collection: string | null;
+    collections: string[];
     badge: string | null;
     variants: ProductVariant[];
     whatsapp_clicks: number;

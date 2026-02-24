@@ -268,8 +268,10 @@ export const AssetsView: React.FC = () => {
                 case 'stock_desc': return (b.stock || 0) - (a.stock || 0);
                 case 'category': return (a.category || '').localeCompare(b.category || '');
                 case 'collection': {
-                    if ('collection' in a && 'collection' in b) {
-                        return (a.collection || '').localeCompare(b.collection || '');
+                    if ('collections' in a && 'collections' in b) {
+                        const aCol = ((a as any).collections || [])[0] || '';
+                        const bCol = ((b as any).collections || [])[0] || '';
+                        return aCol.localeCompare(bCol);
                     }
                     return 0;
                 }

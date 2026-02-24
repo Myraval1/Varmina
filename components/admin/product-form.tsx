@@ -25,7 +25,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
         status: ProductStatus.IN_STOCK,
         images: [],
         category: '',
-        collection: '',
+        collections: [],
         badge: '',
         variants: [],
         stock: 0
@@ -82,7 +82,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                 images: formData.images,
                 status: formData.status,
                 category: formData.category,
-                collection: formData.collection,
+                collections: formData.collections || [],
                 badge: formData.badge,
                 variants: formData.variants,
                 stock: totalStock,
@@ -666,25 +666,35 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                 </div>
 
                                 <div>
-                                    <label htmlFor="product-collection" className="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Colección</label>
-                                    <div className="relative">
-                                        <select
-                                            id="product-collection"
-                                            name="collection"
-                                            value={formData.collection || ''}
-                                            onChange={e => setFormData({ ...formData, collection: e.target.value })}
-                                            className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-700 rounded-lg py-3 px-4 text-sm font-medium text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none appearance-none cursor-pointer"
-                                        >
-                                            <option value="">Ninguna</option>
-                                            {collections.map(col => (
-                                                <option key={col.id} value={col.name}>{col.name}</option>
-                                            ))}
-                                            {collections.length === 0 && <option value="" disabled>Gestiona colecciones en Configuración</option>}
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                            <svg className="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Colecciones</label>
+                                    {collections.length === 0 ? (
+                                        <p className="text-xs text-stone-400 italic">Gestiona colecciones en Configuración</p>
+                                    ) : (
+                                        <div className="flex flex-wrap gap-2">
+                                            {collections.map(col => {
+                                                const isSelected = (formData.collections || []).includes(col.name);
+                                                return (
+                                                    <button
+                                                        key={col.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const current = formData.collections || [];
+                                                            const updated = isSelected
+                                                                ? current.filter(c => c !== col.name)
+                                                                : [...current, col.name];
+                                                            setFormData({ ...formData, collections: updated });
+                                                        }}
+                                                        className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest border rounded-full transition-all ${isSelected
+                                                                ? 'bg-stone-900 text-white border-stone-900 dark:bg-gold-500 dark:text-stone-900 dark:border-gold-500'
+                                                                : 'border-stone-200 dark:border-stone-700 text-stone-400 hover:border-stone-400'
+                                                            }`}
+                                                    >
+                                                        {col.name}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
 
                                 <Input

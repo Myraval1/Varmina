@@ -14,6 +14,7 @@ import { FinanceView } from '@/components/admin/finance-view';
 import { AssetsView } from '@/components/admin/assets-view';
 import { ProductBulkImport } from '@/components/admin/product-bulk-import';
 import { OrdersView } from '@/components/admin/orders-view';
+import { SectionManager } from '@/components/admin/section-manager';
 import { useInventory } from '@/hooks/use-inventory';
 
 // --- MAIN ADMIN COMPONENT ---
@@ -137,6 +138,8 @@ export const AdminDashboardView = () => {
                 return <AssetsView />;
             case 'orders':
                 return <OrdersView />;
+            case 'designer':
+                return <SectionManager />;
             case 'inventory':
             default:
                 return (
@@ -299,11 +302,11 @@ export const AdminDashboardView = () => {
                                                                     {product.category}
                                                                 </span>
                                                             )}
-                                                            {product.collection && (
-                                                                <span className="text-[10px] text-stone-400 font-bold uppercase tracking-widest">
-                                                                    {product.collection}
+                                                            {product.collections && product.collections.length > 0 && product.collections.map(col => (
+                                                                <span key={col} className="text-[10px] text-stone-400 font-bold uppercase tracking-widest">
+                                                                    {col}
                                                                 </span>
-                                                            )}
+                                                            ))}
                                                         </div>
                                                     </div>
                                                 </div>

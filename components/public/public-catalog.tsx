@@ -77,7 +77,7 @@ export const PublicCatalog = () => {
     );
 
     const collections = useMemo(() =>
-        ['All', ...Array.from(new Set(products.map(p => p.collection).filter((c): c is string => !!c)))],
+        ['All', ...Array.from(new Set(products.flatMap(p => p.collections || []).filter(Boolean)))],
         [products]
     );
 
@@ -91,7 +91,7 @@ export const PublicCatalog = () => {
             const matchesPrice = p.price >= minPrice && (maxPrice === 300000 ? true : p.price <= maxPrice);
             const matchesStatus = statusFilter === 'All' || p.status === statusFilter;
             const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
-            const matchesCollection = collectionFilter === 'All' || p.collection === collectionFilter;
+            const matchesCollection = collectionFilter === 'All' || (p.collections && p.collections.includes(collectionFilter));
             return matchesSearch && matchesPrice && matchesStatus && matchesCategory && matchesCollection;
         });
 

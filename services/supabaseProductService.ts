@@ -10,7 +10,7 @@ export interface CreateProductInput {
     images?: string[];
     status?: ProductStatus;
     category?: string | null;
-    collection?: string | null;
+    collections?: string[];
     badge?: string | null;
     variants?: any[];
     stock?: number;
@@ -25,7 +25,7 @@ export interface UpdateProductInput {
     images?: string[];
     status?: ProductStatus;
     category?: string | null;
-    collection?: string | null;
+    collections?: string[];
     badge?: string | null;
     variants?: any[];
     stock?: number;
@@ -85,7 +85,7 @@ export const supabaseProductService = {
             images: input.images || [],
             status: input.status || ProductStatus.IN_STOCK,
             category: input.category || null,
-            collection: input.collection || null,
+            collections: input.collections || [],
             badge: input.badge || null,
             variants: input.variants || [],
             stock: input.stock !== undefined ? Math.max(0, input.stock) : 0,
@@ -119,7 +119,7 @@ export const supabaseProductService = {
         if (updates.images) sanitizedUpdates.images = updates.images;
         if (updates.status) sanitizedUpdates.status = updates.status;
         if (updates.category !== undefined) sanitizedUpdates.category = updates.category;
-        if (updates.collection !== undefined) sanitizedUpdates.collection = updates.collection;
+        if (updates.collections !== undefined) sanitizedUpdates.collections = updates.collections;
         if (updates.badge !== undefined) sanitizedUpdates.badge = updates.badge;
         if (updates.variants !== undefined) sanitizedUpdates.variants = updates.variants;
         if (updates.stock !== undefined) sanitizedUpdates.stock = Math.max(0, updates.stock);
@@ -252,7 +252,7 @@ export const supabaseProductService = {
             images: input.images || [],
             status: input.status || ProductStatus.IN_STOCK,
             category: input.category || null,
-            collection: input.collection || null,
+            collections: input.collections || [],
             badge: input.badge || null,
             variants: input.variants || [],
             stock: input.stock !== undefined ? Math.max(0, input.stock) : 0,

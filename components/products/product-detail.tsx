@@ -203,9 +203,9 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency,
             {/* Info Section */}
             <div className="md:w-1/2 p-6 md:p-12 flex flex-col h-auto bg-white dark:bg-stone-900">
                 <div className="mb-auto">
-                    {product.collection && (
+                    {product.collections && product.collections.length > 0 && (
                         <span className="text-[10px] font-bold text-gold-600 uppercase tracking-[0.25em] mb-3 block">
-                            {product.collection}
+                            {product.collections.join(' · ')}
                         </span>
                     )}
                     <h2 className="font-serif text-2xl md:text-4xl text-stone-900 dark:text-white mb-2 tracking-wide leading-tight">

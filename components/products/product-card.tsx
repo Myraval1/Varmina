@@ -115,8 +115,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, currency, lay
 
             {/* Info */}
             <div className={cn("flex flex-col", isList ? "justify-center py-2 items-start" : "items-start")}>
-                {product.collection && (
-                    <p className="text-[9px] uppercase tracking-widest text-stone-400 mb-1.5">{product.collection}</p>
+                {product.collections && product.collections.length > 0 && (
+                    <p className="text-[9px] uppercase tracking-widest text-stone-400 mb-1.5">{product.collections.join(' · ')}</p>
                 )}
 
                 <h3 className={cn(
