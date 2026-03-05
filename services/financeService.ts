@@ -13,13 +13,18 @@ export interface CreateTransactionInput {
 
 export const financeService = {
     // Get all transactions
-    getAll: async (limit = 50): Promise<Transaction[]> => {
-        const { data, error } = await supabase
+    getAll: async (limit?: number, startDate?: string, endDate?: string): Promise<Transaction[]> => {
+        let query = supabase
             .from('transactions')
             .select('*')
             .order('date', { ascending: false })
-            .order('created_at', { ascending: false })
-            .limit(limit);
+            .order('created_at', { ascending: false });
+
+        if (limit) query = query.limit(limit);
+        if (startDate) query = query.gte('date', startDate);
+        if (endDate) query = query.lte('date', endDate);
+
+        const { data, error } = await query;
 
         if (error) {
             console.error('Error fetching transactions:', error);

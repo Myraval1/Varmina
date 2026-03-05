@@ -129,7 +129,6 @@ export const AdminHomeView: React.FC = () => {
                     value={loading ? '...' : formatPrice(todayBalance.income, 'CLP')}
                     sub={todayBalance.income > 0 ? `${formatPrice(todayBalance.expense, 'CLP')} en gastos` : 'Sin movimientos aún'}
                     color="text-green-600"
-                    onClick={() => setActiveAdminTab('finance')}
                 />
                 <StatCard
                     icon={TrendingUp}
@@ -137,14 +136,12 @@ export const AdminHomeView: React.FC = () => {
                     value={loading ? '...' : formatPrice(balance.income, 'CLP')}
                     sub={`Balance: ${formatPrice(balance.balance, 'CLP')}`}
                     color="text-emerald-600"
-                    onClick={() => setActiveAdminTab('analytics')}
                 />
                 <StatCard
                     icon={TrendingDown}
                     label="Gastos del Mes"
                     value={loading ? '...' : formatPrice(balance.expense, 'CLP')}
                     color="text-red-500"
-                    onClick={() => setActiveAdminTab('finance')}
                 />
                 <StatCard
                     icon={Gem}
@@ -152,7 +149,6 @@ export const AdminHomeView: React.FC = () => {
                     value={formatPrice(inventoryValue, 'CLP')}
                     sub={`${activeCount} piezas activas`}
                     color="text-gold-600"
-                    onClick={() => setActiveAdminTab('inventory')}
                 />
             </div>
 

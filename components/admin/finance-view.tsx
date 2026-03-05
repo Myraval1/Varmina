@@ -22,6 +22,7 @@ import {
     ArrowUpRight,
     ArrowDownLeft,
     Info,
+    CalendarDays
 } from 'lucide-react';
 
 const getLocalISODate = () => {
@@ -55,6 +56,7 @@ export const FinanceView: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [viewType, setViewType] = useState<'all' | 'income' | 'expense'>('all');
+    const [dateFilter, setDateFilter] = useState<'day' | 'week' | 'month' | 'year' | 'all'>('month');
 
     interface BulkPreviewItem {
         id: number;
@@ -72,14 +74,38 @@ export const FinanceView: React.FC = () => {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [dateFilter]);
 
     const loadData = async () => {
         try {
             setLoading(true);
+            const now = new Date();
+            let startDate: string | undefined;
+            let endDate: string | undefined;
+
+            const isoToday = getLocalISODate();
+
+            if (dateFilter === 'day') {
+                startDate = isoToday;
+                endDate = isoToday;
+            } else if (dateFilter === 'week') {
+                const startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1)); // Monday
+                startDate = `${startOfWeek.getFullYear()}-${String(startOfWeek.getMonth() + 1).padStart(2, '0')}-${String(startOfWeek.getDate()).padStart(2, '0')}`;
+                endDate = isoToday;
+            } else if (dateFilter === 'month') {
+                const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                startDate = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-01`;
+                const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                endDate = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
+            } else if (dateFilter === 'year') {
+                startDate = `${now.getFullYear()}-01-01`;
+                endDate = `${now.getFullYear()}-12-31`;
+            }
+
             const [txs, bal] = await Promise.all([
-                financeService.getAll(50),
-                financeService.getBalance()
+                financeService.getAll(undefined, startDate, endDate),
+                financeService.getBalance(startDate, endDate)
             ]);
             setTransactions(txs);
             setBalance(bal);
@@ -192,6 +218,14 @@ export const FinanceView: React.FC = () => {
         return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
     };
 
+    const dateFilterLabel = {
+        'day': 'Hoy',
+        'week': 'Esta Semana',
+        'month': 'Este Mes',
+        'year': 'Este Año',
+        'all': 'Histórico Total'
+    }[dateFilter];
+
     const filteredTransactions = transactions.filter(tx => {
         const matchesSearch = tx.description.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = selectedCategory === 'All' || tx.category === selectedCategory;
@@ -272,7 +306,7 @@ export const FinanceView: React.FC = () => {
                         </div>
                         <h4 className="text-2xl font-serif text-green-600">{formatCurrency(balance.income)}</h4>
                     </div>
-                    <p className="text-stone-400 text-[10px] italic">Total histórico bruto</p>
+                    <p className="text-stone-400 text-[10px] italic">Ingresos del periodo ({dateFilterLabel})</p>
                 </div>
 
                 <div className="bg-white dark:bg-stone-900 p-6 rounded-2xl border border-stone-100 dark:border-stone-800 flex flex-col justify-center">
@@ -283,7 +317,7 @@ export const FinanceView: React.FC = () => {
                         </div>
                         <h4 className="text-2xl font-serif text-red-600">{formatCurrency(balance.expense)}</h4>
                     </div>
-                    <p className="text-stone-400 text-[10px] italic">Gasto total acumulado</p>
+                    <p className="text-stone-400 text-[10px] italic">Gasto del periodo ({dateFilterLabel})</p>
                 </div>
             </div>
 
@@ -305,7 +339,28 @@ export const FinanceView: React.FC = () => {
                             {/* Filters removed as requested */}
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide shrink-0 lg:max-w-[60%]">
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-2 px-2 pt-2 lg:pt-0 scrollbar-hide shrink-0 w-full lg:w-auto">
+                        <div className="flex items-center gap-1 border-r border-stone-200 dark:border-stone-800 pr-2 mr-1">
+                            <CalendarDays className="w-3.5 h-3.5 text-stone-400 mr-1" />
+                            {[
+                                { label: 'DÍA', value: 'day' },
+                                { label: 'SEM', value: 'week' },
+                                { label: 'MES', value: 'month' },
+                                { label: 'AÑO', value: 'year' },
+                                { label: 'TODO', value: 'all' },
+                            ].map((item) => (
+                                <button
+                                    key={`date-${item.value}`}
+                                    onClick={() => setDateFilter(item.value as any)}
+                                    className={`px-3 py-1.5 rounded-full text-[9px] font-bold whitespace-nowrap transition-all border ${dateFilter === item.value
+                                        ? 'bg-stone-900 text-white border-stone-900 dark:bg-white dark:text-stone-900'
+                                        : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800 hover:border-stone-300'
+                                        }`}
+                                >
+                                    {item.label}
+                                </button>
+                            ))}
+                        </div>
                         <div className="p-2 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-800 shrink-0">
                             <Filter className="w-3.5 h-3.5 text-stone-400" />
                         </div>
@@ -334,8 +389,8 @@ export const FinanceView: React.FC = () => {
                                         }
                                     }}
                                     className={`px-4 py-2 rounded-full text-[9px] font-bold whitespace-nowrap transition-all border ${isActive
-                                            ? 'bg-stone-900 text-white border-stone-900 dark:bg-white dark:text-stone-900'
-                                            : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800 hover:border-stone-300'
+                                        ? 'bg-stone-900 text-white border-stone-900 dark:bg-white dark:text-stone-900'
+                                        : 'bg-white dark:bg-stone-900 text-stone-400 border-stone-200 dark:border-stone-800 hover:border-stone-300'
                                         }`}
                                 >
                                     {item.label}
