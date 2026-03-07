@@ -87,7 +87,7 @@ export const PublicCatalog = () => {
         let result = products.filter(p => {
             // Never show sold out products in public catalog
             if (p.status === ProductStatus.SOLD_OUT) return false;
-            const matchesSearch = !q || p.name.toLowerCase().includes(q) || (p.description?.toLowerCase().includes(q));
+            const matchesSearch = !q || p.name.toLowerCase().includes(q);
             const matchesPrice = p.price >= minPrice && (maxPrice === 300000 ? true : p.price <= maxPrice);
             const matchesStatus = statusFilter === 'All' || p.status === statusFilter;
             const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
