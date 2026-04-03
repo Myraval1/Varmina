@@ -257,8 +257,17 @@ export const OrdersView: React.FC = () => {
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 min-h-[calc(100vh-100px)] p-4 lg:p-0">
-            {/* Left Col: Product & Asset Selector */}
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 max-w-7xl mx-auto flex flex-col h-full lg:pt-4">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4 md:px-0 mb-6 shrink-0">
+                <div>
+                    <h1 className="font-serif text-xl md:text-3xl text-stone-900 dark:text-gold-200 tracking-wider mb-1 uppercase">Ventas</h1>
+                    <p className="text-stone-400 text-[10px] md:text-xs font-sans tracking-[0.2em] uppercase font-bold">Terminal Punto de Venta</p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 min-h-[calc(100vh-150px)] px-4 lg:px-0 pb-20 lg:pb-0">
+                {/* Left Col: Product & Asset Selector */}
             <div className="lg:col-span-2 flex flex-col h-auto lg:h-[calc(100vh-140px)]">
                 <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-sm overflow-hidden flex flex-col h-full">
                     {/* Header with Search and Tabs */}
@@ -583,6 +592,7 @@ export const OrdersView: React.FC = () => {
                         </Button>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     );

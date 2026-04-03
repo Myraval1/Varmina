@@ -349,6 +349,14 @@ export const AdminDashboardView = () => {
                                                     )}
                                                 </div>
 
+                                                {/* Desktop Location */}
+                                                <div className="hidden lg:flex justify-center items-center">
+                                                    <div className="flex items-center gap-1 text-[10px] text-stone-500 italic">
+                                                        <MapPin className="w-3 h-3 text-stone-400" />
+                                                        <span className="truncate max-w-[100px]">{product.location || 'Sin definir'}</span>
+                                                    </div>
+                                                </div>
+
                                                 {/* Desktop Status */}
                                                 <div className="hidden lg:flex justify-center items-center">
                                                     <div className="relative inline-block">
@@ -366,14 +374,6 @@ export const AdminDashboardView = () => {
                                                         <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-current opacity-50">
                                                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                                                         </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Desktop Location */}
-                                                <div className="hidden lg:flex justify-center items-center">
-                                                    <div className="flex items-center gap-1 text-[10px] text-stone-500 italic">
-                                                        <MapPin className="w-3 h-3 text-stone-400" />
-                                                        <span className="truncate max-w-[100px]">{product.location || 'Sin definir'}</span>
                                                     </div>
                                                 </div>
 
