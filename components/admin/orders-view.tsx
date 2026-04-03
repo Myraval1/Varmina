@@ -296,7 +296,6 @@ export const OrdersView: React.FC = () => {
                                     <Search className="w-5 h-5 text-stone-400 group-focus-within:text-gold-600 transition-colors" />
                                 </div>
                                 <Input
-                                    autoFocus
                                     placeholder={activeTab === 'products' ? "Escanea o busca joyas por código/nombre..." : "Busca insumos de empaque..."}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}

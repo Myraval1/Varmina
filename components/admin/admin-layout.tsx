@@ -22,7 +22,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
     } = useStore();
     const { signOut } = useAuth();
     const router = useRouter();
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(true);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
 
     const handleLogout = async () => {
         try {
