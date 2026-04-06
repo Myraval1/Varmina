@@ -211,7 +211,7 @@ export const OrdersView: React.FC = () => {
 
     // Filter Products (exclude sold out)
     const filteredProducts = products.filter(p => {
-        if (p.status === ProductStatus.SOLD_OUT) return false;
+        if (p.status === ProductStatus.SOLD_OUT || p.status === ProductStatus.MADE_TO_ORDER) return false;
         const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (p.collections && p.collections.some(c => c.toLowerCase().includes(searchTerm.toLowerCase())));
         const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
