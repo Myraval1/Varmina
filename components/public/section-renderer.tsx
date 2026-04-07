@@ -99,14 +99,7 @@ const CategoriesSection: React.FC<{ config: Record<string, any> }> = ({ config }
         }));
     }, [products]);
 
-    if (categoryData.length === 0) return null;
-
-    const columns = config.columns || 3;
-    const gridClass = columns === 2
-        ? 'grid-cols-2'
-        : columns === 4
-            ? 'grid-cols-2 md:grid-cols-4'
-            : 'grid-cols-2 lg:grid-cols-3';
+    const gridClass = 'grid-cols-2 lg:grid-cols-4';
 
     return (
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20">
@@ -205,14 +198,7 @@ const CollectionsSection: React.FC<{ config: Record<string, any> }> = ({ config 
         return result;
     }, [products, config.max_items]);
 
-    if (collectionData.length === 0) return null;
-
-    const columns = config.columns || 2;
-    const gridClass = columns === 3
-        ? 'grid-cols-2 lg:grid-cols-3'
-        : columns === 4
-            ? 'grid-cols-2 lg:grid-cols-4'
-            : 'grid-cols-2';
+    const gridClass = 'grid-cols-2 lg:grid-cols-4';
 
     return (
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20">

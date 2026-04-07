@@ -1,25 +1,8 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { useState, useEffect } from 'react';
-import { pageLayoutService, PageSection } from '@/services/pageLayoutService';
-
-// Lazy load both components
-const SectionRenderer = dynamic(() => import('@/components/public/section-renderer').then(m => ({ default: m.SectionRenderer })), {
-    loading: () => (
-        <div className="w-full min-h-screen bg-white dark:bg-stone-950 flex items-center justify-center">
-            <div className="w-10 h-10 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-    ),
-});
-
-const PublicCatalog = dynamic(() => import('@/components/public/public-catalog').then(m => ({ default: m.PublicCatalog })), {
-    loading: () => (
-        <div className="w-full min-h-screen bg-white dark:bg-stone-950 flex items-center justify-center">
-            <div className="w-10 h-10 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-    ),
-});
+import { Suspense } from 'react';
+import { SectionRenderer } from '@/components/public/section-renderer';
+import { PublicCatalog } from '@/components/public/public-catalog';
 
 // Module-level cache for sections (survives component re-mounts)
 let sectionsCache: { data: PageSection[]; timestamp: number } | null = null;
@@ -68,12 +51,26 @@ export default function Page() {
     if (sections && sections.length > 0) {
         return (
             <div className="flex flex-col min-h-screen bg-white dark:bg-stone-950">
-                <SectionRenderer prefetchedSections={sections} />
-                {!hasCatalogSection && <PublicCatalog />}
+                <Suspense fallback={
+                    <div className="w-full min-h-screen flex items-center justify-center">
+                        <div className="w-10 h-10 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                }>
+                    <SectionRenderer prefetchedSections={sections} />
+                    {!hasCatalogSection && <PublicCatalog />}
+                </Suspense>
             </div>
         );
     }
 
     // Fallback to purely the original catalog if no page builder configuration exists
-    return <PublicCatalog />;
+    return (
+        <Suspense fallback={
+            <div className="w-full min-h-screen flex items-center justify-center">
+                <div className="w-10 h-10 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+        }>
+            <PublicCatalog />
+        </Suspense>
+    );
 }
