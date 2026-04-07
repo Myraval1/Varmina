@@ -179,8 +179,10 @@ const CollectionsSection: React.FC<{ config: Record<string, any> }> = ({ config 
         const colMap = new Map<string, { count: number; images: string[] }>();
 
         available.forEach(p => {
-            if (!p.collections) return;
-            p.collections.forEach(col => {
+            const cols = Array.isArray(p.collections) ? p.collections : [];
+            if (cols.length === 0) return;
+            
+            cols.forEach(col => {
                 const existing = colMap.get(col);
                 if (!existing) {
                     colMap.set(col, { count: 1, images: p.images?.slice(0, 1) || [] });

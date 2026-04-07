@@ -61,11 +61,19 @@ export default function Page() {
         );
     }
 
+    // Check if the sections explicitly include a catalog block
+    const hasCatalogSection = sections?.some(s => s.section_type === 'catalog') ?? false;
+
     // Section-based rendering — pass sections to avoid double fetch
-    if (sections.length > 0) {
-        return <SectionRenderer prefetchedSections={sections} />;
+    if (sections && sections.length > 0) {
+        return (
+            <div className="flex flex-col min-h-screen bg-white dark:bg-stone-950">
+                <SectionRenderer prefetchedSections={sections} />
+                {!hasCatalogSection && <PublicCatalog />}
+            </div>
+        );
     }
 
-    // Fallback to original catalog
+    // Fallback to purely the original catalog if no page builder configuration exists
     return <PublicCatalog />;
 }

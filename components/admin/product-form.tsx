@@ -659,7 +659,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                             disabled={formData.variants && formData.variants.length > 0}
                                             value={formData.variants && formData.variants.length > 0
                                                 ? formData.variants.reduce((sum, v) => sum + (v.stock || 0), 0)
-                                                : (formData.stock === 0 ? '' : formData.stock)
+                                                : (formData.stock === 0 ? '' : (formData.stock ?? ''))
                                             }
                                             onChange={(val: number) => setFormData({ ...formData, stock: val })}
                                             onFocus={(e: any) => e.target.select()}
@@ -709,7 +709,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSave, o
                                         type="number"
                                         className="w-full bg-stone-50 dark:bg-stone-950/50 border border-stone-200 dark:border-stone-700 rounded-lg py-3 pl-10 pr-4 text-xl font-bold text-stone-900 dark:text-white focus:border-gold-500 focus:ring-1 focus:ring-gold-500 outline-none transition-all placeholder:text-stone-300"
                                         placeholder="0"
-                                        value={formData.price === 0 ? '' : formData.price}
+                                        value={formData.price === 0 ? '' : (formData.price ?? '')}
                                         onChange={(val: number) => setFormData({ ...formData, price: val })}
                                         onFocus={(e: any) => e.target.select()}
                                         onWheel={(e: any) => (e.target as HTMLInputElement).blur()}
