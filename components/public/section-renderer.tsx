@@ -133,15 +133,12 @@ const CategoriesSection: React.FC<{ config: Record<string, any> }> = ({ config }
                         href={`/?category=${encodeURIComponent(cat.name)}`}
                         className="group relative overflow-hidden rounded-lg aspect-square bg-stone-100 dark:bg-stone-800 cursor-pointer block"
                     >
-                        {/* Background Image */}
-                        {cat.image && (
                             <img
                                 src={cat.image}
                                 alt={cat.name}
-                                className="absolute inset-0 w-full h-full object-contain p-2 transition-transform duration-700 ease-out group-hover:scale-105"
+                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                                 loading="lazy"
                             />
-                        )}
 
                         {/* Gradient Overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent group-hover:from-black/80 transition-colors duration-500" />
@@ -243,29 +240,29 @@ const CollectionsSection: React.FC<{ config: Record<string, any> }> = ({ config 
                         className="group relative overflow-hidden rounded-lg bg-stone-100 dark:bg-stone-800 cursor-pointer block"
                     >
                         {/* Image Mosaic or Single Image */}
-                        <div className="aspect-square relative p-2">
+                        <div className="aspect-square relative flex">
                             {col.images.length >= 4 ? (
                                 // 2x2 mosaic
-                                <div className="grid grid-cols-2 grid-rows-2 gap-2 w-full h-full">
+                                <div className="grid grid-cols-2 grid-rows-2 gap-[2px] w-full h-full p-0">
                                     {col.images.slice(0, 4).map((img, i) => (
                                         <img
                                             key={i}
                                             src={img}
                                             alt=""
-                                            className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105"
+                                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                                             loading="lazy"
                                         />
                                     ))}
                                 </div>
                             ) : col.images.length >= 2 ? (
                                 // Side-by-side
-                                <div className="grid grid-cols-2 gap-2 w-full h-full">
+                                <div className="grid grid-cols-2 gap-[2px] w-full h-full p-0">
                                     {col.images.slice(0, 2).map((img, i) => (
                                         <img
                                             key={i}
                                             src={img}
                                             alt=""
-                                            className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105"
+                                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                                             loading="lazy"
                                         />
                                     ))}
@@ -274,7 +271,7 @@ const CollectionsSection: React.FC<{ config: Record<string, any> }> = ({ config 
                                 <img
                                     src={col.images[0]}
                                     alt={col.name}
-                                    className="w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105"
+                                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                                     loading="lazy"
                                 />
                             ) : (

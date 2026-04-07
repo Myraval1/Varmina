@@ -161,7 +161,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                     <div className="w-full relative">
                         {/* Main Image - adapts to image aspect ratio */}
                         <div
-                            className="w-full relative overflow-hidden bg-stone-50 dark:bg-stone-900/50 flex items-center justify-center md:rounded-lg"
+                            className="w-full aspect-square relative overflow-hidden bg-stone-50 dark:bg-stone-900/50 flex items-center justify-center md:rounded-lg"
                             onTouchStart={onTouchStart}
                             onTouchMove={onTouchMove}
                             onTouchEnd={onTouchEnd}
@@ -181,7 +181,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                         fill
                                         sizes="(max-width: 768px) 100vw, 50vw"
                                         className={cn(
-                                            "object-contain transition-opacity duration-500 ease-in-out",
+                                            "object-cover transition-opacity duration-500 ease-in-out",
                                             isActive ? "opacity-100 relative z-10" : "opacity-0 absolute inset-0 z-0"
                                         )}
                                         alt={product.name}
@@ -245,7 +245,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                         )}
                                         aria-label={`Ver imagen ${idx + 1}`}
                                     >
-                                        <Image src={img} fill sizes="80px" className="object-contain p-1" alt="" draggable={false} unoptimized={img.startsWith('data:')} />
+                                        <Image src={img} fill sizes="80px" className="object-cover" alt="" draggable={false} unoptimized={img.startsWith('data:')} />
                                     </button>
                                 ))}
                             </div>

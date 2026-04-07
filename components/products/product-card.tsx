@@ -46,9 +46,9 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, cu
         >
             {/* Image Container */}
             <div className={cn(
-                "relative overflow-hidden bg-stone-50 dark:bg-stone-800/50 rounded-sm",
+                "relative overflow-hidden rounded-md",
                 isList
-                    ? "w-24 h-32 md:w-48 md:h-64 shrink-0"
+                    ? "w-24 h-24 md:w-48 md:h-48 shrink-0"
                     : "w-full aspect-square"
             )}>
                 <Image
@@ -57,9 +57,9 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, cu
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className={cn(
-                        "object-contain transition-all duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] p-2",
+                        "object-cover transition-all duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]",
                         hoverActive && hoverImage ? "opacity-0" : "opacity-100",
-                        !hoverActive && "group-hover:scale-105"
+                        !hoverActive && "group-hover:scale-[1.03]"
                     )}
                     priority={layout === 'grid'}
                 />
@@ -72,8 +72,8 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, cu
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className={cn(
-                            "object-contain p-2 transition-opacity duration-500 ease-in-out",
-                            hoverActive ? "opacity-100 scale-105" : "opacity-0"
+                            "object-cover transition-opacity duration-500 ease-in-out",
+                            hoverActive ? "opacity-100 scale-[1.03]" : "opacity-0"
                         )}
                         loading="lazy"
                     />
