@@ -222,10 +222,10 @@ export const PublicCatalog = ({
                 </div>
             )}
 
-            {/* --- Sticky Header / Controls --- */}
-            <div className="sticky top-16 md:top-24 z-30 bg-white/80 dark:bg-stone-950/80 backdrop-blur-md border-b border-stone-100 dark:border-stone-800 transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
-                    <div className="flex flex-col gap-4">
+            {/* --- Top Controls / Filter Bar --- */}
+            <div className="relative z-20 bg-white dark:bg-stone-950 border-b border-stone-100 dark:border-stone-800 transition-all duration-300">
+                <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 md:py-4">
+                    <div className="flex flex-col gap-3 md:gap-4">
                         {/* Top: Title & Search */}
                         <div className="flex items-center justify-between gap-4">
                             <h2 className="font-serif text-lg md:text-2xl tracking-[0.15em] text-stone-900 dark:text-white uppercase hidden md:block">
