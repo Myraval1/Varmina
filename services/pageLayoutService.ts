@@ -1,6 +1,7 @@
-import { createClient } from '@/utils/supabase/client';
+import { createClient as createBrowserClient } from '@/utils/supabase/client';
+import { SupabaseClient } from '@supabase/supabase-js';
 
-const supabase = createClient();
+const defaultClient = createBrowserClient();
 
 export interface PageSection {
     id: string;
@@ -64,8 +65,9 @@ export const SECTION_DEFAULTS: Record<PageSection['section_type'], { label: stri
 
 export const pageLayoutService = {
     /** Get visible sections for public rendering */
-    getSections: async (pageSlug = 'home'): Promise<PageSection[]> => {
-        const { data, error } = await supabase
+    getSections: async (pageSlug = 'home', client?: SupabaseClient): Promise<PageSection[]> => {
+        const sb = client || defaultClient;
+        const { data, error } = await sb
             .from('page_sections')
             .select('*')
             .eq('page_slug', pageSlug)
@@ -80,8 +82,9 @@ export const pageLayoutService = {
     },
 
     /** Get ALL sections for admin (includes hidden) */
-    getAllSections: async (pageSlug = 'home'): Promise<PageSection[]> => {
-        const { data, error } = await supabase
+    getAllSections: async (pageSlug = 'home', client?: SupabaseClient): Promise<PageSection[]> => {
+        const sb = client || defaultClient;
+        const { data, error } = await sb
             .from('page_sections')
             .select('*')
             .eq('page_slug', pageSlug)
@@ -95,8 +98,9 @@ export const pageLayoutService = {
     },
 
     /** Create a new section */
-    createSection: async (section: Pick<PageSection, 'page_slug' | 'section_type' | 'position' | 'config'>): Promise<PageSection | null> => {
-        const { data, error } = await supabase
+    createSection: async (section: Pick<PageSection, 'page_slug' | 'section_type' | 'position' | 'config'>, client?: SupabaseClient): Promise<PageSection | null> => {
+        const sb = client || defaultClient;
+        const { data, error } = await sb
             .from('page_sections')
             .insert({
                 ...section,
@@ -114,8 +118,9 @@ export const pageLayoutService = {
     },
 
     /** Update a section's config, visibility, or position */
-    updateSection: async (id: string, updates: Partial<Pick<PageSection, 'config' | 'is_visible' | 'position'>>): Promise<void> => {
-        const { error } = await supabase
+    updateSection: async (id: string, updates: Partial<Pick<PageSection, 'config' | 'is_visible' | 'position'>>, client?: SupabaseClient): Promise<void> => {
+        const sb = client || defaultClient;
+        const { error } = await sb
             .from('page_sections')
             .update({ ...updates, updated_at: new Date().toISOString() })
             .eq('id', id);
@@ -127,8 +132,9 @@ export const pageLayoutService = {
     },
 
     /** Delete a section */
-    deleteSection: async (id: string): Promise<void> => {
-        const { error } = await supabase
+    deleteSection: async (id: string, client?: SupabaseClient): Promise<void> => {
+        const sb = client || defaultClient;
+        const { error } = await sb
             .from('page_sections')
             .delete()
             .eq('id', id);
@@ -140,10 +146,10 @@ export const pageLayoutService = {
     },
 
     /** Batch reorder sections by updating positions */
-    reorderSections: async (orderedIds: string[]): Promise<void> => {
-        // Update each section's position based on its index in the array
+    reorderSections: async (orderedIds: string[], client?: SupabaseClient): Promise<void> => {
+        const sb = client || defaultClient;
         const updates = orderedIds.map((id, index) =>
-            supabase
+            sb
                 .from('page_sections')
                 .update({ position: index, updated_at: new Date().toISOString() })
                 .eq('id', id)

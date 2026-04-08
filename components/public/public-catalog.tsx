@@ -124,6 +124,25 @@ export const PublicCatalog = ({
 
     const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
+    // Safe mount gate for hydration/SSR stability
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return (
+            <div className="w-full min-h-screen bg-white dark:bg-stone-950 flex items-center justify-center">
+                <div className="w-10 h-10 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    // Unify grid logic: 4 on desktop, 3 on tablet, 2 on mobile
+    const gridLayoutClass = layout === 'grid'
+        ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-16'
+        : 'flex flex-col gap-6 max-w-3xl mx-auto';
+
     return (
         <div className="w-full min-h-screen bg-white dark:bg-stone-950">
 
@@ -348,12 +367,7 @@ export const PublicCatalog = ({
                         )}
 
                         {/* Product Grid / List */}
-                        <div className={cn(
-                            "animate-fade-in",
-                            layout === 'grid'
-                                ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-16'
-                                : 'flex flex-col gap-6 max-w-3xl mx-auto'
-                        )}>
+                        <div className={cn("animate-fade-in", gridLayoutClass)}>
                             {filteredProducts.map(product => (
                                 <ProductCard
                                     key={product.id}

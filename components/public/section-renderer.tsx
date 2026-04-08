@@ -305,6 +305,7 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [showScrollTop, setShowScrollTop] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     const [minPrice, setMinPrice] = useState(0);
     const [maxPrice, setMaxPrice] = useState(300000);
@@ -312,6 +313,10 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
     const [categoryFilter, setCategoryFilter] = useState<string>(() => searchParams?.get('category') || 'All');
     const [collectionFilter, setCollectionFilter] = useState<string>(() => searchParams?.get('collection') || 'All');
     const [sort, setSort] = useState<SortOption>('newest');
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Sync filters when URL params change
     useEffect(() => {
@@ -323,7 +328,6 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
 
     const showSearch = config.show_search !== false;
     const showFilters = config.show_filters !== false;
-    const columns = config.columns || 4;
     const maxItems = config.max_items || 0;
 
     useEffect(() => {
@@ -382,7 +386,17 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
 
     const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    const gridClass = columns === 2 ? 'grid-cols-2' : columns === 3 ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
+    if (!mounted) {
+        return (
+            <div className="w-full py-20 flex items-center justify-center">
+                <div className="w-10 h-10 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    const gridLayoutClass = layout === 'grid'
+        ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8 md:gap-x-8 md:gap-y-16'
+        : 'flex flex-col gap-6 max-w-3xl mx-auto';
 
     return (
         <>
@@ -444,7 +458,7 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
             {/* Product Grid */}
             <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-6 md:py-12">
                 {loading ? (
-                    <div className={`grid ${gridClass} gap-4 md:gap-6`}>
+                    <div className={cn("grid gap-4 md:gap-6", gridLayoutClass)}>
                         {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-lg" />)}
                     </div>
                 ) : filteredProducts.length === 0 ? (
@@ -458,7 +472,7 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
                         )}
                     </div>
                 ) : (
-                    <>
+                    <div className={cn("animate-fade-in", gridLayoutClass)}>
                         {/* Product count */}
                         <div className="flex items-center justify-between mb-6">
                             <p className="text-[10px] text-stone-400 uppercase tracking-widest font-bold">
