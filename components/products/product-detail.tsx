@@ -155,13 +155,13 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
             </div>
 
             {/* ─── SHOPIFY-STYLE TWO COLUMN LAYOUT ─── */}
-            <div className="max-w-7xl mx-auto px-0 md:px-8 pb-16">
-                <div className="md:grid md:grid-cols-[1.2fr,380px] lg:grid-cols-[1.2fr,400px] md:gap-12 lg:gap-16">
+            <div className="max-w-6xl mx-auto px-0 md:px-8 pb-16">
+                <div className="md:grid md:grid-cols-[0.8fr,450px] lg:grid-cols-[0.8fr,480px] md:gap-16 lg:gap-24">
                     {/* LEFT: Image Gallery */}
                     <div className="w-full relative">
                         {/* Main Image container - limiting height on desktop for better visibility */}
                         <div
-                            className="w-full aspect-square md:aspect-[4/5] lg:aspect-square md:max-h-[550px] lg:max-h-[650px] relative overflow-hidden bg-stone-50 dark:bg-stone-900/50 flex items-center justify-center md:rounded-lg"
+                            className="w-full aspect-square md:aspect-[4/5] lg:aspect-square md:max-h-[450px] lg:max-h-[550px] relative overflow-hidden bg-stone-50 dark:bg-stone-900/50 flex items-center justify-center md:rounded-lg"
                             onTouchStart={onTouchStart}
                             onTouchMove={onTouchMove}
                             onTouchEnd={onTouchEnd}
@@ -181,7 +181,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                         fill
                                         sizes="(max-width: 768px) 100vw, 50vw"
                                         className={cn(
-                                            "object-cover transition-opacity duration-500 ease-in-out",
+                                            "object-contain p-4 transition-opacity duration-500 ease-in-out",
                                             isActive ? "opacity-100 relative z-10" : "opacity-0 absolute inset-0 z-0"
                                         )}
                                         alt={product.name}
@@ -336,7 +336,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                             <div className="pt-2">
                                 <Button
                                     className="w-full py-6 text-xs uppercase tracking-[0.2em] bg-stone-900 hover:bg-stone-800 dark:bg-white dark:hover:bg-stone-200 text-white dark:text-stone-900 shadow-xl transition-all rounded"
-                                    disabled={loading || (product.status === ProductStatus.SOLD_OUT)}
+                                    disabled={isAdding || (product.status === ProductStatus.SOLD_OUT)}
                                     onClick={handleAddToCart}
                                     isLoading={isAdding}
                                 >

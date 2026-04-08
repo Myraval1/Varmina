@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Product } from '@/types';
 
-export const usePublicProducts = () => {
+export const usePublicProducts = (options?: { shuffle?: boolean }) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -16,17 +16,28 @@ export const usePublicProducts = () => {
             try {
                 const { data, error } = await supabase
                     .from('products')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+                    .select('*');
+                // Removing default order to let shuffle work effectively or just fetch all
 
                 if (!mounted) return;
                 if (error) throw error;
 
-                const parsed = (data as Record<string, unknown>[])?.map(p => ({
+                let parsed = (data as Record<string, unknown>[])?.map(p => ({
                     ...p,
                     price: Number(p.price),
                     stock: Number(p.stock)
                 })) as Product[] || [];
+
+                // Simple Fisher-Yates Shuffle if requested
+                if (options?.shuffle) {
+                    for (let i = parsed.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [parsed[i], parsed[j]] = [parsed[j], parsed[i]];
+                    }
+                } else {
+                    // Default to newest first if not shuffled
+                    parsed.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+                }
 
                 setProducts(parsed);
             } catch (err: unknown) {
@@ -42,7 +53,7 @@ export const usePublicProducts = () => {
         return () => {
             mounted = false;
         };
-    }, []);
+    }, [options?.shuffle]);
 
     return { products, loading, error };
 };

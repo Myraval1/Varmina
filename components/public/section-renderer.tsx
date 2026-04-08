@@ -75,7 +75,7 @@ const HeroSection: React.FC<{ config: Record<string, any> }> = ({ config }) => {
 // ─── Categories Section ────────────────────────────────────────────────
 
 const CategoriesSection: React.FC<{ config: Record<string, any> }> = ({ config }) => {
-    const { products } = usePublicProducts();
+    const { products } = usePublicProducts({ shuffle: true });
 
     const categoryData = useMemo(() => {
         const available = products.filter(p => p.status !== ProductStatus.SOLD_OUT);
@@ -162,7 +162,7 @@ const CategoriesSection: React.FC<{ config: Record<string, any> }> = ({ config }
 // ─── Collections Section ───────────────────────────────────────────────
 
 const CollectionsSection: React.FC<{ config: Record<string, any> }> = ({ config }) => {
-    const { products } = usePublicProducts();
+    const { products } = usePublicProducts({ shuffle: true });
 
     const collectionData = useMemo(() => {
         const available = products.filter(p => p.status !== ProductStatus.SOLD_OUT);
@@ -293,11 +293,11 @@ const CollectionsSection: React.FC<{ config: Record<string, any> }> = ({ config 
 
 // ─── Catalog Section (Product Grid with Search/Filters) ───────────────
 
-type SortOption = 'newest' | 'price_asc' | 'price_desc';
+type SortOption = 'newest' | 'price_asc' | 'price_desc' | 'random';
 
 const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) => {
     const { currency } = useStore();
-    const { products, loading } = usePublicProducts();
+    const { products, loading } = usePublicProducts({ shuffle: true });
     const searchParams = useSearchParams();
 
     const [layout, setLayout] = useState<'grid' | 'list'>('grid');
@@ -312,7 +312,7 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
     const [statusFilter, setStatusFilter] = useState<ProductStatus | 'All'>('All');
     const [categoryFilter, setCategoryFilter] = useState<string>(() => searchParams?.get('category') || 'All');
     const [collectionFilter, setCollectionFilter] = useState<string>(() => searchParams?.get('collection') || 'All');
-    const [sort, setSort] = useState<SortOption>('newest');
+    const [sort, setSort] = useState<SortOption>('random');
 
     useEffect(() => {
         setMounted(true);
@@ -366,6 +366,7 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
         });
 
         result = result.sort((a, b) => {
+            if (sort === 'random') return 0; // Maintain scrambled order from hook
             if (sort === 'price_asc') return a.price - b.price;
             if (sort === 'price_desc') return b.price - a.price;
             return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
@@ -515,7 +516,7 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
                             <div>
                                 <label className="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-3">Ordenar</label>
                                 <div className="space-y-2">
-                                    {([['newest', 'Más Recientes'], ['price_asc', 'Precio: Menor a Mayor'], ['price_desc', 'Precio: Mayor a Menor']] as [SortOption, string][]).map(([val, label]) => (
+                                    {([['random', 'Recomendados'], ['newest', 'Más Recientes'], ['price_asc', 'Precio: Menor a Mayor'], ['price_desc', 'Precio: Mayor a Menor']] as [SortOption, string][]).map(([val, label]) => (
                                         <button key={val} onClick={() => setSort(val)} className={cn('w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border', sort === val ? 'bg-stone-900 text-white border-stone-900 dark:bg-white dark:text-stone-900' : 'border-stone-100 dark:border-stone-800 text-stone-400 hover:border-stone-300')}>
                                             {label} {sort === val && <Check className="w-4 h-4" />}
                                         </button>
@@ -545,7 +546,7 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
 
 const FeaturedSection: React.FC<{ config: Record<string, any> }> = ({ config }) => {
     const { currency } = useStore();
-    const { products } = usePublicProducts();
+    const { products } = usePublicProducts({ shuffle: true });
 
     const filteredProducts = useMemo(() => {
         let result = products.filter(p => p.status !== ProductStatus.SOLD_OUT);
