@@ -1,8 +1,9 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { SectionRenderer } from '@/components/public/section-renderer';
 import { PublicCatalog } from '@/components/public/public-catalog';
+import { pageLayoutService, PageSection } from '@/services/pageLayoutService';
 
 // Module-level cache for sections (survives component re-mounts)
 let sectionsCache: { data: PageSection[]; timestamp: number } | null = null;
