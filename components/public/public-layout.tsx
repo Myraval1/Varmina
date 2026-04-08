@@ -47,7 +47,7 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children
     const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const whatsappNumber = "56944106742";
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=Hola!%20Me%20gustaría%20más%20información%20sobre%20sus%20joyas.`;
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=Hola!%20Me%20gustaría%20saber%20más%20información%20sobre%20sus%20joyas.`;
 
     const year = mounted ? new Date().getFullYear() : 2026;
 

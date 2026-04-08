@@ -307,8 +307,8 @@ const CollectionsSection: React.FC<{ config: Record<string, any> }> = ({ config 
 type SortOption = 'newest' | 'price_asc' | 'price_desc' | 'random';
 
 const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) => {
-    const { currency } = useStore();
-    const { products, loading } = usePublicProducts({ shuffle: true });
+    const { currency, refreshProducts } = useStore();
+    const { products, loading, error } = usePublicProducts({ shuffle: true });
     const searchParams = useSearchParams();
 
     const [layout, setLayout] = useState<'grid' | 'list'>('grid');
@@ -460,13 +460,26 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
                 </div>
             )}
 
-            {/* Product Grid */}
             <div className="max-w-[1600px] mx-auto px-4 md:px-12 py-6 md:py-12">
                 {loading ? (
                     <div className={cn("grid gap-4 md:gap-6", gridLayoutClass)}>
                         {Array.from({ length: 8 }).map((_, i) => (
                             <Skeleton key={i} className="aspect-square rounded-lg" />
                         ))}
+                    </div>
+                ) : error && products.length === 0 ? (
+                    <div className="text-center py-24 animate-fade-in">
+                        <div className="w-16 h-16 bg-red-50 dark:bg-red-900/10 rounded-full flex items-center justify-center mx-auto mb-6 text-red-500">
+                            <X className="w-8 h-8" />
+                        </div>
+                        <h3 className="font-serif text-xl text-stone-900 dark:text-white mb-2">Error de conexión</h3>
+                        <p className="text-stone-400 text-xs uppercase tracking-widest mb-8 max-w-xs mx-auto">No pudimos cargar el catálogo. Por favor intenta de nuevo.</p>
+                        <button 
+                            onClick={() => refreshProducts(true)} 
+                            className="px-8 py-3 bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-xs uppercase tracking-widest font-bold rounded-full hover:opacity-90 transition-opacity"
+                        >
+                            Reintentar
+                        </button>
                     </div>
                 ) : filteredProducts.length === 0 ? (
                     <div className="text-center py-24">

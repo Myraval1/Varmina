@@ -21,8 +21,8 @@ export const PublicCatalog = ({
     collectionName?: string, 
     categoryName?: string 
 } = {}) => {
-    const { currency, settings } = useStore();
-    const { products, loading } = usePublicProducts();
+    const { currency, settings, refreshProducts } = useStore();
+    const { products, loading, error } = usePublicProducts();
     const searchParams = useSearchParams();
 
     const [layout, setLayout] = useState<'grid' | 'list'>('grid');
@@ -320,6 +320,22 @@ export const PublicCatalog = ({
                                 <Skeleton className="h-3 w-1/3" />
                             </div>
                         ))}
+                    </div>
+                ) : error && products.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-32 text-center animate-fade-in">
+                        <div className="w-20 h-20 bg-red-50 dark:bg-red-900/10 rounded-full flex items-center justify-center mb-6 text-red-500">
+                            <X className="w-8 h-8" />
+                        </div>
+                        <h3 className="font-serif text-xl md:text-2xl text-stone-900 dark:text-white mb-2">Error de conexión</h3>
+                        <p className="text-stone-500 dark:text-stone-400 max-w-sm mx-auto mb-8 text-sm uppercase tracking-widest">
+                            No pudimos cargar el catálogo. Por favor intenta de nuevo.
+                        </p>
+                        <button
+                            onClick={() => refreshProducts(true)}
+                            className="px-8 py-3 bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-xs font-bold uppercase tracking-[0.2em] rounded hover:opacity-90 transition-opacity"
+                        >
+                            Reintentar
+                        </button>
                     </div>
                 ) : filteredProducts.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-32 text-center animate-fade-in">

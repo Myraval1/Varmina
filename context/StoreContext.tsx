@@ -26,6 +26,7 @@ interface StoreContextType {
     activeAdminTab: 'overview' | 'inventory' | 'analytics' | 'finance' | 'settings' | 'erp' | 'orders' | 'designer';
     setActiveAdminTab: (tab: 'overview' | 'inventory' | 'analytics' | 'finance' | 'settings' | 'erp' | 'orders' | 'designer') => void;
     dataVersion: number; // Increments on any realtime data change, helps consumers invalidate their caches
+    error: string | null;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -53,6 +54,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const [settings, setSettings] = useState<BrandSettings | null>(null);
     const [activeAdminTab, setActiveAdminTab] = useState<'overview' | 'inventory' | 'analytics' | 'finance' | 'settings' | 'erp' | 'orders' | 'designer'>('overview');
     const [dataVersion, setDataVersion] = useState(0);
+    const [fetchError, setFetchError] = useState<string | null>(null);
     const transactionDebounceTimer = useRef<any>(null);
 
     // Cache & debounce refs
@@ -113,12 +115,18 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         lastProductsFetch.current = now;
 
         if (!silent) setDataLoading(true);
+        setFetchError(null);
         try {
-            const data = await withTimeout(supabaseProductService.getAll(), 15000, []);
+            const data = await withTimeout(supabaseProductService.getAll(), 15000, null);
+            if (data === null) {
+                throw new Error('Timeout al cargar productos. Por favor, refresque la página.');
+            }
             setProducts(data);
-        } catch (e) {
+        } catch (e: any) {
             console.error('Products Fetch Fail:', e);
-            if (!silent) addToast('error', 'Error al cargar productos');
+            const msg = e.message || 'Error al cargar productos';
+            setFetchError(msg);
+            if (!silent) addToast('error', msg);
         } finally {
             if (!silent) setDataLoading(false);
         }
@@ -237,11 +245,12 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         toasts, addToast, removeToast,
         settings, refreshSettings,
         activeAdminTab, setActiveAdminTab,
-        dataVersion
+        dataVersion,
+        error: fetchError
     }), [
         products, dataLoading, attributes, currency, toggleCurrency,
         refreshProducts, refreshAttributes, toasts, addToast, removeToast,
-        settings, refreshSettings, activeAdminTab, dataVersion
+        settings, refreshSettings, activeAdminTab, dataVersion, fetchError
     ]);
 
     return (
