@@ -221,7 +221,7 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children
             </div>
 
             {/* Main */}
-            <main className="flex-1 w-full flex flex-col items-center justify-start">
+            <main className="flex-1 w-full relative">
                 {children}
             </main>
 

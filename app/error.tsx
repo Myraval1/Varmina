@@ -56,7 +56,7 @@ export default function Error({
                 <div className="pt-12">
                     <div className="w-12 h-[1px] bg-gold-500 mx-auto opacity-50" />
                     <p className="mt-4 font-serif text-stone-400 dark:text-stone-600 text-xs italic">
-                        Varmina Joyas
+                        Varmina
                     </p>
                 </div>
             </div>

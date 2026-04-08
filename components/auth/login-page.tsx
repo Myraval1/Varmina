@@ -116,7 +116,7 @@ export const LoginPage = () => {
                         ← Volver a la Tienda Pública
                     </Link>
                     <p className="mt-8 text-[9px] text-stone-300 uppercase tracking-widest">
-                        © 2026 Varmina Joyas • Sistema Seguro Encajonado
+                        © 2026 Varmina • Sistema Seguro Encajonado
                     </p>
                 </div>
             </div>

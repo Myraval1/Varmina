@@ -164,7 +164,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
 
         // 2. Craftsmanship Feature
         if (content.match(/mano|autor|artesanal|taller/)) {
-            features.push({ label: 'Joyería de Autor', icon: ShieldCheck });
+            features.push({ label: 'Diseño Exclusivo', icon: ShieldCheck });
         } else {
             features.push({ label: 'Diseño Exclusivo', icon: ShieldCheck });
         }
@@ -319,8 +319,8 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                         )}
                     </div>
 
-                    {/* COL 3: Sticky Product Information */}
-                    <div className="lg:sticky lg:top-32 space-y-10 xl:space-y-12">
+                    {/* COL 3: Product Information */}
+                    <div className="space-y-10 xl:space-y-12">
                         {/* Header Info */}
                         <div className="space-y-6">
                             <div className="space-y-2">

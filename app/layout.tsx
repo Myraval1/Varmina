@@ -30,24 +30,24 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Varmina Joyas — Joyería de Tendencia",
-    template: "%s | Varmina Joyas",
+    default: "Varmina — Joyería de Tendencia",
+    template: "%s | Varmina",
   },
   description: "Descubre piezas únicas de joyería de tendencia. Collares, anillos, aros y pulseras con estilo y calidad. Envíos a todo Chile.",
   keywords: ["joyería de tendencia", "joyas", "collares", "anillos", "aros", "pulseras", "joyería chilena", "Varmina"],
-  authors: [{ name: "Varmina Joyas" }],
-  creator: "Varmina Joyas",
+  authors: [{ name: "Varmina" }],
+  creator: "Varmina",
   metadataBase: new URL("https://varmina.vercel.app"),
   openGraph: {
     type: "website",
-    title: "Varmina Joyas — Joyería de Tendencia",
+    title: "Varmina — Joyería de Tendencia",
     description: "Descubre piezas únicas de joyería de tendencia. Envíos a todo Chile.",
-    siteName: "Varmina Joyas",
+    siteName: "Varmina",
     locale: "es_CL",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Varmina Joyas — Joyería de Tendencia",
+    title: "Varmina — Joyería de Tendencia",
     description: "Joyería de tendencia hecha en Chile.",
   },
   robots: {

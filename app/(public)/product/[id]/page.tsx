@@ -36,15 +36,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!product) {
         return {
-            title: "Producto no encontrado | Varmina Joyas",
+            title: "Producto no encontrado | Varmina",
         };
     }
 
     return {
-        title: `${product.name} | Varmina Joyas`,
+        title: `${product.name} | Varmina`,
         description: product.description || `Detalles de ${product.name}`,
         openGraph: {
-            title: `${product.name} | Varmina Joyas`,
+            title: `${product.name} | Varmina`,
             description: product.description || `Detalles de ${product.name}`,
             images: product.images && product.images.length > 0 ? [product.images[0]] : [],
         },
