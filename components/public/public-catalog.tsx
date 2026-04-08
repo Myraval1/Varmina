@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
 import { usePublicProducts } from '@/hooks/use-public-products';
@@ -150,11 +151,13 @@ export const PublicCatalog = ({
             {!collectionName && !categoryName && (
                 settings?.hero_image_url ? (
                     <div className="relative w-full h-[60vh] md:h-[80vh] min-h-[400px] overflow-hidden group">
-                        <img
+                        <Image
                             src={settings.hero_image_url}
                             alt={settings.hero_title || "Varmina Collection"}
+                            fill
+                            priority
                             className="w-full h-full object-cover transition-transform duration-[20s] ease-linear group-hover:scale-110"
-                            fetchPriority="high"
+                            unoptimized={settings.hero_image_url.startsWith('data:')}
                         />
                         {/* Deep Premium Overlay */}
                         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-stone-900/60 flex flex-col items-center justify-center text-center p-6 md:p-12">

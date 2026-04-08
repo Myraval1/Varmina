@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
 import { Button } from '@/components/ui/button';
@@ -108,10 +109,13 @@ export const CartDrawer: React.FC = () => {
                                 {/* Image */}
                                 <div className="relative w-20 h-24 bg-stone-100 dark:bg-stone-800 rounded-lg overflow-hidden flex-shrink-0 border border-stone-200 dark:border-stone-700">
                                     {item.product.images[0] && (
-                                        <img
+                                        <Image
                                             src={item.product.images[0]}
                                             alt={item.product.name}
-                                            className="w-full h-full object-cover"
+                                            fill
+                                            sizes="80px"
+                                            className="object-cover"
+                                            unoptimized={item.product.images[0].startsWith('data:')}
                                         />
                                     )}
                                 </div>

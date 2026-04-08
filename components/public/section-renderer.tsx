@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
 import { usePublicProducts } from '@/hooks/use-public-products';
@@ -26,12 +27,14 @@ const HeroSection: React.FC<{ config: Record<string, any> }> = ({ config }) => {
     if (imageUrl) {
         return (
             <div className="relative w-full h-[70vh] md:h-[85vh] min-h-[400px] overflow-hidden group">
-                <img
+                <Image
                     src={imageUrl}
                     alt={title || 'Hero'}
+                    fill
+                    sizes="100vw"
+                    priority
                     className="w-full h-full object-cover transition-transform duration-[20s] ease-linear group-hover:scale-110"
-                    loading="eager"
-                    fetchPriority="high"
+                    unoptimized={imageUrl.startsWith('data:')}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-stone-900/70 flex flex-col items-center justify-center text-center p-6 md:p-12">
                     <div className="max-w-4xl space-y-6 animate-fade-in-up">
@@ -612,7 +615,17 @@ const ImageSection: React.FC<{ config: Record<string, any> }> = ({ config }) => 
 
     return (
         <div className={config.full_width !== false ? 'w-full' : 'max-w-5xl mx-auto px-4 md:px-8 py-8'}>
-            <img src={config.image_url} alt={config.alt_text || ''} className="w-full h-auto object-cover" loading="lazy" />
+            <div className="relative w-full aspect-video md:aspect-[21/9] overflow-hidden">
+                <Image
+                    src={config.image_url}
+                    alt={config.alt_text || ''}
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
+                    loading="lazy"
+                    unoptimized={config.image_url?.startsWith('data:')}
+                />
+            </div>
         </div>
     );
 };
