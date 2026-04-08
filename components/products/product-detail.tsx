@@ -320,9 +320,9 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                                     {v.stock !== undefined && (
                                                         <span className={cn(
                                                             "text-[8px] uppercase tracking-tighter",
-                                                            v.stock > 0 ? "text-green-600 dark:text-green-400" : "text-red-500 font-bold"
+                                                            v.stock > 0 ? "text-green-600 dark:text-green-400" : "text-stone-400 font-bold"
                                                         )}>
-                                                            {v.stock > 0 ? `${v.stock} disp.` : 'Agotado'}
+                                                            {v.stock > 0 ? `${v.stock} disp.` : (product.status === ProductStatus.MADE_TO_ORDER ? 'Cons. Disp.' : 'Agotado')}
                                                         </span>
                                                     )}
                                                 </div>
@@ -336,11 +336,15 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                             <div className="pt-2">
                                 <Button
                                     className="w-full py-6 text-xs uppercase tracking-[0.2em] bg-stone-900 hover:bg-stone-800 dark:bg-white dark:hover:bg-stone-200 text-white dark:text-stone-900 shadow-xl transition-all rounded"
-                                    disabled={isSoldOut || isVariantSoldOut}
+                                    disabled={loading || (product.status === ProductStatus.SOLD_OUT)}
                                     onClick={handleAddToCart}
                                     isLoading={isAdding}
                                 >
-                                    {isSoldOut || isVariantSoldOut ? 'AGOTADO' : 'AÑADIR A COTIZAR'}
+                                    {product.status === ProductStatus.SOLD_OUT 
+                                        ? 'AGOTADO' 
+                                        : product.status === ProductStatus.MADE_TO_ORDER 
+                                            ? 'CONSULTAR DISPONIBILIDAD' 
+                                            : 'AÑADIR A COTIZAR'}
                                 </Button>
                             </div>
 
