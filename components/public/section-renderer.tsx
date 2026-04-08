@@ -459,7 +459,9 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
             <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-8 py-6 md:py-12">
                 {loading ? (
                     <div className={cn("grid gap-4 md:gap-6", gridLayoutClass)}>
-                        {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="aspect-square rounded-lg" />)}
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <Skeleton key={i} className="aspect-square rounded-lg" />
+                        ))}
                     </div>
                 ) : filteredProducts.length === 0 ? (
                     <div className="text-center py-24">
@@ -473,19 +475,10 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
                     </div>
                 ) : (
                     <div className={cn("animate-fade-in", gridLayoutClass)}>
-                        {/* Product count */}
-                        <div className="flex items-center justify-between mb-6">
-                            <p className="text-[10px] text-stone-400 uppercase tracking-widest font-bold">
-                                {filteredProducts.length} {filteredProducts.length === 1 ? 'pieza' : 'piezas'}
-                            </p>
-                        </div>
-
-                        <div className={layout === 'grid' ? `grid ${gridClass} gap-x-4 gap-y-8 md:gap-x-6 md:gap-y-12` : 'space-y-4'}>
-                            {filteredProducts.map(product => (
-                                <ProductCard key={product.id} product={product} layout={layout} currency={currency} />
-                            ))}
-                        </div>
-                    </>
+                        {filteredProducts.map(product => (
+                            <ProductCard key={product.id} product={product} layout={layout} currency={currency} />
+                        ))}
+                    </div>
                 )}
             </div>
 
