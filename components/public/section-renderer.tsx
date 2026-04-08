@@ -78,7 +78,7 @@ const HeroSection: React.FC<{ config: Record<string, any> }> = ({ config }) => {
 // ─── Categories Section ────────────────────────────────────────────────
 
 const CategoriesSection: React.FC<{ config: Record<string, any> }> = ({ config }) => {
-    const { products } = usePublicProducts({ shuffle: true });
+    const { products } = usePublicProducts();
 
     const categoryData = useMemo(() => {
         const available = products.filter(p => p.status !== ProductStatus.SOLD_OUT);
@@ -95,11 +95,13 @@ const CategoriesSection: React.FC<{ config: Record<string, any> }> = ({ config }
             }
         });
 
-        return Array.from(catMap.entries()).map(([name, data]) => ({
-            name,
-            count: data.count,
-            image: data.image,
-        }));
+        return Array.from(catMap.entries())
+            .map(([name, data]) => ({
+                name,
+                count: data.count,
+                image: data.image,
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
     }, [products]);
 
     const gridClass = 'grid-cols-2 lg:grid-cols-4';
@@ -165,7 +167,7 @@ const CategoriesSection: React.FC<{ config: Record<string, any> }> = ({ config }
 // ─── Collections Section ───────────────────────────────────────────────
 
 const CollectionsSection: React.FC<{ config: Record<string, any> }> = ({ config }) => {
-    const { products } = usePublicProducts({ shuffle: true });
+    const { products } = usePublicProducts();
 
     const collectionData = useMemo(() => {
         const available = products.filter(p => p.status !== ProductStatus.SOLD_OUT);
@@ -188,11 +190,13 @@ const CollectionsSection: React.FC<{ config: Record<string, any> }> = ({ config 
             });
         });
 
-        let result = Array.from(colMap.entries()).map(([name, data]) => ({
-            name,
-            count: data.count,
-            images: data.images,
-        }));
+        let result = Array.from(colMap.entries())
+            .map(([name, data]) => ({
+                name,
+                count: data.count,
+                images: data.images,
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
 
         if (config.max_items > 0) {
             result = result.slice(0, config.max_items);
@@ -549,7 +553,7 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
 
 const FeaturedSection: React.FC<{ config: Record<string, any> }> = ({ config }) => {
     const { currency } = useStore();
-    const { products } = usePublicProducts({ shuffle: true });
+    const { products } = usePublicProducts();
 
     const filteredProducts = useMemo(() => {
         let result = products.filter(p => p.status !== ProductStatus.SOLD_OUT);
