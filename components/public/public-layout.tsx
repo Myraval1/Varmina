@@ -294,32 +294,30 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children
             
             {/* Floating Contact & Navigation */}
             <div className="fixed bottom-6 right-6 flex flex-col items-center gap-4 z-[100] preserve-3d">
-                <div className="relative flex items-center justify-center">
-                    {/* WhatsApp Button (Back/Persistent) */}
-                    <a 
-                        href={whatsappUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-green-500/30 transition-all hover:scale-105 animate-pulse-whatsapp"
-                        aria-label="Contactar por WhatsApp"
+                {/* Scroll to Top (Appears ABOVE WhatsApp) */}
+                <div className={cn(
+                    "transition-all duration-500 ease-in-out transform origin-bottom",
+                    showScrollTop ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-50 translate-y-10 pointer-events-none"
+                )}>
+                    <button 
+                        onClick={scrollToTop} 
+                        className="w-12 h-12 bg-white dark:bg-stone-950 text-stone-900 dark:text-white rounded-full flex items-center justify-center shadow-xl border border-stone-100 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all active:scale-95 group"
+                        aria-label="Subir arriba"
                     >
-                        <WhatsAppIcon />
-                    </a>
-
-                    {/* Scroll to Top (Fades in over/displaces focus) */}
-                    <div className={cn(
-                        "absolute inset-0 transition-all duration-500 ease-in-out transform",
-                        showScrollTop ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-50 rotate-90 pointer-events-none"
-                    )}>
-                        <button 
-                            onClick={scrollToTop} 
-                            className="w-full h-full bg-white dark:bg-stone-900 text-stone-900 dark:text-white rounded-full flex items-center justify-center shadow-xl border border-stone-100 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 transition-all active:scale-95"
-                            aria-label="Subir arriba"
-                        >
-                            <ArrowUp className="w-6 h-6" />
-                        </button>
-                    </div>
+                        <ArrowUp className="w-5 h-5 group-hover:-translate-y-1 transition-transform" />
+                    </button>
                 </div>
+
+                {/* WhatsApp Button (Fixed at the bottom) */}
+                <a 
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-green-500/30 transition-all hover:scale-105 animate-pulse-whatsapp"
+                    aria-label="Contactar por WhatsApp"
+                >
+                    <WhatsAppIcon />
+                </a>
             </div>
         </div>
     );
