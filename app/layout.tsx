@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Cinzel, Lato } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { ProgressBar } from "@/components/ui/progress-bar";
+import { Suspense } from "react";
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -69,6 +71,9 @@ export default function RootLayout({
         className={`${lato.variable} ${cinzel.variable} antialiased bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-50`}
       >
         <Providers>
+          <Suspense fallback={null}>
+            <ProgressBar />
+          </Suspense>
           {children}
         </Providers>
       </body>

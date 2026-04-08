@@ -156,12 +156,12 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
 
             {/* ─── SHOPIFY-STYLE TWO COLUMN LAYOUT ─── */}
             <div className="max-w-7xl mx-auto px-0 md:px-8 pb-16">
-                <div className="md:grid md:grid-cols-[1fr,420px] lg:grid-cols-[1fr,460px] md:gap-10 lg:gap-16">
+                <div className="md:grid md:grid-cols-[1.2fr,380px] lg:grid-cols-[1.2fr,400px] md:gap-12 lg:gap-16">
                     {/* LEFT: Image Gallery */}
                     <div className="w-full relative">
-                        {/* Main Image - adapts to image aspect ratio */}
+                        {/* Main Image container - limiting height on desktop for better visibility */}
                         <div
-                            className="w-full aspect-square relative overflow-hidden bg-stone-50 dark:bg-stone-900/50 flex items-center justify-center md:rounded-lg"
+                            className="w-full aspect-square md:aspect-[4/5] lg:aspect-square md:max-h-[550px] lg:max-h-[650px] relative overflow-hidden bg-stone-50 dark:bg-stone-900/50 flex items-center justify-center md:rounded-lg"
                             onTouchStart={onTouchStart}
                             onTouchMove={onTouchMove}
                             onTouchEnd={onTouchEnd}
@@ -273,7 +273,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
 
                     {/* RIGHT: Product Info (sticky on desktop) */}
                     <div className="w-full md:sticky md:top-24 md:self-start">
-                        <div className="px-6 md:px-0 py-6 md:py-0 space-y-6">
+                        <div className="px-6 md:px-0 py-6 md:py-0 space-y-4 md:space-y-5">
                             {/* Collection */}
                             {product.collections && product.collections.length > 0 && (
                                 <span className="text-[10px] font-bold text-gold-600 uppercase tracking-[0.25em] block">
@@ -281,32 +281,25 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                 </span>
                             )}
 
-                            {/* Product Name */}
-                            <h1 className="font-serif text-2xl md:text-3xl lg:text-4xl text-stone-900 dark:text-white tracking-wide leading-tight">
-                                {product.name}
-                            </h1>
-
-                            {/* Price & Status */}
-                            <div className="flex items-center gap-4">
-                                <span className="text-2xl md:text-3xl font-light text-stone-900 dark:text-white">
-                                    {formatPrice(currentPrice, currency)}
-                                </span>
-                                <StatusBadge status={product.status} />
+                            {/* Product Name & Price */}
+                            <div className="space-y-2">
+                                <h1 className="font-serif text-2xl md:text-3xl text-stone-900 dark:text-white tracking-wide leading-tight">
+                                    {product.name}
+                                </h1>
+                                <div className="flex items-center gap-4">
+                                    <span className="text-2xl md:text-2xl font-light text-stone-900 dark:text-white">
+                                        {formatPrice(currentPrice, currency)}
+                                    </span>
+                                    <StatusBadge status={product.status} />
+                                </div>
                             </div>
 
                             {/* Divider */}
                             <div className="w-full h-px bg-stone-100 dark:bg-stone-800" />
 
-                            {/* Full Description */}
-                            {product.description && (
-                                <div className="prose-brand font-sans text-sm whitespace-pre-line text-stone-600 dark:text-stone-300 leading-relaxed">
-                                    {product.description}
-                                </div>
-                            )}
-
-                            {/* Variants */}
+                            {/* Variants - Moved closer to top */}
                             {product.variants && product.variants.length > 0 && (
-                                <div>
+                                <div className="pt-2">
                                     <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold mb-3 block">
                                         {product.variants.length > 1 ? 'Seleccionar Opción' : 'Opción'}
                                     </label>
@@ -316,7 +309,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                                 key={v.id}
                                                 onClick={() => { setSelectedVariant(v); setActiveImg(0); }}
                                                 className={cn(
-                                                    "px-4 py-2.5 text-xs font-medium border rounded transition-all duration-300",
+                                                    "px-4 py-2 text-xs font-medium border rounded transition-all duration-300",
                                                     selectedVariant?.id === v.id
                                                         ? "bg-stone-900 dark:bg-white text-white dark:text-stone-900 border-stone-900 dark:border-white shadow-md"
                                                         : "bg-transparent text-stone-500 border-stone-200 dark:border-stone-700 hover:border-stone-900 dark:hover:border-white hover:text-stone-900 dark:hover:text-white"
@@ -340,14 +333,26 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                             )}
 
                             {/* CTA Button */}
-                            <Button
-                                className="w-full py-4 text-sm tracking-[0.15em] bg-stone-900 hover:bg-stone-800 dark:bg-white dark:hover:bg-stone-200 text-white dark:text-stone-900 shadow-lg hover:shadow-xl transition-all rounded"
-                                disabled={isSoldOut || isVariantSoldOut}
-                                onClick={handleAddToCart}
-                                isLoading={isAdding}
-                            >
-                                {isSoldOut || isVariantSoldOut ? 'AGOTADO' : 'AÑADIR A COTIZAR'}
-                            </Button>
+                            <div className="pt-2">
+                                <Button
+                                    className="w-full py-6 text-xs uppercase tracking-[0.2em] bg-stone-900 hover:bg-stone-800 dark:bg-white dark:hover:bg-stone-200 text-white dark:text-stone-900 shadow-xl transition-all rounded"
+                                    disabled={isSoldOut || isVariantSoldOut}
+                                    onClick={handleAddToCart}
+                                    isLoading={isAdding}
+                                >
+                                    {isSoldOut || isVariantSoldOut ? 'AGOTADO' : 'AÑADIR A COTIZAR'}
+                                </Button>
+                            </div>
+
+                            {/* Full Description */}
+                            {product.description && (
+                                <div className="pt-4 border-t border-stone-100 dark:border-stone-800">
+                                    <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold mb-3 block">Descripción</label>
+                                    <div className="prose-brand font-sans text-sm whitespace-pre-line text-stone-600 dark:text-stone-300 leading-relaxed">
+                                        {product.description}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Secondary Actions */}
                             <div className="flex items-center justify-between">
