@@ -13,7 +13,7 @@ import { LoadingScreen } from '@/components/ui/loading-screen';
 import { cn } from '@/lib/utils';
 
 export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { currency, toggleCurrency, settings, loading, addToast } = useStore();
+    const { currency, toggleCurrency, settings, loading, attributes } = useStore();
     const { darkMode, toggleDarkMode, setDarkMode } = useTheme();
     const { totalItems, setIsOpen } = useCart();
     const [mounted, setMounted] = useState(false);
@@ -37,6 +37,9 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children
     const handleCurrencyToggle = () => {
         toggleCurrency();
     };
+
+    const categories = attributes?.filter(a => a.type === 'category') || [];
+    const collections = attributes?.filter(a => a.type === 'collection') || [];
 
     return (
         <div className={cn(
@@ -82,15 +85,26 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children
 
                 {/* Desktop Nav */}
                 <nav className="hidden lg:flex items-center gap-10">
-                    {['INICIO', 'ANILLOS', 'COLLARES', 'PENDIENTES', 'COLECCIONES'].map((item) => (
+                    <Link href="/" className="text-[10px] font-bold tracking-[0.25em] text-stone-400 hover:text-stone-900 dark:hover:text-white transition-all uppercase">
+                        Inicio
+                    </Link>
+                    {categories.map((cat) => (
                         <Link 
-                            key={item} 
-                            href={item === 'INICIO' ? '/' : `/category/${item.toLowerCase()}`}
-                            className="text-[10px] font-bold tracking-[0.25em] text-stone-400 hover:text-stone-900 dark:hover:text-white transition-all hover:-translate-y-0.5"
+                            key={cat.id} 
+                            href={`/category/${encodeURIComponent(cat.name)}`}
+                            className="text-[10px] font-bold tracking-[0.25em] text-stone-400 hover:text-stone-900 dark:hover:text-white transition-all hover:-translate-y-0.5 uppercase"
                         >
-                            {item}
+                            {cat.name}
                         </Link>
                     ))}
+                    {collections.length > 0 && (
+                        <Link 
+                            href="/catalog?view=collections"
+                            className="text-[10px] font-bold tracking-[0.25em] text-stone-400 hover:text-stone-900 dark:hover:text-white transition-all hover:-translate-y-0.5 uppercase"
+                        >
+                            Colecciones
+                        </Link>
+                    )}
                 </nav>
 
                 {/* Actions */}
@@ -148,16 +162,32 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children
 
                     <div className="flex-1 overflow-y-auto p-8 space-y-8">
                         <div className="space-y-6">
-                            {['INICIO', 'ANILLOS', 'COLLARES', 'PENDIENTES', 'COLECCIONES'].map((item) => (
+                            <Link 
+                                href="/" 
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="block text-lg font-serif tracking-[0.1em] text-stone-900 dark:text-white"
+                            >
+                                INICIO
+                            </Link>
+                            {categories.map((cat) => (
                                 <Link 
-                                    key={item} 
-                                    href={item === 'INICIO' ? '/' : `/category/${item.toLowerCase()}`}
+                                    key={cat.id} 
+                                    href={`/category/${encodeURIComponent(cat.name)}`}
                                     onClick={() => setIsMobileMenuOpen(false)}
-                                    className="block text-lg font-serif tracking-[0.1em] text-stone-900 dark:text-white"
+                                    className="block text-lg font-serif tracking-[0.1em] text-stone-900 dark:text-white uppercase"
                                 >
-                                    {item}
+                                    {cat.name}
                                 </Link>
                             ))}
+                            {collections.length > 0 && (
+                                <Link 
+                                    href="/catalog?view=collections"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="block text-lg font-serif tracking-[0.1em] text-stone-900 dark:text-white uppercase"
+                                >
+                                    COLECCIONES
+                                </Link>
+                            )}
                         </div>
 
                         <div className="h-px bg-stone-100 dark:bg-stone-900" />

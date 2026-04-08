@@ -133,7 +133,11 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
     };
 
     const isSoldOut = product.status === ProductStatus.SOLD_OUT;
+    const isAvailableForOrder = product.status === ProductStatus.MADE_TO_ORDER;
     const isVariantSoldOut = selectedVariant ? (selectedVariant.stock !== undefined && selectedVariant.stock <= 0) : false;
+
+    // A product is disabled only if it is explicitly SOLD_OUT OR if the variant is out and it's NOT made to order
+    const isCtaDisabled = isSoldOut || (isVariantSoldOut && !isAvailableForOrder);
 
     const toggleSection = (id: string) => {
         setExpandedSections(prev => {
@@ -143,6 +147,34 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
             return next;
         });
     };
+
+    // Dynamic Product Features Grid
+    const productFeatures = useMemo(() => {
+        const features = [];
+        const content = `${product.name} ${product.description || ''} ${product.category || ''}`.toLowerCase();
+
+        // 1. Material Feature
+        if (content.includes('plata')) {
+            features.push({ label: 'Plata 925 Certificada', icon: Sparkles });
+        } else if (content.includes('oro')) {
+            features.push({ label: 'Baño de Oro 18k', icon: Sparkles });
+        } else {
+            features.push({ label: 'Calidad Premium', icon: Sparkles });
+        }
+
+        // 2. Craftsmanship Feature
+        if (content.match(/mano|autor|artesanal|taller/)) {
+            features.push({ label: 'Joyería de Autor', icon: ShieldCheck });
+        } else {
+            features.push({ label: 'Diseño Exclusivo', icon: ShieldCheck });
+        }
+
+        // 3. Service/Trust
+        features.push({ label: 'Envíos a todo Chile', icon: Truck });
+        features.push({ label: 'Compra 100% Segura', icon: Shield });
+
+        return features;
+    }, [product]);
 
     return (
         <div className="w-full bg-stone-50/30 dark:bg-stone-950 min-h-screen selection:bg-stone-200 dark:selection:bg-stone-800">
@@ -192,9 +224,9 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                 key={idx}
                                 onClick={() => setActiveImg(idx)}
                                 className={cn(
-                                    "relative w-20 xl:w-24 aspect-[4/5] rounded transition-all duration-500",
+                                    "relative w-20 xl:w-24 aspect-[4/5] rounded transition-all duration-300 shrink-0",
                                     activeImg === idx 
-                                        ? "ring-2 ring-stone-900 dark:ring-white ring-offset-2 dark:ring-offset-stone-950" 
+                                        ? "ring-1 ring-stone-900 dark:ring-white ring-offset-4 dark:ring-offset-stone-950" 
                                         : "opacity-40 hover:opacity-100"
                                 )}
                             >
@@ -202,7 +234,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                     src={img} 
                                     fill 
                                     sizes="100px" 
-                                    className="object-cover rounded" 
+                                    className="object-cover rounded-sm" 
                                     alt={`Miniatura ${idx + 1}`}
                                     unoptimized={img.startsWith('data:')}
                                 />
@@ -266,23 +298,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                 </div>
                             )}
 
-                            {/* Floating Arrows (Optional premium hover effect) */}
-                            {imagesToDisplay.length > 1 && (
-                                <div className="absolute inset-0 hidden md:flex items-center justify-between px-6 opacity-0 hover:opacity-100 transition-opacity duration-300 z-30">
-                                    <button 
-                                        onClick={() => setActiveImg(prev => prev === 0 ? imagesToDisplay.length - 1 : prev - 1)}
-                                        className="p-3 bg-white/80 dark:bg-black/40 backdrop-blur-md rounded-full shadow-lg hover:bg-white transition-all transform hover:scale-110"
-                                    >
-                                        <ChevronLeft className="w-5 h-5 text-stone-900 dark:text-white" />
-                                    </button>
-                                    <button 
-                                        onClick={() => setActiveImg(prev => prev === imagesToDisplay.length - 1 ? 0 : prev + 1)}
-                                        className="p-3 bg-white/80 dark:bg-black/40 backdrop-blur-md rounded-full shadow-lg hover:bg-white transition-all transform hover:scale-110"
-                                    >
-                                        <ChevronRight className="w-5 h-5 text-stone-900 dark:text-white" />
-                                    </button>
-                                </div>
-                            )}
                         </div>
 
                         {/* Mobile: Horizontal Thumb Strip */}
@@ -332,39 +347,19 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                 <StatusBadge status={product.status} />
                             </div>
 
-                            {/* Product Features / Badges */}
-                            <div className="grid grid-cols-2 gap-4 py-4 border-y border-stone-100 dark:border-stone-900">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-full bg-stone-50 dark:bg-stone-900 flex items-center justify-center text-stone-400">
-                                        <Sparkles className="w-4 h-4" />
+                            {/* Product Features / Badges (Dynamic) */}
+                            <div className="grid grid-cols-2 gap-4 py-6 border-y border-stone-100 dark:border-stone-900">
+                                {productFeatures.map((feature, idx) => (
+                                    <div key={idx} className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-full bg-stone-50 dark:bg-stone-900 flex items-center justify-center text-stone-400">
+                                            <feature.icon className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-stone-500">{feature.label}</span>
                                     </div>
-                                    <span className="text-[9px] font-bold uppercase tracking-widest text-stone-500">Plata 925 Certificada</span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-full bg-stone-50 dark:bg-stone-900 flex items-center justify-center text-stone-400">
-                                        <Heart className="w-4 h-4" />
-                                    </div>
-                                    <span className="text-[9px] font-bold uppercase tracking-widest text-stone-500">Hipoalergénico</span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-full bg-stone-50 dark:bg-stone-900 flex items-center justify-center text-stone-400">
-                                        <ShieldCheck className="w-4 h-4" />
-                                    </div>
-                                    <span className="text-[9px] font-bold uppercase tracking-widest text-stone-500">Hecho a Mano</span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <div className="w-8 h-8 rounded-full bg-stone-50 dark:bg-stone-900 flex items-center justify-center text-stone-400">
-                                        <Leaf className="w-4 h-4" />
-                                    </div>
-                                    <span className="text-[9px] font-bold uppercase tracking-widest text-stone-500">Packaging Sustentable</span>
-                                </div>
+                                ))}
                             </div>
                         </div>
 
-                        {/* Description Preview */}
-                        <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed font-sans line-clamp-3">
-                            {product.description}
-                        </p>
 
                         {/* Options & Variants */}
                         <div className="space-y-8">
@@ -427,17 +422,19 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                     </div>
                                     <Button
                                         className="flex-1 h-14 text-xs font-bold uppercase tracking-[0.25em] bg-stone-900 hover:bg-stone-800 dark:bg-white dark:hover:bg-stone-200 text-white dark:text-stone-900 shadow-2xl transition-all rounded-sm active:scale-[0.98]"
-                                        disabled={isAdding || isSoldOut || isVariantSoldOut}
+                                        disabled={isAdding || isCtaDisabled}
                                         onClick={handleAddToCart}
                                         isLoading={isAdding}
                                     >
-                                        {isSoldOut || isVariantSoldOut ? 'Agotado' : 'Añadir a Cotización'}
+                                        {isCtaDisabled ? 'Agotado' : 'Añadir a Cotización'}
                                     </Button>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Accordion Sections */}
+                    <div className="lg:col-start-2 lg:col-span-2 mt-8 lg:mt-12">
+                        {/* Accordion Sections - Full Width below main components */}
                         <div className="space-y-0.5 border-t border-stone-200 dark:border-stone-800 pt-8">
                             {/* Description Section */}
                             <div className="border-b border-stone-100 dark:border-stone-900">
@@ -514,16 +511,16 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                         </div>
 
                         {/* Secure Checkout Badges */}
-                        <div className="flex items-center justify-center gap-6 pt-6 border-t border-stone-100 dark:border-stone-900">
-                             <div className="flex flex-col items-center gap-2 opacity-40 hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-center gap-6 pt-12">
+                             <div className="flex flex-col items-center gap-2 opacity-40">
                                 <Shield className="w-5 h-5" />
                                 <span className="text-[8px] uppercase tracking-widest font-bold">Seguro</span>
                              </div>
-                             <div className="flex flex-col items-center gap-2 opacity-40 hover:opacity-100 transition-opacity">
+                             <div className="flex flex-col items-center gap-2 opacity-40">
                                 <Truck className="w-5 h-5" />
                                 <span className="text-[8px] uppercase tracking-widest font-bold">Fast</span>
                              </div>
-                             <div className="flex flex-col items-center gap-2 opacity-40 hover:opacity-100 transition-opacity">
+                             <div className="flex flex-col items-center gap-2 opacity-40">
                                 <Package className="w-5 h-5" />
                                 <span className="text-[8px] uppercase tracking-widest font-bold">Pack</span>
                              </div>
