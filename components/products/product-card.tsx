@@ -118,8 +118,9 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, cu
 
             {/* Info */}
             <div className={cn(
-                "flex flex-col",
-                isList ? "justify-center py-2 items-start" : "items-start pt-3 pb-1"
+                "flex flex-col transition-transform duration-500 ease-out",
+                isList ? "justify-center py-2 items-start" : "items-start pt-3 pb-1",
+                hoverActive && !isList && "translate-y-[-4px]"
             )}>
                 {product.category && (
                     <p className="text-[9px] uppercase tracking-widest text-stone-400 mb-1">{product.category}</p>
@@ -133,8 +134,9 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, cu
                 </h3>
 
                 <p className={cn(
-                    "font-medium text-stone-600 dark:text-stone-300",
-                    isList ? "text-sm" : "text-xs md:text-sm"
+                    "font-medium text-stone-600 dark:text-stone-300 transition-colors",
+                    isList ? "text-sm" : "text-xs md:text-sm",
+                    hoverActive && "text-stone-900 dark:text-white"
                 )}>
                     {formatPrice(displayPrice, currency)}
                 </p>

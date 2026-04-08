@@ -37,15 +37,19 @@ const HeroSection: React.FC<{ config: Record<string, any> }> = ({ config }) => {
                     unoptimized={!imageUrl.includes('supabase.co')}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-stone-900/70 flex flex-col items-center justify-center text-center p-6 md:p-12">
-                    <div className="max-w-4xl space-y-6 animate-fade-in-up">
+                    <div className="max-w-4xl space-y-6">
                         {title && (
-                            <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl text-white drop-shadow-2xl tracking-[0.2em] md:tracking-[0.25em] uppercase leading-tight font-light">{title}</h1>
+                            <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl text-white drop-shadow-2xl tracking-[0.2em] md:tracking-[0.25em] uppercase leading-tight font-light animate-reveal">
+                                {title}
+                            </h1>
                         )}
                         {subtitle && (
                             <div className="flex flex-col items-center gap-4 md:gap-6">
-                                <div className="w-10 md:w-12 h-[1px] bg-gold-400/60" />
-                                <p className="font-sans text-[10px] md:text-sm text-white/90 max-w-xl drop-shadow-md tracking-[0.3em] md:tracking-[0.4em] uppercase font-bold">{subtitle}</p>
-                                <div className="w-10 md:w-12 h-[1px] bg-gold-400/60" />
+                                <div className="w-16 md:w-20 h-[1px] bg-gold-400/60 animate-line-expand" />
+                                <p className="font-sans text-[10px] md:text-sm text-white/90 max-w-xl drop-shadow-md tracking-[0.3em] md:tracking-[0.4em] uppercase font-bold animate-fade-blur stagger-2">
+                                    {subtitle}
+                                </p>
+                                <div className="w-16 md:w-20 h-[1px] bg-gold-400/60 animate-line-expand" />
                             </div>
                         )}
                         {ctaText && (
@@ -122,11 +126,14 @@ const CategoriesSection: React.FC<{ config: Record<string, any> }> = ({ config }
 
             {/* Category Cards Grid */}
             <div className={`grid ${gridClass} gap-4 md:gap-6`}>
-                {categoryData.map(cat => (
+                {categoryData.map((cat, idx) => (
                     <Link
                         key={cat.name}
                         href={`/category/${encodeURIComponent(cat.name)}`}
-                        className="group relative overflow-hidden rounded-lg aspect-square bg-stone-100 dark:bg-stone-800 cursor-pointer block"
+                        className={cn(
+                            "group relative overflow-hidden rounded-lg aspect-square bg-stone-100 dark:bg-stone-800 cursor-pointer block animate-fade-blur",
+                            idx === 0 ? "stagger-1" : idx === 1 ? "stagger-2" : idx === 2 ? "stagger-3" : "stagger-4"
+                        )}
                     >
                             <img
                                 src={cat.image}
@@ -308,7 +315,6 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [showScrollTop, setShowScrollTop] = useState(false);
     const [mounted, setMounted] = useState(false);
 
     const [minPrice, setMinPrice] = useState(0);
@@ -338,12 +344,6 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
         const timer = setTimeout(() => setDebouncedSearch(search), 300);
         return () => clearTimeout(timer);
     }, [search]);
-
-    useEffect(() => {
-        const handleScroll = () => setShowScrollTop(window.scrollY > 600);
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     useEffect(() => {
         if (isFilterOpen) document.body.style.overflow = 'hidden';
@@ -536,12 +536,6 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
                 </>
             )}
 
-            {/* Scroll to Top */}
-            {showScrollTop && (
-                <button onClick={scrollToTop} className="fixed bottom-6 right-6 p-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-full shadow-lg hover:shadow-xl transition-all z-30">
-                    <ArrowUp className="w-4 h-4 text-stone-600 dark:text-stone-400" />
-                </button>
-            )}
         </>
     );
 };
