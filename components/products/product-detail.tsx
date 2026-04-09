@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Product, ProductStatus, ProductVariant } from '@/types';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { ChevronLeft, ChevronRight, Share2, Copy, Check, Truck, Shield, Package, ArrowLeft, Star, Minus, Plus, ChevronDown, ChevronUp, Sparkles, Heart, Leaf, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Share2, Copy, Check, Truck, Shield, Package, ArrowLeft, Star, Minus, Plus, ChevronDown, ChevronUp, Sparkles, Heart, Leaf, ShieldCheck, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { supabaseProductService } from '@/services/supabaseProductService';
 import { useStore } from '@/context/StoreContext';
@@ -33,6 +33,10 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
     const [imgLoadedSet, setImgLoadedSet] = useState<Set<number>>(new Set([0]));
     const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['description']));
     const [quantity, setQuantity] = useState(1);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [zoomLevel, setZoomLevel] = useState(1);
+    const [panPos, setPanPos] = useState({ x: 0, y: 0 });
+    const imageContainerRef = useRef<HTMLDivElement>(null);
 
     // Initialize with primary variant or first variant
     const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(() => {
@@ -79,6 +83,30 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
             setActiveImg(prev => prev === 0 ? imagesToDisplay.length - 1 : prev - 1);
         }
     }, [touchStart, touchEnd, imagesToDisplay.length]);
+
+    // Handle zoom interactions
+    const handleZoomToggle = (e: React.MouseEvent) => {
+        if (zoomLevel === 1) {
+            if (imageContainerRef.current) {
+                const rect = imageContainerRef.current.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                setPanPos({ x, y });
+            }
+            setZoomLevel(2); // Zoom in 2x
+        } else {
+            setZoomLevel(1);
+        }
+    };
+
+    const handleZoomMouseMove = (e: React.MouseEvent) => {
+        if (zoomLevel > 1 && imageContainerRef.current) {
+            const rect = imageContainerRef.current.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            setPanPos({ x, y });
+        }
+    };
 
     // Mark image as loaded
     const handleImgLoad = useCallback((idx: number) => {
@@ -138,6 +166,26 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
 
     // A product is disabled only if it is explicitly SOLD_OUT OR if the variant is out and it's NOT made to order
     const isCtaDisabled = isSoldOut || (isVariantSoldOut && !isAvailableForOrder);
+
+    // Keyboard Navigation
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (isFullscreen) {
+                if (e.key === 'Escape') {
+                    setIsFullscreen(false);
+                    setZoomLevel(1);
+                }
+                if (zoomLevel === 1) {
+                    if (e.key === 'ArrowLeft') setActiveImg(prev => prev === 0 ? imagesToDisplay.length - 1 : prev - 1);
+                    if (e.key === 'ArrowRight') setActiveImg(prev => prev === imagesToDisplay.length - 1 ? 0 : prev + 1);
+                }
+            } else {
+                // Also allow arrows in main view if hovering? Maybe just fullscreen is enough
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isFullscreen, imagesToDisplay.length, zoomLevel]);
 
     const toggleSection = (id: string) => {
         setExpandedSections(prev => {
@@ -243,24 +291,23 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                     </div>
 
                     {/* COL 2: Main Image Centerpiece */}
-                    <div className="relative w-full lg:max-w-[800px] mx-auto">
+                    <div className="relative w-full lg:max-w-[800px] mx-auto group">
                         <div 
-                            className="relative aspect-[4/5] md:aspect-[3/4] lg:aspect-[4/5] w-full max-h-[85vh] bg-white dark:bg-stone-900/40 rounded-xl overflow-hidden shadow-sm md:shadow-none mx-auto"
+                            className="relative aspect-[4/5] md:aspect-[3/4] lg:aspect-[4/5] w-full max-h-[85vh] bg-white dark:bg-stone-900/40 rounded-xl overflow-hidden shadow-sm md:shadow-none mx-auto cursor-zoom-in"
                             onTouchStart={onTouchStart}
                             onTouchMove={onTouchMove}
                             onTouchEnd={onTouchEnd}
+                            onClick={() => { setIsFullscreen(true); setZoomLevel(1); }}
                         >
                             {imagesToDisplay.map((img: string, idx: number) => {
                                 const isActive = activeImg === idx;
-                                const isAdjacent = Math.abs(activeImg - idx) <= 1;
-                                if (!isActive && !isAdjacent) return null;
                                 
                                 return (
                                     <div 
                                         key={idx}
                                         className={cn(
-                                            "absolute inset-0 transition-opacity duration-1000 ease-in-out",
-                                            isActive ? "opacity-100 z-10" : "opacity-0 z-0"
+                                            "absolute inset-0 transition-opacity duration-700 ease-in-out",
+                                            isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
                                         )}
                                     >
                                         <Image
@@ -268,7 +315,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                             fill
                                             priority={idx === 0}
                                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 50vw"
-                                            className="object-contain md:object-cover p-4 md:p-0"
+                                            className="object-contain md:object-cover p-4 md:p-0 transition-transform duration-[2s] ease-out group-hover:scale-105"
                                             alt={product.name}
                                             onLoad={() => handleImgLoad(idx)}
                                             unoptimized={img.startsWith('data:')}
@@ -277,9 +324,46 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                 );
                             })}
                             
+                            {/* Navigation Arrows for main image */}
+                            {imagesToDisplay.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? imagesToDisplay.length - 1 : prev - 1); }}
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/70 backdrop-blur-md dark:bg-black/50 text-stone-800 dark:text-white flex items-center justify-center opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 z-20 shadow-sm md:shadow-none hover:bg-white dark:hover:bg-black"
+                                    >
+                                        <ChevronLeft className="w-5 h-5 ml-[-2px]" />
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === imagesToDisplay.length - 1 ? 0 : prev + 1); }}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/70 backdrop-blur-md dark:bg-black/50 text-stone-800 dark:text-white flex items-center justify-center opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 z-20 shadow-sm md:shadow-none hover:bg-white dark:hover:bg-black"
+                                    >
+                                        <ChevronRight className="w-5 h-5 mr-[-2px]" />
+                                    </button>
+                                </>
+                            )}
+                            
+                            <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity md:flex hidden bg-white/80 dark:bg-black/40 backdrop-blur-md p-2 rounded-full cursor-pointer text-stone-800 dark:text-white">
+                                <ZoomIn className="w-4 h-4" />
+                            </div>
+
                             {/* Loading state overlay */}
                             {!imgLoadedSet.has(activeImg) && (
                                 <div className="absolute inset-0 bg-stone-100 dark:bg-stone-900 animate-pulse z-20" />
+                            )}
+
+                            {/* Mobile Dot Indicators */}
+                            {imagesToDisplay.length > 1 && (
+                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex md:hidden gap-1.5 z-20 pointer-events-none">
+                                    {imagesToDisplay.map((_, idx) => (
+                                        <div 
+                                            key={idx} 
+                                            className={cn(
+                                                "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                                                activeImg === idx ? "bg-stone-800 dark:bg-white w-4" : "bg-stone-800/20 dark:bg-white/20"
+                                            )} 
+                                        />
+                                    ))}
+                                </div>
                             )}
 
                         </div>
@@ -600,6 +684,110 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                     </div>
                 </div>
             </Modal>
+
+            {/* FULLSCREEN ZOOM VIEWER */}
+            {isFullscreen && (
+                <div 
+                    className="fixed inset-0 z-[100] bg-white/95 dark:bg-stone-950/95 backdrop-blur-sm flex flex-col"
+                    aria-modal="true"
+                    role="dialog"
+                >
+                    <div className="flex justify-between items-center p-4 md:p-6 absolute top-0 left-0 right-0 z-50 pointer-events-none">
+                        <div className="pointer-events-auto bg-white/50 dark:bg-black/50 backdrop-blur-md px-4 py-2 rounded-full hidden md:flex items-center gap-2">
+                            {zoomLevel === 1 ? (
+                                <><ZoomIn className="w-4 h-4" /> <span className="text-xs font-bold uppercase tracking-widest">Click para acercar</span></>
+                            ) : (
+                                <><ZoomOut className="w-4 h-4" /> <span className="text-xs font-bold uppercase tracking-widest">Click para alejar</span></>
+                            )}
+                        </div>
+                        <button 
+                            onClick={() => { setIsFullscreen(false); setZoomLevel(1); }}
+                            className="pointer-events-auto p-3 bg-white/70 dark:bg-black/50 backdrop-blur-md rounded-full text-stone-800 dark:text-white hover:bg-white dark:hover:bg-black transition-colors ml-auto shadow-sm"
+                            aria-label="Cerrar vista completa"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+
+                    <div 
+                        className={cn(
+                            "flex-1 relative overflow-hidden flex items-center justify-center w-full h-full",
+                            zoomLevel > 1 ? "cursor-zoom-out" : "cursor-zoom-in"
+                        )}
+                        ref={imageContainerRef}
+                        onClick={handleZoomToggle}
+                        onMouseMove={handleZoomMouseMove}
+                        onTouchStart={onTouchStart}
+                        onTouchMove={onTouchMove}
+                        onTouchEnd={onTouchEnd}
+                    >
+                        {imagesToDisplay.map((img: string, idx: number) => {
+                            const isActive = activeImg === idx;
+                            return (
+                                <div 
+                                    key={idx}
+                                    className={cn(
+                                        "absolute inset-0 transition-opacity duration-500 ease-in-out w-full h-full flex items-center justify-center",
+                                        isActive ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                                    )}
+                                >
+                                    <div 
+                                        className="relative w-full h-full transition-transform duration-300 ease-out flex items-center justify-center"
+                                        style={
+                                            isActive && zoomLevel > 1 
+                                                ? { 
+                                                    transform: `scale(${zoomLevel})`, 
+                                                    transformOrigin: `${panPos.x}% ${panPos.y}%` 
+                                                  } 
+                                                : { transform: 'scale(1)' }
+                                        }
+                                    >
+                                        <Image
+                                            src={img}
+                                            fill
+                                            className="object-contain p-4 md:p-12"
+                                            sizes="100vw"
+                                            alt={product.name}
+                                            unoptimized={img.startsWith('data:')}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {/* Navigation Arrows for fullscreen */}
+                        {imagesToDisplay.length > 1 && zoomLevel === 1 && (
+                            <>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === 0 ? imagesToDisplay.length - 1 : prev - 1); }}
+                                    className="absolute left-6 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/70 dark:bg-black/50 backdrop-blur-md text-stone-800 dark:text-white flex items-center justify-center transition-colors z-20 hover:bg-white dark:hover:bg-black shadow-sm"
+                                >
+                                    <ChevronLeft className="w-6 h-6 ml-[-2px]" />
+                                </button>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setActiveImg(prev => prev === imagesToDisplay.length - 1 ? 0 : prev + 1); }}
+                                    className="absolute right-6 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/70 dark:bg-black/50 backdrop-blur-md text-stone-800 dark:text-white flex items-center justify-center transition-colors z-20 hover:bg-white dark:hover:bg-black shadow-sm"
+                                >
+                                    <ChevronRight className="w-6 h-6 mr-[-2px]" />
+                                </button>
+                            </>
+                        )}
+                        
+                        {/* Number indicator */}
+                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                            {imagesToDisplay.map((_, idx) => (
+                                <div 
+                                    key={idx} 
+                                    className={cn(
+                                        "w-2 h-2 rounded-full transition-all duration-300",
+                                        activeImg === idx ? "bg-stone-800 dark:bg-white w-6" : "bg-stone-300 dark:bg-stone-700"
+                                    )} 
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
