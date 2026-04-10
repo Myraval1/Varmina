@@ -1,7 +1,12 @@
 
 export const compressImage = async (file: File): Promise<File> => {
-    // 1. Skip small files (already optimized) or non-images
-    if (file.size < 500000 && file.type === 'image/webp') return file; // < 500KB and already WebP
+    // 1. Skip small files (already optimized) or specific formats that shouldn't be touched
+    // Now more inclusive: skip if file is < 1MB and is already an optimized web format
+    const isOptimizedFormat = ['image/webp', 'image/avif', 'image/svg+xml'].includes(file.type);
+    if (file.size < 1000000 && isOptimizedFormat) return file; 
+    
+    // Also skip very small files regardless of format to preserve original intent
+    if (file.size < 200000) return file;
 
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -12,9 +17,9 @@ export const compressImage = async (file: File): Promise<File> => {
             // Cleanup URL object
             URL.revokeObjectURL(url);
 
-            // 2. Calculate new dimensions (Max width 1920px)
+            // 2. Calculate new dimensions (Max width 3840px - 4K)
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 1920;
+            const MAX_WIDTH = 3840;
             let width = img.width;
             let height = img.height;
 
@@ -33,7 +38,7 @@ export const compressImage = async (file: File): Promise<File> => {
                 return;
             }
 
-            // Draw with smoothing
+            // Draw with high smoothing quality
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(img, 0, 0, width, height);
@@ -49,7 +54,7 @@ export const compressImage = async (file: File): Promise<File> => {
                 } else {
                     reject(new Error("Compression failed"));
                 }
-            }, 'image/webp', 0.8); // 80% Quality
+            }, 'image/webp', 0.9); // 90% Quality for premium visual fidelity
         };
         img.onerror = (error) => {
             URL.revokeObjectURL(url);

@@ -79,8 +79,8 @@ export const supabaseProductService = {
         if (typeof input.price !== 'number' || input.price < 0) throw new Error('El precio debe ser un número positivo');
 
         const sanitizedData = {
-            name: input.name.trim().slice(0, 100),
-            description: input.description?.trim().slice(0, 2000) || null,
+            name: input.name.trim(),
+            description: input.description?.trim() || null,
             price: Math.max(0, input.price),
             images: input.images || [],
             status: input.status || ProductStatus.IN_STOCK,
@@ -113,8 +113,8 @@ export const supabaseProductService = {
 
         // Validation & Sanitization
         const sanitizedUpdates: any = {};
-        if (updates.name) sanitizedUpdates.name = updates.name.trim().slice(0, 100);
-        if (updates.description !== undefined) sanitizedUpdates.description = updates.description?.trim().slice(0, 2000) || null;
+        if (updates.name) sanitizedUpdates.name = updates.name.trim();
+        if (updates.description !== undefined) sanitizedUpdates.description = updates.description?.trim() || null;
         if (updates.price !== undefined) sanitizedUpdates.price = Math.max(0, updates.price);
         if (updates.images) sanitizedUpdates.images = updates.images;
         if (updates.status) sanitizedUpdates.status = updates.status;
@@ -246,8 +246,8 @@ export const supabaseProductService = {
         if (!inputs.length) return [];
 
         const sanitizedData = inputs.map(input => ({
-            name: input.name.trim().slice(0, 100),
-            description: input.description?.trim().slice(0, 2000) || null,
+            name: input.name.trim(),
+            description: input.description?.trim() || null,
             price: Math.max(0, input.price),
             images: input.images || [],
             status: input.status || ProductStatus.IN_STOCK,
