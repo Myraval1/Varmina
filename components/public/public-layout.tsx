@@ -217,7 +217,7 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children
 
             {/* Search Overlay */}
             {isSearchOpen && (
-                <div className="fixed inset-0 z-[70] bg-white/98 dark:bg-stone-950/98 backdrop-blur-sm animate-fade-in">
+                <div className="fixed inset-0 z-[70] bg-white/98 dark:bg-stone-950/98 animate-fade-in">
                     <div className="max-w-2xl mx-auto px-6 pt-24 md:pt-32">
                         <div className="flex items-center justify-between mb-8">
                             <h2 className="font-serif text-lg uppercase tracking-[0.2em] text-stone-900 dark:text-white">Buscar</h2>
@@ -274,7 +274,7 @@ export const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children
                 isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
             )}>
                 <div 
-                    className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"
+                    className="absolute inset-0 bg-stone-900/60"
                     onClick={() => setIsMobileMenuOpen(false)}
                 />
                 <div className={cn(

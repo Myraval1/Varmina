@@ -284,7 +284,7 @@ const MenuButton = ({ activeAdminTab, setActiveAdminTab, toggleDarkMode, handleL
 
             {isOpen && (
                 <>
-                    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[-1]" onClick={() => setIsOpen(false)} />
+                    <div className="fixed inset-0 bg-black/30 z-[-1]" onClick={() => setIsOpen(false)} />
                     <div className="absolute bottom-20 right-0 w-56 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-2xl animate-fade-in-up overflow-hidden">
                         <div className="p-2 space-y-1">
                             {menuItems.map(item => (

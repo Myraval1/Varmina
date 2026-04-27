@@ -53,7 +53,7 @@ const ToastItem: React.FC<{
             className={cn(
                 "pointer-events-auto flex items-center gap-4 px-6 py-4",
                 "shadow-2xl min-w-[300px] max-w-[420px] border-l-2 rounded-r-lg",
-                "animate-slide-in-right backdrop-blur-sm",
+                "animate-slide-in-right",
                 colorMap[type],
                 type === 'info' ? 'text-white' : 'text-stone-800 dark:text-stone-200'
             )}

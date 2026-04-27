@@ -406,7 +406,7 @@ export const PublicCatalog = ({
             <div className={cn("fixed inset-0 z-50 transition-visibility duration-500", isFilterOpen ? 'visible' : 'invisible')}>
                 {/* Backdrop */}
                 <div
-                    className={cn("absolute inset-0 bg-stone-900/40 backdrop-blur-sm transition-opacity duration-500", isFilterOpen ? 'opacity-100' : 'opacity-0')}
+                    className={cn("absolute inset-0 bg-stone-900/60 transition-opacity duration-500", isFilterOpen ? 'opacity-100' : 'opacity-0')}
                     onClick={() => setIsFilterOpen(false)}
                 />
 
@@ -596,7 +596,7 @@ export const PublicCatalog = ({
             <button
                 onClick={scrollToTop}
                 className={cn(
-                    "fixed bottom-6 left-6 z-40 p-3 border border-stone-300 dark:border-stone-600 text-stone-600 dark:text-stone-300 rounded-full shadow-lg backdrop-blur-md bg-white/70 dark:bg-stone-900/70 hover:border-gold-500 hover:text-gold-600 dark:hover:text-gold-400 transition-all duration-500",
+                    "fixed bottom-6 left-6 z-40 p-3 border border-stone-300 dark:border-stone-600 text-stone-600 dark:text-stone-300 rounded-full shadow-lg bg-white dark:bg-stone-900 hover:border-gold-500 hover:text-gold-600 dark:hover:text-gold-400 transition-all duration-500",
                     showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
                 )}
                 aria-label="Volver arriba"

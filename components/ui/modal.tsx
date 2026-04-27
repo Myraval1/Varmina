@@ -63,7 +63,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         >
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-stone-900/50 backdrop-blur-sm animate-fade-in"
+                className="absolute inset-0 bg-stone-900/60 animate-fade-in"
                 onClick={onClose}
                 aria-hidden="true"
             />
@@ -99,7 +99,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
                 {showCloseButton && !title && (
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 z-[50] p-2 bg-white/80 dark:bg-stone-800/80 backdrop-blur-md rounded-full shadow-lg hover:rotate-90 transition-all duration-300"
+                        className="absolute top-4 right-4 z-[50] p-2 bg-white dark:bg-stone-800 rounded-full shadow-lg hover:rotate-90 transition-transform duration-300"
                         aria-label="Cerrar diálogo"
                     >
                         <X className="w-5 h-5 text-stone-900 dark:text-white" />

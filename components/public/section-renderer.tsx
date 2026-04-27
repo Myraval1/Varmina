@@ -503,7 +503,7 @@ const CatalogSection: React.FC<{ config: Record<string, any> }> = ({ config }) =
             {/* Filter Drawer */}
             {isFilterOpen && (
                 <>
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40" onClick={() => setIsFilterOpen(false)} />
+                    <div className="fixed inset-0 bg-black/60 z-40" onClick={() => setIsFilterOpen(false)} />
                     <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-white dark:bg-stone-950 z-50 shadow-2xl p-8 overflow-y-auto animate-slide-in-right">
                         <div className="flex items-center justify-between mb-8">
                             <h3 className="font-serif text-xl tracking-widest uppercase text-stone-900 dark:text-white">Filtros</h3>

@@ -97,19 +97,16 @@ body {
 }
 
 /* ── Smooth Theme Transitions ─────────────────── */
+/* Only structural layout wrappers get global theme transitions.
+   Interactive elements (button, input, a, etc.) use per-component
+   Tailwind transition utilities instead — avoids 300ms transitions
+   on every single div when modals/panels open. */
 body,
-div,
 nav,
 header,
 footer,
-section,
-aside,
-button,
-input,
-select,
-textarea,
-a {
-  transition-property: background-color, border-color, color, box-shadow;
+aside {
+  transition-property: background-color, border-color, color;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 300ms;
 }
@@ -305,6 +302,10 @@ a {
 
 .animate-slide-up-mobile {
   animation: slideUpMobile 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-pulse-whatsapp {
