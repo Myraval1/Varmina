@@ -746,20 +746,23 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                 <div 
                                     key={idx}
                                     className={cn(
-                                        "absolute inset-0 transition-opacity duration-700 ease-in-out w-full h-full flex items-center justify-center will-change-[opacity]",
+                                        "absolute inset-0 transition-opacity duration-700 ease-in-out w-full h-full flex items-center justify-center",
                                         isActive ? "opacity-100" : "opacity-0 pointer-events-none"
                                     )}
                                     style={{ transitionProperty: 'opacity' }}
                                 >
                                     <div 
-                                        className="relative w-full h-full transition-transform duration-300 ease-out flex items-center justify-center"
+                                        className={cn(
+                                            "relative w-full h-full flex items-center justify-center",
+                                            isActive && zoomLevel > 1 && "transition-transform duration-300 ease-out"
+                                        )}
                                         style={
                                             isActive && zoomLevel > 1 
                                                 ? { 
                                                     transform: `scale(${zoomLevel})`, 
                                                     transformOrigin: `${panPos.x}% ${panPos.y}%` 
                                                   } 
-                                                : { transform: 'scale(1)' }
+                                                : undefined
                                         }
                                     >
                                         <Image
@@ -768,6 +771,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                             className="object-contain p-4 md:p-12"
                                             sizes="100vw"
                                             alt={product.name}
+                                            priority={isActive}
                                             unoptimized
                                         />
                                     </div>
