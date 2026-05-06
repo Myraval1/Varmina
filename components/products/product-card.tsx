@@ -121,7 +121,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, cu
             {/* Info */}
             <div className={cn(
                 "flex flex-col transition-transform duration-500 ease-out",
-                isList ? "justify-center py-2 items-start" : "items-start pt-3 pb-1",
+                isList ? "justify-center py-2 items-start" : "items-start pt-2.5 pb-0.5",
                 hoverActive && !isList && "translate-y-[-4px]"
             )}>
                 {product.category && (

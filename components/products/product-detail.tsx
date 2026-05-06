@@ -285,7 +285,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                         {/* COL 2: Main Image Centerpiece */}
                         <div className="relative w-full lg:max-w-[800px] mx-auto group">
                             <div 
-                                className="relative aspect-[4/5] md:aspect-[3/4] lg:aspect-[4/5] w-full max-h-[85vh] bg-white dark:bg-stone-900/40 rounded-xl overflow-hidden shadow-sm md:shadow-none mx-auto cursor-zoom-in"
+                                className="relative aspect-[3/4] md:aspect-[3/4] lg:aspect-[4/5] w-full max-h-[55vh] md:max-h-[80vh] bg-white dark:bg-stone-900/40 rounded-xl overflow-hidden shadow-sm md:shadow-none mx-auto cursor-zoom-in"
                                 onTouchStart={onTouchStart}
                                 onTouchMove={onTouchMove}
                                 onTouchEnd={onTouchEnd}
@@ -369,7 +369,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
 
                         {/* Mobile: Horizontal Thumb Strip */}
                         {imagesToDisplay.length > 1 && (
-                            <div className="flex lg:hidden gap-3 mt-4 overflow-x-auto pb-4 hide-scrollbar">
+                            <div className="flex lg:hidden gap-3 mt-2 overflow-x-auto pb-2 hide-scrollbar">
                                 {imagesToDisplay.map((img, idx) => (
                                     <button
                                         key={idx}
@@ -387,9 +387,9 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                     </div>
 
                     {/* COL 3: Product Information */}
-                    <div className="space-y-10 xl:space-y-12">
+                    <div className="space-y-5 xl:space-y-6">
                         {/* Header Info */}
-                        <div className="space-y-6">
+                        <div className="space-y-4">
                             <div className="space-y-2">
                                 {product.collections && product.collections.length > 0 && (
                                     <div className="flex flex-wrap gap-2 mb-2">
@@ -423,23 +423,16 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                     </span>
                                 </div>
                             )}
-
-
                         </div>
 
 
                         {/* Options & Variants */}
                         <div className="space-y-8">
                             {product.variants && product.variants.length > 0 && (
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-end">
-                                        <label className="text-[10px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
-                                            Selección {product.variants.length > 1 ? product.category || 'Opción' : 'Opción'}
-                                        </label>
-                                        <span className="text-[10px] text-stone-400 dark:text-stone-500 uppercase tracking-widest font-medium">
-                                            {selectedVariant?.name || 'Elige uno'}
-                                        </span>
-                                    </div>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
+                                        Selección {product.variants.length > 1 ? product.category || 'Opción' : 'Opción'}
+                                    </label>
                                     <div className="flex flex-wrap gap-2.5">
                                         {product.variants.map((v) => (
                                             <button
@@ -508,7 +501,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                                 )}
 
                                 {/* Trust Bar */}
-                                <div className="grid grid-cols-2 gap-3 pt-5 mt-1 border-t border-stone-100 dark:border-stone-800">
+                                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-stone-100 dark:border-stone-800">
                                     {productFeatures.map((feature, idx) => (
                                         <div key={idx} className="flex items-center gap-2.5">
                                             <div className="w-7 h-7 rounded-full bg-stone-50 dark:bg-stone-900 flex items-center justify-center text-stone-400 shrink-0">
@@ -522,9 +515,9 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                         </div>
                     </div>
 
-                    <div className="lg:col-start-2 lg:col-span-2 mt-8 lg:mt-12">
+                    <div className="lg:col-start-2 lg:col-span-2 mt-4 lg:mt-6">
                         {/* Accordion Sections - Full Width below main components */}
-                        <div className="space-y-0.5 border-t border-stone-200 dark:border-stone-800 pt-8">
+                        <div className="space-y-0.5 border-t border-stone-200 dark:border-stone-800 pt-4">
                             {/* Description Section */}
                             <div className="border-b border-stone-100 dark:border-stone-900">
                                 <button 
@@ -600,13 +593,13 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                         </div>
 
                         {/* Secure Checkout Badges - Configurable from Admin */}
-                        <div className="flex items-center justify-center gap-6 pt-12">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-8">
                              {trustBadges.map((badge, idx) => {
                                  const Icon = ICON_MAP[badge.icon.toLowerCase()] || Shield;
                                  return (
-                                     <div key={idx} className="flex flex-col items-center gap-2 opacity-40">
+                                     <div key={idx} className="flex flex-col items-center gap-1.5 text-center opacity-40">
                                          <Icon className="w-5 h-5" />
-                                         <span className="text-[8px] uppercase tracking-widest font-bold">{badge.text}</span>
+                                         <span className="text-[8px] uppercase tracking-widest font-bold leading-tight">{badge.text}</span>
                                      </div>
                                  );
                              })}
@@ -615,8 +608,8 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                 </div>
 
                 {/* ─── RELACIONADOS ─── */}
-                <div className="mt-32 pt-24 border-t border-stone-100 dark:border-stone-900">
-                    <div className="flex flex-col items-center mb-16">
+                <div className="mt-16 pt-12 border-t border-stone-100 dark:border-stone-900">
+                    <div className="flex flex-col items-center mb-10">
                         <div className="w-12 h-px bg-gold-400 mb-6" />
                         <h2 className="text-2xl md:text-3xl font-serif tracking-[0.2em] text-stone-900 dark:text-white uppercase text-center">
                             También te puede interesar
