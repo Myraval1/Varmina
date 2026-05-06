@@ -255,7 +255,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
 
             {/* ─── PREMIUM PRODUCT PAGE LAYOUT ─── */}
             <main className="max-w-[1600px] mx-auto px-4 md:px-12 py-4 md:py-8 pb-24">
-                <div className="grid grid-cols-1 lg:grid-cols-[100px_1fr_420px] xl:grid-cols-[120px_1fr_480px] gap-8 xl:gap-16 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-[100px_1fr_420px] xl:grid-cols-[120px_1fr_480px] gap-4 lg:gap-8 xl:gap-16 items-start">
                     
                     {/* COL 1: Vertical Thumbnails (Desktop Only) */}
                     <div className="hidden lg:flex flex-col gap-3 sticky top-32 overflow-y-auto max-h-[70vh] px-1 hide-scrollbar">
@@ -285,7 +285,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                         {/* COL 2: Main Image Centerpiece */}
                         <div className="relative w-full lg:max-w-[800px] mx-auto group">
                             <div 
-                                className="relative aspect-[3/4] md:aspect-[3/4] lg:aspect-[4/5] w-full max-h-[55vh] md:max-h-[80vh] bg-white dark:bg-stone-900/40 rounded-xl overflow-hidden shadow-sm md:shadow-none mx-auto cursor-zoom-in"
+                                className="relative aspect-[3/4] md:aspect-[3/4] lg:aspect-[4/5] w-full max-h-[60vh] md:max-h-[80vh] bg-white dark:bg-stone-900/40 rounded-xl overflow-hidden shadow-sm md:shadow-none mx-auto cursor-zoom-in"
                                 onTouchStart={onTouchStart}
                                 onTouchMove={onTouchMove}
                                 onTouchEnd={onTouchEnd}
@@ -429,9 +429,9 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
                         {/* Options & Variants */}
                         <div className="space-y-8">
                             {product.variants && product.variants.length > 0 && (
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
-                                        Selección {product.variants.length > 1 ? product.category || 'Opción' : 'Opción'}
+                                        Selecciona una variante
                                     </label>
                                     <div className="flex flex-wrap gap-2.5">
                                         {product.variants.map((v) => (
