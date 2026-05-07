@@ -427,7 +427,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product, currency 
 
 
                         {/* Options & Variants */}
-                        <div className="space-y-8">
+                        <div className="space-y-10">
                             {product.variants && product.variants.length > 0 && (
                                 <div className="space-y-5">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-stone-900 dark:text-white">
